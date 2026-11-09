@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Familie">
+<title>Kinder · Familienzentrale</title>
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0}img{max-width:100%}[hidden]{display:none!important}*{-webkit-touch-callout:none}</style>
+<style>
+:root {
+  /* Layout: Kopf (Jetzt-Phase groß links, Uhr/Datum/Kita-Chip rechts) · Tagesleiste 6–21 Uhr mit Markierung · große Emoji-Karten, Spaltenzahl nach Anzahl · Vorschau-Leiste (nur Entwurf) */
+  --bg: #F3F4F1;
+  --surface: #FFFFFF;
+  --line: #DEE1DB;
+  --fg: #1B1F1C;
+  --muted: #5F6761;
+  --ink: #1B1F1C;
+  --on-ink: #FFFFFF;
+  --a-morgen: #C8662A;  --s-morgen: #FBE8D9;
+  --a-tag: #2A6FB0;     --s-tag: #E0ECF8;
+  --a-leise: #6D669C;   --s-leise: #E6E3F2;
+  --a-abend: #C98B3E;   --s-abend: #F6E9D6;
+  --seg-off: #E7E9E4;
+  --accent: var(--a-tag);
+  --soft: var(--s-tag);
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "SF Pro Display", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-emoji: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  --r: 28px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121513; --surface: #1B1F1C; --line: #323833; --fg: #E7EBE6; --muted: #9AA39C; --ink: #E7EBE6; --on-ink: #141715;
+    --a-morgen: #F0A06A; --s-morgen: #3A2717;
+    --a-tag: #86B4E8;    --s-tag: #1B2A3B;
+    --a-leise: #ABA4D8;  --s-leise: #26233A;
+    --a-abend: #E2B06C;  --s-abend: #33271A;
+    --seg-off: #262B27;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121513; --surface: #1B1F1C; --line: #323833; --fg: #E7EBE6; --muted: #9AA39C; --ink: #E7EBE6; --on-ink: #141715;
+  --a-morgen: #F0A06A; --s-morgen: #3A2717;
+  --a-tag: #86B4E8;    --s-tag: #1B2A3B;
+  --a-leise: #ABA4D8;  --s-leise: #26233A;
+  --a-abend: #E2B06C;  --s-abend: #33271A;
+  --seg-off: #262B27;
+  color-scheme: dark;
+}
+
+/* Phase bestimmt die Akzentfarbe */
+:root[data-phase="morgen"] { --accent: var(--a-morgen); --soft: var(--s-morgen); }
+:root[data-phase="tag"] { --accent: var(--a-tag); --soft: var(--s-tag); }
+:root[data-phase="leisezeit"] { --accent: var(--a-leise); --soft: var(--s-leise); }
+:root[data-phase="abend"], :root[data-phase="nacht"] { --accent: var(--a-abend); --soft: var(--s-abend); }
+
+/* Anzeigemodus Leisezeit: ruhig, weich, leicht gedimmt */
+:root[data-mode="leise"] {
+  --bg: #E7E6EC; --surface: #F1F0F5; --line: #D6D4DF; --fg: #34323F; --muted: #6C6A7A; --ink: #34323F; --on-ink: #F1F0F5;
+  --accent: #6D669C; --soft: #E0DDEC; --seg-off: #DCDAE4;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"])[data-mode="leise"] {
+    --bg: #141319; --surface: #1C1B23; --line: #2C2A36; --fg: #C9C5D6; --muted: #8A8699; --ink: #C9C5D6; --on-ink: #141319;
+    --accent: #9E97C9; --soft: #25233A; --seg-off: #23222C;
+  }
+}
+:root[data-theme="dark"][data-mode="leise"] {
+  --bg: #141319; --surface: #1C1B23; --line: #2C2A36; --fg: #C9C5D6; --muted: #8A8699; --ink: #C9C5D6; --on-ink: #141319;
+  --accent: #9E97C9; --soft: #25233A; --seg-off: #23222C;
+}
+/* Abendmodus: warm, stark abgedunkelt (gleich in beiden Themes) */
+:root[data-mode="abend"] {
+  --bg: #17120D; --surface: #211A13; --line: #33281D; --fg: #E6D5BF; --muted: #A28D74; --ink: #E6D5BF; --on-ink: #17120D;
+  --accent: #D9A15A; --soft: #2E2318; --seg-off: #281F17;
+  color-scheme: dark;
+}
+/* Nachtmodus: fast schwarz */
+:root[data-mode="nacht"] {
+  --bg: #050505; --surface: #0E0D0C; --line: #1B1916; --fg: #6E665D; --muted: #4E4943; --ink: #6E665D; --on-ink: #050505;
+  --accent: #7A6A55; --soft: #141210; --seg-off: #121110;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body { background: var(--bg); color: var(--fg); font: 17px/1.4 var(--font); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; transition: background-color .6s ease, color .6s ease; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 12px; }
+h1, h2 { margin: 0; text-wrap: balance; }
+p { margin: 0; }
+.emo { font-family: var(--font-emoji); line-height: 1; }
+
+.app {
+  max-width: 1180px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 22px 28px;
+  display: grid; gap: 24px;
+}
+
+/* Kopf */
+.head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 28px; align-items: end; }
+.now { display: grid; gap: 4px; min-width: 0; }
+.eyebrow { font-size: 15px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.now h1 { display: flex; align-items: center; gap: 16px; font: 800 64px/1.02 var(--font-display); letter-spacing: -.02em; color: var(--fg); }
+.now h1 .emo { font-size: 58px; }
+.now .sub { font-size: 21px; color: var(--muted); }
+.now .sub b { color: var(--fg); font-weight: 650; }
+.side { display: grid; justify-items: end; gap: 6px; text-align: right; }
+.clock { font: 700 46px/1 var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.date { font-size: 18px; color: var(--muted); }
+.daychip { display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; padding: 8px 16px 8px 12px; border-radius: 999px; background: var(--soft); color: var(--fg); font-weight: 650; font-size: 18px; }
+.daychip .emo { font-size: 24px; }
+.daychip small { font-weight: 500; color: var(--muted); font-size: 16px; }
+@media (max-width: 700px) {
+  .head { grid-template-columns: 1fr; }
+  .side { justify-items: start; text-align: left; grid-template-columns: auto auto; align-items: baseline; column-gap: 12px; }
+  .daychip { grid-column: 1 / -1; justify-self: start; }
+  .now h1 { font-size: 44px; } .now h1 .emo { font-size: 40px; }
+  .clock { font-size: 34px; }
+  .now .sub { font-size: 18px; }
+}
+
+/* Tagesleiste */
+.daybar { display: grid; gap: 6px; }
+.track { position: relative; display: flex; gap: 4px; height: 52px; }
+.seg { flex: var(--w) 1 0; min-width: 0; border-radius: 14px; background: var(--seg-off); display: grid; place-items: center; font-size: 26px; opacity: .55; transition: opacity .4s, background-color .4s; }
+.seg.on { background: var(--soft); opacity: 1; box-shadow: inset 0 0 0 3px var(--accent); }
+.seg.past { opacity: .35; }
+.marker { position: absolute; top: -8px; bottom: -8px; width: 6px; margin-left: -3px; border-radius: 3px; background: var(--accent); box-shadow: 0 0 0 3px var(--bg); transition: left .6s ease; }
+.ticks { position: relative; height: 18px; font-size: 13.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.ticks span:first-child { transform: none; }
+.ticks span:last-child { transform: translateX(-100%); }
+@media (max-width: 560px) { .ticks span.mid { display: none; } .seg { font-size: 20px; } .track { height: 44px; } }
+
+/* Karten */
+.cards { display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 270px)); justify-content: center; gap: 22px; }
+@media (max-width: 640px) { .cards { grid-template-columns: repeat(var(--mcols, 2), minmax(0, 1fr)); gap: 14px; } }
+.card { background: var(--surface); border-radius: var(--r); padding: 14px 14px 20px; display: grid; gap: 14px; justify-items: center; text-align: center; box-shadow: 0 1px 0 var(--line); }
+.tile { width: 100%; aspect-ratio: 5 / 4; max-width: 100%; border-radius: 20px; background: var(--soft); display: grid; place-items: center; overflow: hidden; container-type: inline-size; }
+.tile .emo { font-size: clamp(40px, 9vw, 112px); white-space: nowrap; }
+@supports (font-size: 1cqw) {
+  .tile .emo { font-size: min(52cqw, 120px); }
+  .tile .emo.two { font-size: min(32cqw, 80px); }
+  .tile .emo.many { font-size: min(22cqw, 56px); }
+}
+.card h2 { font: 700 28px/1.15 var(--font-display); letter-spacing: -.01em; overflow-wrap: anywhere; padding-inline: 4px; }
+@media (max-width: 640px) { .card h2 { font-size: 21px; } .card { padding: 10px 10px 14px; gap: 10px; border-radius: 22px; } }
+.note { justify-self: center; color: var(--muted); font-size: 18px; text-align: center; }
+.note b { color: var(--fg); font-weight: 650; }
+
+:root[data-mode="hell"] .cards.fresh .card { animation: rise .45s ease both; }
+:root[data-mode="hell"] .cards.fresh .card:nth-child(2) { animation-delay: .06s; }
+:root[data-mode="hell"] .cards.fresh .card:nth-child(3) { animation-delay: .12s; }
+:root[data-mode="hell"] .cards.fresh .card:nth-child(4) { animation-delay: .18s; }
+:root[data-mode="hell"] .cards.fresh .card:nth-child(5) { animation-delay: .24s; }
+:root[data-mode="hell"] .cards.fresh .card:nth-child(6) { animation-delay: .3s; }
+@keyframes rise { from { transform: translateY(10px); opacity: .4; } to { transform: none; opacity: 1; } }
+:root[data-mode="leise"] .card, :root[data-mode="abend"] .card { box-shadow: none; }
+
+/* Nacht */
+.night { min-height: 62vh; display: grid; place-items: center; text-align: center; border: 0; background: transparent; width: 100%; padding: 40px 0; }
+.night .inner { display: grid; gap: 14px; justify-items: center; }
+.night .clock { font-size: 64px; color: var(--fg); }
+.night .emo { font-size: 72px; opacity: .55; }
+.night p { color: var(--muted); font-size: 17px; }
+.peekbar { justify-self: center; color: var(--muted); font-size: 15px; }
+
+/* Vorschau (nur Entwurf) */
+.preview { border: 1px dashed var(--line); border-radius: 18px; padding: 14px 16px; display: grid; gap: 12px; }
+.pv-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.pv-head b { font-size: 15px; letter-spacing: .06em; text-transform: uppercase; }
+.pv-head span { color: var(--muted); font-size: 15px; }
+.pv-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.pv-row .lbl { width: 72px; color: var(--muted); font-size: 15px; font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips button, .pvbtn { border: 1px solid var(--line); background: var(--surface); min-height: 44px; padding: 0 14px; border-radius: 999px; font-weight: 600; font-size: 15.5px; color: var(--fg); display: inline-flex; align-items: center; gap: 6px; }
+.chips button[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+.chips .emo { font-size: 18px; }
+#pv-date { min-height: 44px; border: 1px solid var(--line); border-radius: 12px; padding: 0 12px; background: var(--surface); }
+.switch { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-size: 16px; cursor: pointer; }
+.switch input { width: 22px; height: 22px; accent-color: var(--accent); }
+.pv-info { color: var(--muted); font-size: 14.5px; }
+.foot { color: var(--muted); font-size: 13.5px; text-align: center; }
+:root[data-mode="nacht"] .preview, :root[data-mode="nacht"] .foot { --fg: #A39A8F; --muted: #7A7369; --line: #2A2723; --surface: #12110F; --ink: #A39A8F; --on-ink: #050505; color: var(--fg); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+<style>
+.meal { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px 22px; margin-top: 22px; padding: 18px 22px; border-radius: var(--r); background: var(--surface); }
+.meal .mv { width: 120px; height: 120px; border-radius: 22px; background: var(--soft); display: grid; place-items: center; overflow: hidden; }
+.meal .mv .emo { font-size: 76px; }
+.meal .mv img { width: 100%; height: 100%; object-fit: cover; }
+.meal .ml { margin: 0; font-size: 20px; color: var(--muted); font-weight: 600; }
+.meal .mn { margin: 0; font: 700 34px/1.15 var(--font-display); overflow-wrap: anywhere; }
+.meal .mm { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 17px; border-top: 1px solid var(--line); padding-top: 10px; }
+.meal .mm b { color: var(--fg); }
+@media (max-width: 560px) { .meal .mv { width: 84px; height: 84px; } .meal .mv .emo { font-size: 52px; } .meal .mn { font-size: 26px; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="head" id="head"></header>
+  <div class="daybar" id="daybar" aria-hidden="true"></div>
+  <main id="main" aria-live="polite"></main>
+</div>
+<script src="../core.js"></script>
+<script>(function () {
+  "use strict";
+  const $ = (s) => document.querySelector(s);
+  const { esc, pad, iso, parse, addDays, list } = FZ;
+  const WD = FZ.WD;
+  const WD_LONG = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+  const toMin = FZ.toMin;
+  const fmtTime = (min) => Math.floor(min / 60) + ":" + pad(min % 60);
+  function emojiCount(s) {
+    const t = String(s || "").replace(/\s+/g, "");
+    try { if (window.Intl && Intl.Segmenter) return [...new Intl.Segmenter("de", { granularity: "grapheme" }).segment(t)].length; } catch (e) { /* weiter unten */ }
+    return t.replace(/[️‍]/g, "").length > 2 ? 2 : 1;
+  }
+  const emojiClass = (s) => { const n = emojiCount(s); return n >= 3 ? " many" : n === 2 ? " two" : ""; };
+
+  function aufgaben() {
+    return FZ.reiter("Kinderaufgaben").filter((r) => r.ID).map((r) => ({
+      id: r.ID, text: r.Text, emoji: r.Emoji, phasen: r.Tagesphasen, wochentage: r.Wochentage, wann: (r.Wann || "immer").trim(),
+      aktiv: String(r.Aktiv || "").trim().toLowerCase(), rf: Number(r.Reihenfolge) || 99
+    }));
+  }
+  function itemsFor(phase, s) {
+    const today = FZ.dayInfo(s), tomorrow = FZ.dayInfo(addDays(s, 1));
+    const w = WD[parse(s).getDay()];
+    return aufgaben().filter((k) => {
+      if (k.aktiv !== "ja") return false;
+      if (!list(k.phasen).includes(phase.id)) return false;
+      const tage = list(k.wochentage);
+      if (tage.length && !tage.includes(w)) return false;
+      if (k.wann === "kita") return today.kita;
+      if (k.wann === "zuhause") return !today.kita;
+      if (k.wann === "vor_kita") return tomorrow.kita;
+      return true;
+    }).sort((a, b) => a.rf - b.rf);
+  }
+  function nextPhase(P, cur) { const i = P.indexOf(cur); return P[(i + 1) % P.length]; }
+
+  const DAY_START = 360, DAY_END = 1260;
+  function renderDaybar(P, phase, min) {
+    const segs = P.filter((p) => p.id !== "nacht" && toMin(p.start) >= DAY_START && toMin(p.ende) <= DAY_END);
+    let h = '<div class="track">';
+    for (const p of segs) {
+      const a = toMin(p.start), b = toMin(p.ende);
+      const cls = p === phase ? " on" : min >= b ? " past" : "";
+      h += '<div class="seg' + cls + '" style="--w:' + (b - a) + '"><span class="emo">' + esc(p.symbol) + "</span></div>";
+    }
+    if (min >= DAY_START && min < DAY_END) {
+      const idx = Math.max(0, segs.findIndex((p) => min >= toMin(p.start) && min < toMin(p.ende)));
+      const frac = (min - DAY_START) / (DAY_END - DAY_START);
+      h += '<div class="marker" style="left:calc(' + (frac * 100).toFixed(2) + "% + " + (idx * 4 - frac * (segs.length - 1) * 4).toFixed(1) + 'px)"></div>';
+    }
+    h += '</div><div class="ticks">';
+    const marks = [DAY_START].concat(segs.map((p) => toMin(p.ende)));
+    marks.forEach((m, i) => {
+      const left = ((m - DAY_START) / (DAY_END - DAY_START)) * 100;
+      h += '<span class="' + (i === 0 || i === marks.length - 1 ? "" : "mid") + '" style="left:' + left.toFixed(2) + '%">' + fmtTime(m) + "</span>";
+    });
+    return h + "</div>";
+  }
+  function mealTile(date) {
+    const m = FZ.meal(date), m2 = FZ.meal(addDays(date, 1));
+    if (!m && !m2) return "";
+    let lbl = "Heute Abend gibt's", name = m ? m.name : "";
+    if (m && m.status !== "gericht") { lbl = "Heute Abend"; name = m.kid; }
+    const vis = (x, cls) => '<span class="' + cls + '">' + (x && x.bild ? '<img src="' + esc(x.bild) + '" alt="">' : '<span class="emo" aria-hidden="true">' + esc(x ? x.emoji : "❔") + "</span>") + "</span>";
+    return '<section class="meal">' + (m ? vis(m, "mv") + '<div class="mt"><p class="ml">' + lbl + '</p><p class="mn">' + esc(name) + "</p></div>" : '<div class="mt"><p class="ml">Heute Abend</p><p class="mn">noch nicht geplant</p></div>') +
+      (m2 ? '<p class="mm">Morgen: <b>' + esc(m2.status === "gericht" ? m2.name : m2.name) + "</b></p>" : "") + "</section>";
+  }
+
+  let peekUntil = 0, peekTimer = null, lastKey = "";
+  function render() {
+    const now = new Date(), date = iso(now), min = now.getHours() * 60 + now.getMinutes();
+    const P = FZ.phasen();
+    const phase = FZ.phaseAt(min, P);
+    const peek = phase.modus === "nacht" && Date.now() < peekUntil;
+    const root = document.documentElement;
+    root.dataset.phase = phase.id;
+    root.dataset.mode = peek ? "abend" : phase.modus;
+    if (FZ.gate($("#main"))) { $("#head").hidden = true; $("#daybar").hidden = true; return; }
+
+    const info = FZ.dayInfo(date);
+    const nxt = nextPhase(P, phase);
+    const d = parse(date);
+    const dateTxt = WD_LONG[d.getDay()] + ", " + d.getDate() + ". " + d.toLocaleDateString("de-DE", { month: "long" });
+    const items = itemsFor(phase, date);
+
+    if (phase.modus === "nacht" && !peek) {
+      $("#head").hidden = true;
+      $("#daybar").hidden = true;
+      $("#main").innerHTML = '<button type="button" class="night" id="night" aria-label="Kurz die Kinderseite zeigen"><span class="inner">' +
+        '<span class="clock">' + fmtTime(min) + '</span><span class="emo">😴</span><p>Schlafenszeit · Antippen zeigt kurz die Seite</p></span></button>';
+      lastKey = "nacht";
+      return;
+    }
+
+    $("#head").hidden = false;
+    $("#daybar").hidden = false;
+    $("#head").innerHTML =
+      '<div class="now"><span class="eyebrow">Jetzt ist</span>' +
+      '<h1><span class="emo">' + esc(phase.symbol) + "</span>" + esc(phase.name) + "</h1>" +
+      '<p class="sub">bis ' + fmtTime(toMin(phase.ende)) + " Uhr · danach <b>" + esc(nxt.name) + "</b> " + '<span class="emo">' + esc(nxt.symbol) + "</span></p></div>" +
+      '<div class="side"><div class="clock">' + fmtTime(min) + '</div><div class="date">' + esc(dateTxt) + "</div>" +
+      (info.kita
+        ? '<div class="daychip"><span class="emo">🏫</span>Kita-Tag</div>'
+        : '<div class="daychip"><span class="emo">🏠</span>Zuhause-Tag <small>' + esc(info.grund) + "</small></div>") +
+      "</div>";
+    $("#daybar").innerHTML = renderDaybar(P, phase, min);
+
+    const key = phase.id + "|" + items.map((k) => k.id).join(",");
+    const fresh = key !== lastKey;
+    lastKey = key;
+    const cols = items.length <= 4 ? Math.max(1, items.length) : Math.ceil(items.length / 2);
+    let h = items.length
+      ? '<div class="cards' + (fresh ? " fresh" : "") + '" style="--cols:' + cols + ";--mcols:" + Math.min(cols, 2) + '">' + items.map((k) =>
+          '<article class="card"><div class="tile"><span class="emo' + emojiClass(k.emoji) + '" aria-hidden="true">' + esc(k.emoji) + "</span></div><h2>" + esc(k.text) + "</h2></article>").join("") + "</div>"
+      : '<p class="note">Gerade steht nichts an.</p>';
+    if (phase.modus !== "nacht") h += mealTile(date);
+    if (peek) h += '<p class="peekbar">Gleich wird es wieder dunkel.</p>';
+    $("#main").innerHTML = h;
+  }
+
+  $("#main").addEventListener("click", (ev) => {
+    if (!ev.target.closest("#night")) return;
+    peekUntil = Date.now() + 15000;
+    render();
+    clearTimeout(peekTimer);
+    peekTimer = setTimeout(render, 15100);
+  });
+
+  FZ.on(render);
+  FZ.nav("kinder");
+  FZ.start();
+  render();
+  setInterval(render, 20000);
+})();
+</script>
+</body>
+</html>

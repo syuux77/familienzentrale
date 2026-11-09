@@ -1,6 +1,14 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Familie">
 <title>Haushalt · Familienzentrale</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0}img{max-width:100%}[hidden]{display:none!important}*{-webkit-touch-callout:none}</style>
 <style>
 :root {
   /* Layout: Kopfzeile mit Reitern · Heute = Leiste „Für alle“ über zwei Personenspalten (Christian | Lisa) · Statistik = Kennzahlen, Diagramme, Aufgabentabelle */
@@ -280,7 +288,8 @@ p { margin: 0; }
 .loading { color: var(--muted); padding: 40px 0; text-align: center; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
-
+</head>
+<body>
 <div class="app">
   <header class="top">
     <div class="title">
@@ -305,7 +314,7 @@ p { margin: 0; }
   <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
 </div>
 <div id="toast" class="toast" role="status" hidden></div>
-
+<script src="../core.js"></script>
 <script>
 (function () {
   "use strict";
@@ -405,20 +414,10 @@ p { margin: 0; }
   }
 
   /* ---------- Verbindung zur Google-Tabelle (Apps Script) ---------- */
-  const API = "https://script.google.com/macros/s/AKfycbx6trLZbNKs4m9sMgQKG6xt35S-Xtd9nEKUnd322uPoBOpuT7GgxQEgpcp0jS6aI12LdQ/exec";
-  const CACHE = "fz.haushalt.cache.v1";
+    const CACHE = "fz.haushalt.cache.v1";
   const WD_CODE = ["so", "mo", "di", "mi", "do", "fr", "sa"];
 
-  // Einrichtungs-Link: …/#key=SCHLÜSSEL (iPad zusätzlich &geraet=wand). Das Gerät merkt sich beides.
-  function readSetup() {
-    let key = "", geraet = "";
-    try { key = localStorage.getItem("fz.key") || ""; geraet = localStorage.getItem("fz.geraet") || ""; } catch (e) { /* kein Speicher */ }
-    const hp = new URLSearchParams((location.hash || "").slice(1));
-    if (hp.get("key")) { key = hp.get("key").trim(); try { localStorage.setItem("fz.key", key); } catch (e) { /* ignorieren */ } }
-    if (hp.get("geraet")) { geraet = hp.get("geraet").trim(); try { localStorage.setItem("fz.geraet", geraet); } catch (e) { /* ignorieren */ } }
-    return { key, geraet: geraet || "handy" };
-  }
-  const SETUP = readSetup();
+  const SETUP = { get key() { return FZ.key; }, set key(v) { FZ.setKey(v); }, get geraet() { return FZ.geraet; } };
 
   function fromSheet(daten) {
     const ja = (v) => String(v || "").trim().toLowerCase() === "ja";
@@ -472,19 +471,8 @@ p { margin: 0; }
   const opEntry = (e) => ({ art: "anfuegen", reiter: "Erledigt", werte: { "Aufgaben-ID": real(e.aufgabeId), "Titel": e.titel, "Erledigt von": e.von, "Zeitpunkt": stamp(e.zeit), "Punkte": String(e.punkte), "Art": e.art } });
   const opDelEntry = (e) => ({ art: "loeschen", reiter: "Erledigt", wo: { ID: real(e.id) } });
 
-  async function apiGet() {
-    const r = await fetch(API + "?aktion=alles&key=" + encodeURIComponent(SETUP.key), { cache: "no-store" });
-    const j = await r.json();
-    if (!j.ok) throw new Error(j.fehler || "Unbekannter Fehler");
-    return j;
-  }
-  async function apiPost(aktionen) {
-    // Text statt JSON-Kopfzeile, damit der Browser keine Vorab-Anfrage schickt
-    const r = await fetch(API, { method: "POST", body: JSON.stringify({ key: SETUP.key, aktionen }) });
-    const j = await r.json();
-    if (!j.ok) throw new Error(j.fehler || "Unbekannter Fehler");
-    return j;
-  }
+  const apiGet = () => FZ.fetchAll();
+  const apiPost = (aktionen) => FZ.post(aktionen);
 
   let loaded = false, pending = 0, lastSync = null, syncErr = "", reloadMin = 3, queue = Promise.resolve(), idleTimer = null;
   const hhmm = (d) => pad(d.getHours()) + ":" + pad(d.getMinutes());
@@ -1013,6 +1001,8 @@ p { margin: 0; }
   let lastDay = todayIso();
   setInterval(() => { if (todayIso() !== lastDay) { lastDay = todayIso(); render(); } }, 60000);
 
+  FZ.nav("haushalt");
+  FZ.start({ auto: false });
   render();
   refresh(true).then(() => { if (!loaded) render(); });
   let lastPoll = Date.now();
@@ -1020,5 +1010,5 @@ p { margin: 0; }
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refresh(false); });
 })();
 </script>
-
-</body></html>
+</body>
+</html>

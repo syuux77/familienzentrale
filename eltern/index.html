@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Familie">
+<title>Eltern · Familienzentrale</title>
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0}img{max-width:100%}[hidden]{display:none!important}*{-webkit-touch-callout:none}</style>
+<style>
+:root {
+  /* Layout: Kopf (Titel, Sperr-Countdown, Schließen) · Karte „Heute“ mit Zuhause-Schalter · Karte Kinderaufgaben nach Tageszeit · Karte Kita-Tage · Leiste unten · Vorschau (nur Entwurf). Tokens wie Startseite/Kinderseite. */
+  --bg: #F3F4F1;
+  --surface: #FFFFFF;
+  --line: #DEE1DB;
+  --fg: #1B1F1C;
+  --muted: #5F6761;
+  --ink: #1B1F1C;
+  --on-ink: #FFFFFF;
+  --accent: #2A6FB0;
+  --soft: #E0ECF8;
+  --ok: #2E8B57; --ok-soft: #DDF0E4;
+  --warn: #B4542A;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "SF Pro Display", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-emoji: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  --r: 26px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121513; --surface: #1B1F1C; --line: #323833; --fg: #E7EBE6; --muted: #9AA39C; --ink: #E7EBE6; --on-ink: #141715;
+    --accent: #86B4E8; --soft: #1B2A3B; --ok: #6FC495; --ok-soft: #1C3326; --warn: #F0A06A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121513; --surface: #1B1F1C; --line: #323833; --fg: #E7EBE6; --muted: #9AA39C; --ink: #E7EBE6; --on-ink: #141715;
+  --accent: #86B4E8; --soft: #1B2A3B; --ok: #6FC495; --ok-soft: #1C3326; --warn: #F0A06A;
+  color-scheme: dark;
+}
+/* Abend/Nacht an der Wand: warm, abgedunkelt (wie Startseite) */
+:root[data-mode="abend"] {
+  --bg: #17120D; --surface: #211A13; --line: #33281D; --fg: #E6D5BF; --muted: #A28D74; --ink: #E6D5BF; --on-ink: #17120D;
+  --accent: #D9A15A; --soft: #2E2318; --ok: #9CC59F; --ok-soft: #26301F; --warn: #E2A06C;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body { background: var(--bg); color: var(--fg); font: 17px/1.4 var(--font); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; transition: background-color .6s ease, color .6s ease; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 12px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+p, ul { margin: 0; }
+ul { padding: 0; list-style: none; }
+.emo { font-family: var(--font-emoji); line-height: 1; }
+svg.ic { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+.app {
+  max-width: 1180px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px calc(118px + env(safe-area-inset-bottom, 0px));
+  display: grid; gap: 22px;
+}
+
+/* Kopf */
+.head { display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; }
+.head h1 { font: 700 40px/1.05 var(--font-display); letter-spacing: -.02em; display: flex; align-items: center; gap: 12px; margin-right: auto; }
+.head h1 svg { width: 34px; height: 34px; color: var(--accent); }
+.lockinfo { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.lockinfo svg { width: 18px; height: 18px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-weight: 650; font-size: 16px; }
+.btn.primary { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+
+/* Raster */
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: 20px; align-items: start; }
+.col { display: grid; gap: 20px; min-width: 0; }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+.card { background: var(--surface); border-radius: var(--r); padding: 18px 20px 20px; display: grid; gap: 14px; box-shadow: 0 1px 0 var(--line); min-width: 0; }
+:root[data-mode="abend"] .card { box-shadow: none; }
+.card-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.card-h h2 { display: flex; align-items: center; gap: 10px; font: 700 15px/1.2 var(--font); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.card-h h2 svg { width: 22px; height: 22px; color: var(--accent); }
+.hint { font-size: 15px; color: var(--muted); }
+
+/* Heute / Zuhause-Schalter */
+.daystate { display: grid; gap: 6px; }
+.daystate .big { font: 700 30px/1.15 var(--font-display); }
+.daystate .why { font-size: 16px; color: var(--muted); }
+.switchrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 16px; border-radius: 18px; background: var(--bg); }
+.switchrow b { font-size: 20px; display: block; }
+.switchrow small { font-size: 15px; color: var(--muted); }
+.switch { position: relative; width: 76px; height: 44px; border-radius: 999px; border: 0; background: var(--line); padding: 0; flex: none; transition: background-color .2s ease; }
+.switch::after { content: ""; position: absolute; top: 4px; left: 4px; width: 36px; height: 36px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s ease; }
+.switch[aria-checked="true"] { background: var(--ok); }
+.switch[aria-checked="true"]::after { transform: translateX(32px); }
+.switch:disabled { opacity: .45; cursor: not-allowed; }
+.switch.sm { width: 60px; height: 36px; }
+.switch.sm::after { width: 28px; height: 28px; }
+.switch.sm[aria-checked="true"]::after { transform: translateX(24px); }
+.kidsee { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 16px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
+.kidsee .emo { font-size: 26px; }
+.kidsee b { color: var(--fg); }
+
+/* Kita-Tage */
+.days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.day { min-height: 56px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); font-weight: 700; font-size: 17px; display: grid; place-items: center; }
+.day[aria-pressed="true"] { background: var(--ok-soft); border-color: var(--ok); color: var(--fg); }
+.day[aria-pressed="true"]::after { content: "🏫"; font-family: var(--font-emoji); font-size: 15px; line-height: 1; margin-top: -4px; }
+
+/* Kinderaufgaben */
+.phase { display: grid; gap: 8px; }
+.phase + .phase { border-top: 1px solid var(--line); padding-top: 14px; }
+.phase h3 { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; }
+.phase h3 .emo { font-size: 22px; }
+.phase h3 small { font-weight: 500; color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; }
+.item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 12px; align-items: center; min-height: 60px; padding: 6px 8px 6px 12px; border-radius: 16px; background: var(--bg); }
+.item .emo { font-size: 30px; width: 40px; text-align: center; }
+.item .t { font-size: 19px; font-weight: 600; overflow-wrap: anywhere; }
+.item .t small { display: block; font-size: 14px; font-weight: 500; color: var(--muted); }
+.item.off .emo, .item.off .t { opacity: .45; }
+.item.off .t { text-decoration: line-through; text-decoration-thickness: 1.5px; }
+.order { display: flex; gap: 4px; }
+.order button { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; padding: 0; }
+.order button svg { width: 20px; height: 20px; }
+.order button:disabled { opacity: .3; cursor: default; }
+.item.moved { animation: flash .6s ease; }
+@keyframes flash { from { background: var(--soft); } to { background: var(--bg); } }
+@media (max-width: 520px) {
+  .item { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .item .order { grid-column: 2 / 3; grid-row: 2; }
+  .item .switch { grid-column: 3; grid-row: 1 / 3; }
+  .head h1 { font-size: 32px; }
+  .days { gap: 5px; } .day { font-size: 15px; min-height: 52px; }
+}
+
+/* PIN */
+.pinwrap { min-height: 72vh; display: grid; place-items: center; }
+.pin { display: grid; gap: 22px; justify-items: center; width: min(360px, 100%); }
+.pin h1 { font: 700 30px/1.15 var(--font-display); text-align: center; }
+.pin p { color: var(--muted); font-size: 16px; text-align: center; }
+.dots { display: flex; gap: 18px; height: 22px; }
+.dots span { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--muted); }
+.dots span.f { background: var(--fg); border-color: var(--fg); }
+.dots.err { animation: shake .35s ease; }
+.dots.err span { border-color: var(--warn); }
+@keyframes shake { 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+.keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; width: 100%; }
+.keys button { aspect-ratio: 1.35; max-width: 100%; border-radius: 22px; border: 1px solid var(--line); background: var(--surface); font: 600 30px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.keys button.ghost { border-color: transparent; background: transparent; font-size: 17px; color: var(--muted); }
+.keys button:active { background: var(--soft); }
+.err-msg { color: var(--warn); font-weight: 600; min-height: 22px; }
+
+/* Leiste unten (wie Startseite) */
+.nav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 10px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg); border-top: 1px solid var(--line);
+}
+.nav .tabs { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.tab { display: grid; justify-items: center; align-content: center; gap: 4px; min-height: 76px; padding: 6px 4px; border: 0; border-radius: 18px; background: transparent; color: var(--muted); font-size: 16px; font-weight: 600; }
+.tab svg { width: 30px; height: 30px; }
+@media (max-width: 560px) {
+  .tab { min-height: 62px; font-size: 13px; } .tab svg { width: 26px; height: 26px; }
+  .app { padding-block-end: calc(100px + env(safe-area-inset-bottom, 0px)); }
+}
+
+.toast { position: fixed; left: 50%; bottom: calc(108px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 6; max-width: min(560px, calc(100% - 32px)); padding: 12px 18px; border-radius: 14px; background: var(--ink); color: var(--on-ink); font-size: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+
+/* Vorschau (nur Entwurf) */
+.preview { border: 1px dashed var(--line); border-radius: 18px; padding: 14px 16px; display: grid; gap: 12px; }
+.pv-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.pv-head b { font-size: 15px; letter-spacing: .06em; text-transform: uppercase; }
+.pv-head span { color: var(--muted); font-size: 15px; }
+.pv-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.pv-row .lbl { width: 72px; color: var(--muted); font-size: 15px; font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips button { border: 1px solid var(--line); background: var(--surface); min-height: 44px; padding: 0 14px; border-radius: 999px; font-weight: 600; font-size: 15.5px; display: inline-flex; align-items: center; gap: 6px; }
+.chips button[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+#pv-date { min-height: 44px; border: 1px solid var(--line); border-radius: 12px; padding: 0 12px; background: var(--surface); }
+.foot { color: var(--muted); font-size: 13.5px; text-align: center; text-wrap: balance; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+<style>
+#fz-status{order:2}.head .lockinfo{order:3}.head #close{order:4}
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="view"></div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+<script src="../core.js"></script>
+<script>(function () {
+  "use strict";
+  const $ = (s) => document.querySelector(s);
+  const { esc, pad, iso, parse, list } = FZ;
+  const WANN = { immer: "", kita: "nur an Kita-Tagen", zuhause: "nur an Zuhause-Tagen", vor_kita: "nur wenn morgen Kita ist" };
+  const WD_SHORT = { mo: "Mo", di: "Di", mi: "Mi", do: "Do", fr: "Fr", sa: "Sa", so: "So" };
+  const WD_LONG = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+  const PHASEN = [
+    { id: "morgen", name: "Morgen", symbol: "🌅" }, { id: "tag", name: "Tagsüber", symbol: "☀️" }, { id: "leisezeit", name: "Leisezeit", symbol: "🤫" },
+    { id: "abend", name: "Abend", symbol: "🌙" }, { id: "nacht", name: "Nacht", symbol: "✨" }
+  ];
+
+  const ui = { unlocked: !FZ.wand, pinIn: "", pinErr: false, lastTouch: Date.now() };
+  const today = () => iso(new Date());
+  const kinder = () => FZ.reiter("Kinderaufgaben").filter((r) => r.ID);
+  const aktiv = (r) => String(r.Aktiv || "").trim().toLowerCase() === "ja";
+  const rf = (r) => Number(r.Reihenfolge) || 99;
+  function phaseOf(r) { const p = list(r.Tagesphasen)[0]; return PHASEN.some((x) => x.id === p) ? p : "tag"; }
+  function zeiten(id) {
+    return FZ.phasen().filter((p) => p.id === id).map((p) => p.start.replace(/^0/, "") + "–" + p.ende.replace(/^0/, "")).join(" · ");
+  }
+
+  const IC = {
+    gear: '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+    lock: '<svg class="ic" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9.5" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+    home: '<svg class="ic" viewBox="0 0 24 24"><path d="M3.5 10.5 12 3.5l8.5 7"/><path d="M5.5 9v11h13V9"/><path d="M10 20v-6h4v6"/></svg>',
+    list: '<svg class="ic" viewBox="0 0 24 24"><path d="M9 6.5h11M9 12h11M9 17.5h11"/><circle cx="4.5" cy="6.5" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="17.5" r="1"/></svg>',
+    cal: '<svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
+    up: '<svg class="ic" viewBox="0 0 24 24"><path d="m6 14 6-6 6 6"/></svg>',
+    down: '<svg class="ic" viewBox="0 0 24 24"><path d="m6 10 6 6 6-6"/></svg>'
+  };
+
+  /* ---------- Rendern ---------- */
+  let lastMoved = "";
+  function render() {
+    const min = new Date().getHours() * 60 + new Date().getMinutes();
+    const ph = FZ.phaseAt(min);
+    document.documentElement.dataset.mode = FZ.wand && (ph.modus === "abend" || ph.modus === "nacht") ? "abend" : "hell";
+    if (FZ.gate($("#view"))) return;
+    if (!ui.unlocked) return renderPin();
+    renderPage();
+  }
+
+  function renderPin() {
+    const dots = [0, 1, 2, 3].map((i) => '<span class="' + (i < ui.pinIn.length ? "f" : "") + '"></span>').join("");
+    const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "zurück", "0", "löschen"].map((k) =>
+      '<button type="button" data-key="' + k + '"' + (k.length > 1 ? ' class="ghost"' : "") + ">" + (k === "zurück" ? "Abbrechen" : k === "löschen" ? "Löschen" : k) + "</button>").join("");
+    $("#view").innerHTML =
+      '<div class="pinwrap"><div class="pin">' +
+      "<h1>Eltern-Seite</h1><p>PIN eingeben</p>" +
+      '<div class="dots' + (ui.pinErr ? " err" : "") + '" aria-label="' + ui.pinIn.length + ' von 4 Ziffern">' + dots + "</div>" +
+      '<p class="err-msg" role="alert">' + (ui.pinErr ? "Falsche PIN, bitte noch einmal." : "") + "</p>" +
+      '<div class="keys">' + keys + "</div></div></div>";
+  }
+
+  function renderPage() {
+    const E = FZ.einst();
+    const date = today();
+    const d = parse(date);
+    const info = FZ.dayInfo(date);
+    const zuhauseAn = !!E.zuhause_bis && E.zuhause_bis >= date && !info.fest;
+    const dateTxt = WD_LONG[d.getDay()] + ", " + d.getDate() + ". " + d.toLocaleDateString("de-DE", { month: "long" });
+    const sperr = Math.max(30, parseInt(E.sperrzeit_sekunden, 10) || 150);
+    const left = Math.max(0, sperr - Math.floor((Date.now() - ui.lastTouch) / 1000));
+
+    const head =
+      '<header class="head"><h1>' + IC.gear + "Eltern</h1>" +
+      '<span id="fz-status"></span>' +
+      (FZ.wand ? '<span class="lockinfo" id="lockinfo">' + IC.lock + "<span>sperrt in " + Math.floor(left / 60) + ":" + pad(left % 60) + "</span></span>" : "") +
+      '<button type="button" class="btn primary" id="close">' + (FZ.wand ? "Sperren" : "Fertig") + "</button></header>";
+
+    const tagsueber = kinder().filter((k) => list(k.Tagesphasen).includes("tag") && aktiv(k) && (k.Wann === "immer" || (k.Wann === "kita") === info.kita)).sort((a, b) => rf(a) - rf(b));
+    let switchSub;
+    if (info.fest) switchSub = "Heute nicht nötig: " + info.grund + ".";
+    else if (zuhauseAn) switchSub = "Gilt nur für heute. Morgen früh ist automatisch wieder Kita-Betrieb.";
+    else switchSub = "Zum Beispiel, wenn ein Kind krank ist. Gilt nur für heute.";
+    const heute =
+      '<section class="card"><div class="card-h"><h2>' + IC.home + "Heute</h2></div>" +
+      '<div class="daystate"><span class="big">' + (info.kita ? "Kita-Tag" : "Zuhause-Tag") + '</span><span class="why">' + esc(dateTxt) + (info.grund ? " · " + esc(info.grund) : "") + "</span></div>" +
+      '<div class="switchrow"><div><b id="zh-lbl">Kinder heute zu Hause</b><small>' + esc(switchSub) + "</small></div>" +
+      '<button type="button" class="switch" role="switch" id="zuhause" aria-labelledby="zh-lbl" aria-checked="' + zuhauseAn + '"' + (info.fest ? " disabled" : "") + "></button></div>" +
+      (tagsueber.length ? '<p class="kidsee">Kinderseite tagsüber: ' + tagsueber.map((k) => '<span class="emo" aria-hidden="true">' + esc(k.Emoji) + "</span><b>" + esc(k.Text) + "</b>").join(" ") + "</p>" : "") +
+      "</section>";
+
+    const kt = list(E.kita_tage || "mo,di,mi,do,fr");
+    const kita =
+      '<section class="card"><div class="card-h"><h2>' + IC.cal + "Kita-Tage</h2></div>" +
+      '<div class="days" role="group" aria-label="Kita-Tage">' + ["mo", "di", "mi", "do", "fr", "sa", "so"].map((w) =>
+        '<button type="button" class="day" data-day="' + w + '" aria-pressed="' + kt.includes(w) + '">' + WD_SHORT[w] + "</button>").join("") + "</div>" +
+      '<p class="hint">An diesen Tagen zeigt die Kinderseite tagsüber „Kindergarten“. Feiertage in Sachsen zählen automatisch als Zuhause-Tag.</p></section>';
+
+    const all = kinder();
+    const phasen = PHASEN.map((p) => {
+      const items = all.filter((k) => phaseOf(k) === p.id).sort((a, b) => rf(a) - rf(b));
+      if (!items.length) return "";
+      return '<div class="phase"><h3><span class="emo" aria-hidden="true">' + p.symbol + "</span>" + esc(p.name) + " <small>" + esc(zeiten(p.id)) + "</small></h3>" +
+        items.map((k, i) => {
+          const on = aktiv(k), w = (k.Wann || "immer").trim();
+          return '<div class="item' + (on ? "" : " off") + (lastMoved === k.ID ? " moved" : "") + '">' +
+            '<span class="emo" aria-hidden="true">' + esc(k.Emoji) + "</span>" +
+            '<span class="t">' + esc(k.Text) + (WANN[w] ? "<small>" + esc(WANN[w]) + "</small>" : on ? "" : "<small>ausgeblendet</small>") + "</span>" +
+            '<span class="order"><button type="button" data-move="up" data-id="' + esc(k.ID) + '" aria-label="' + esc(k.Text) + ' nach oben"' + (i === 0 ? " disabled" : "") + ">" + IC.up + "</button>" +
+            '<button type="button" data-move="down" data-id="' + esc(k.ID) + '" aria-label="' + esc(k.Text) + ' nach unten"' + (i === items.length - 1 ? " disabled" : "") + ">" + IC.down + "</button></span>" +
+            '<button type="button" class="switch sm" role="switch" data-toggle="' + esc(k.ID) + '" aria-checked="' + on + '" aria-label="' + esc(k.Text) + ' anzeigen"></button></div>';
+        }).join("") + "</div>";
+    }).join("");
+    const aufgaben =
+      '<section class="card"><div class="card-h"><h2>' + IC.list + 'Kinderaufgaben</h2><span class="hint">Neue Karten, Texte und Emojis in der Tabelle</span></div>' + phasen + "</section>";
+
+    $("#view").innerHTML = head + '<div class="grid" style="margin-top:22px"><div class="col">' + heute + kita + '</div><div class="col">' + aufgaben + "</div></div>";
+    FZ.status();
+    lastMoved = "";
+  }
+
+  /* ---------- Aktionen ---------- */
+  let toastTimer = null;
+  function toast(msg) {
+    const t = $("#toast"); t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3200);
+  }
+  FZ.toast = toast;
+  const setEinst = (k, v) => { FZ.setEinst(k, v); FZ.send([{ art: "setzen", reiter: "Einstellungen", wo: { "Schlüssel": k }, werte: { Wert: v } }]); };
+
+  document.addEventListener("pointerdown", () => { ui.lastTouch = Date.now(); });
+
+  $("#view").addEventListener("click", (ev) => {
+    const E = FZ.einst();
+    const key = ev.target.closest("[data-key]");
+    if (key) {
+      const k = key.dataset.key;
+      if (k === "zurück") { location.href = FZ.root; return; }
+      if (k === "löschen") { ui.pinIn = ui.pinIn.slice(0, -1); ui.pinErr = false; return renderPin(); }
+      if (ui.pinIn.length >= 4) return;
+      ui.pinIn += k; ui.pinErr = false;
+      if (ui.pinIn.length === 4) {
+        if (ui.pinIn === String(E.pin || "0000")) { ui.unlocked = true; ui.pinIn = ""; ui.lastTouch = Date.now(); return render(); }
+        ui.pinErr = true; ui.pinIn = "";
+      }
+      return renderPin();
+    }
+    if (ev.target.closest("#close")) { location.href = FZ.root; return; }
+    if (ev.target.closest("#zuhause")) {
+      const date = today();
+      const an = E.zuhause_bis && E.zuhause_bis >= date;
+      setEinst("zuhause_bis", an ? "" : date);
+      render();
+      return toast(an ? "Normaler Kita-Tag. Die Kinderseite zeigt wieder „Kindergarten“." : "Kinder heute zu Hause. Die Kinderseite zeigt Spielen und Buch lesen.");
+    }
+    const day = ev.target.closest("[data-day]");
+    if (day) {
+      const kt = list(E.kita_tage || "mo,di,mi,do,fr"), w = day.dataset.day;
+      const next = kt.includes(w) ? kt.filter((x) => x !== w) : kt.concat(w);
+      setEinst("kita_tage", ["mo", "di", "mi", "do", "fr", "sa", "so"].filter((x) => next.includes(x)).join(","));
+      return render();
+    }
+    const tg = ev.target.closest("[data-toggle]");
+    if (tg) {
+      const k = kinder().find((x) => x.ID === tg.dataset.toggle); if (!k) return;
+      k.Aktiv = aktiv(k) ? "nein" : "ja";
+      FZ.send([{ art: "setzen", reiter: "Kinderaufgaben", wo: { ID: k.ID }, werte: { Aktiv: k.Aktiv } }]);
+      render();
+      return toast(aktiv(k) ? "„" + k.Text + "“ wird wieder angezeigt." : "„" + k.Text + "“ ist ausgeblendet.");
+    }
+    const mv = ev.target.closest("[data-move]");
+    if (mv && !mv.disabled) {
+      const k = kinder().find((x) => x.ID === mv.dataset.id); if (!k) return;
+      const group = kinder().filter((x) => phaseOf(x) === phaseOf(k)).sort((a, b) => rf(a) - rf(b));
+      const i = group.indexOf(k), j = mv.dataset.move === "up" ? i - 1 : i + 1;
+      if (j < 0 || j >= group.length) return;
+      [group[i], group[j]] = [group[j], group[i]];
+      group.forEach((x, n) => { x.Reihenfolge = String(n + 1); });
+      FZ.send(group.map((x) => ({ art: "setzen", reiter: "Kinderaufgaben", wo: { ID: x.ID }, werte: { Reihenfolge: x.Reihenfolge } })));
+      lastMoved = k.ID; render();
+      const btn = document.querySelector('[data-move="' + mv.dataset.move + '"][data-id="' + k.ID + '"]');
+      if (btn && !btn.disabled) btn.focus();
+    }
+  });
+
+  // Sperr-Countdown am Wand-iPad
+  setInterval(() => {
+    if (!FZ.wand || !ui.unlocked) return;
+    const sperr = Math.max(30, parseInt(FZ.einst().sperrzeit_sekunden, 10) || 150);
+    const left = sperr - Math.floor((Date.now() - ui.lastTouch) / 1000);
+    if (left <= 0 && !FZ.pending) { location.href = FZ.root; return; }
+    const el = document.querySelector("#lockinfo span");
+    if (el) el.textContent = "sperrt in " + Math.floor(Math.max(0, left) / 60) + ":" + pad(Math.max(0, left) % 60);
+  }, 1000);
+
+  FZ.on(() => { if (ui.unlocked || !FZ.wand) render(); else if (!$(".pin")) render(); });
+  FZ.nav("eltern");
+  FZ.start();
+  render();
+})();
+</script>
+</body>
+</html>

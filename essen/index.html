@@ -1,0 +1,933 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Familie">
+<title>Essen · Familienzentrale</title>
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0}img{max-width:100%}[hidden]{display:none!important}*{-webkit-touch-callout:none}</style>
+<style>
+:root {
+  /* Layout: Kopfzeile mit Reitern · Woche = Tagesliste Do–Mi, darunter Vorschau Kinderkachel + Bewertungskarte · Gerichte = Kartenraster · Statistik = Kennzahlen + Balkenlisten */
+  --bg: #F3F4F1;
+  --surface: #FFFFFF;
+  --surface-2: #ECEEEA;
+  --line: #DEE1DB;
+  --fg: #1B1F1C;
+  --muted: #5F6761;
+  --ink: #1B1F1C;
+  --on-ink: #FFFFFF;
+  --scrim: rgba(20, 24, 21, .42);
+  --chris: #2C5FC4;
+  --chris-soft: #E4ECFA;
+  --lisa: #1D8155;
+  --lisa-soft: #DDF0E5;
+  --ruby: #B8326F;
+  --ruby-soft: #F8E2EC;
+  --food: #A9650A;
+  --food-soft: #F8EBD6;
+  --due: #8A5F1C;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --r: 16px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121513; --surface: #1B1F1C; --surface-2: #252A26; --line: #323833;
+    --fg: #E7EBE6; --muted: #9AA39C; --ink: #E7EBE6; --on-ink: #141715; --scrim: rgba(0,0,0,.6);
+    --chris: #86A9F0; --chris-soft: #1F2C45; --lisa: #63C897; --lisa-soft: #17352A;
+    --ruby: #F08DBA; --ruby-soft: #3B1D2B; --food: #EDB35B; --food-soft: #3A2C14; --due: #E0B067;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121513; --surface: #1B1F1C; --surface-2: #252A26; --line: #323833;
+  --fg: #E7EBE6; --muted: #9AA39C; --ink: #E7EBE6; --on-ink: #141715; --scrim: rgba(0,0,0,.6);
+  --chris: #86A9F0; --chris-soft: #1F2C45; --lisa: #63C897; --lisa-soft: #17352A;
+  --ruby: #F08DBA; --ruby-soft: #3B1D2B; --food: #EDB35B; --food-soft: #3A2C14; --due: #E0B067;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 17px/1.42 var(--font); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--chris); outline-offset: 2px; border-radius: 10px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+p { margin: 0; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+
+.chris { --pc: var(--chris); --pc-soft: var(--chris-soft); }
+.lisa { --pc: var(--lisa); --pc-soft: var(--lisa-soft); }
+.ruby { --pc: var(--ruby); --pc-soft: var(--ruby-soft); }
+
+.app {
+  max-width: 1180px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+  display: grid; gap: 22px;
+}
+
+/* Kopfzeile */
+.top { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px 20px; }
+.title h1 { font: 700 30px/1.1 var(--font-display); letter-spacing: -.015em; }
+.title p { color: var(--muted); font-size: 15px; margin-top: 3px; }
+.tabs { justify-self: center; display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 14px; }
+.tabs button { border: 0; background: transparent; padding: 10px 18px; min-height: 44px; border-radius: 10px; font-weight: 600; font-size: 16px; color: var(--muted); }
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.btn { border: 1px solid var(--line); background: var(--surface); min-height: 48px; padding: 0 18px; border-radius: 12px; font-weight: 600; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn.primary { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+.btn svg { width: 20px; height: 20px; flex: none; }
+.btn:disabled { opacity: .45; cursor: default; }
+@media (max-width: 700px) {
+  .top { grid-template-columns: 1fr auto; }
+  .tabs { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; }
+  .tabs button { flex: 1; padding: 10px 8px; }
+  .title h1 { font-size: 26px; }
+}
+
+.eyebrow { font-size: 12.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.panel { background: var(--surface); border-radius: var(--r); padding: 18px 20px; min-width: 0; }
+.stack { display: grid; gap: 20px; }
+.note { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; background: var(--food-soft); color: var(--fg); border-radius: 12px; padding: 12px 16px; font-size: 15.5px; }
+.note .btn { min-height: 42px; font-size: 15px; }
+.empty { color: var(--muted); padding: 14px 0 6px; font-size: 16px; }
+
+/* Bild / Emoji */
+.th { width: 56px; height: 56px; border-radius: 14px; background: var(--surface-2); display: grid; place-items: center; font-size: 32px; line-height: 1; overflow: hidden; flex: none; }
+.th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.th.open { background: transparent; border: 2px dashed var(--line); color: var(--muted); font-size: 26px; font-weight: 500; }
+.th.lg { width: 76px; height: 76px; font-size: 44px; border-radius: 18px; }
+.th.xl { width: 168px; height: 168px; font-size: 104px; border-radius: 32px; background: var(--food-soft); }
+.th.sm { width: 36px; height: 36px; font-size: 21px; border-radius: 10px; }
+.tag { display: inline-flex; align-items: center; font-size: 13px; font-weight: 600; color: var(--muted); background: var(--surface-2); border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
+.tag.sug { color: var(--food); background: var(--food-soft); }
+
+/* Woche */
+.weekhead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.weeknav { display: flex; align-items: center; gap: 6px; font-weight: 650; }
+.weeknav button { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; padding: 0; }
+.weeknav button:disabled { opacity: .35; cursor: default; }
+.weeknav svg { width: 20px; height: 20px; }
+.weeknav span { min-width: 200px; text-align: center; font-variant-numeric: tabular-nums; }
+.weekinfo { color: var(--muted); font-size: 15px; }
+.weekinfo b { color: var(--fg); }
+.day { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; border-bottom: 1px solid var(--line); }
+.day:last-child { border-bottom: 0; }
+.dayopen { display: grid; grid-template-columns: 64px 56px minmax(0, 1fr); align-items: center; gap: 14px; width: 100%; background: transparent; border: 0; text-align: left; padding: 12px 4px; min-height: 80px; border-radius: 12px; }
+.dayopen:hover { background: var(--surface-2); }
+.dd { display: grid; line-height: 1.15; }
+.dd b { font: 700 21px/1.1 var(--font-display); }
+.dd span { color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+.day.today .dd b { color: var(--food); }
+.day.today .dd span::after { content: " · heute"; color: var(--food); font-weight: 650; }
+.day.past .dd b { color: var(--muted); }
+.dn { font-weight: 640; font-size: 18px; line-height: 1.25; overflow-wrap: anywhere; }
+.dmeta { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; margin-top: 4px; color: var(--muted); font-size: 14.5px; }
+.rs { display: inline-flex; align-items: center; gap: 3px; font-size: 13.5px; font-weight: 650; color: var(--pc); background: var(--pc-soft); border-radius: 999px; padding: 1px 8px 1px 7px; }
+.iconbtn { width: 48px; height: 48px; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; color: var(--muted); display: grid; place-items: center; padding: 0; }
+.iconbtn:hover { background: var(--surface-2); color: var(--fg); }
+.iconbtn svg { width: 22px; height: 22px; }
+@media (max-width: 520px) {
+  .dayopen { grid-template-columns: 46px 48px minmax(0, 1fr); gap: 10px; padding: 10px 0; }
+  .dayopen .th { width: 48px; height: 48px; font-size: 27px; }
+  .dd b { font-size: 18px; }
+  .day.today .dd span::after { content: ""; }
+  .weeknav span { min-width: 0; flex: 1; font-size: 15px; }
+  .weeknav { flex: 1; }
+}
+
+/* Vorschau */
+.preview { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: stretch; }
+@media (max-width: 860px) { .preview { grid-template-columns: 1fr; } }
+.kid { display: grid; gap: 14px; align-content: start; }
+.kidmain { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.kidlbl { font: 600 22px/1.2 var(--font-display); color: var(--muted); }
+.kidname { font: 750 36px/1.12 var(--font-display); letter-spacing: -.015em; text-wrap: balance; overflow-wrap: anywhere; }
+.kidnext { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 17px; padding-top: 12px; border-top: 1px solid var(--line); }
+.kidnext b { color: var(--fg); font-weight: 640; }
+@media (max-width: 520px) { .th.xl { width: 120px; height: 120px; font-size: 72px; } .kidname { font-size: 28px; } .kidlbl { font-size: 18px; } }
+.rate { display: grid; gap: 12px; align-content: start; }
+.ratehead { display: flex; align-items: center; gap: 12px; }
+.ratehead h2 { font: 700 21px/1.2 var(--font-display); }
+.ratehead p { color: var(--muted); font-size: 15px; }
+.rrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.rname { display: inline-flex; align-items: center; gap: 8px; font-weight: 650; color: var(--pc); }
+.dot { width: 11px; height: 11px; border-radius: 50%; background: var(--pc); flex: none; }
+.smiles { display: flex; gap: 8px; }
+.smile { width: 58px; height: 58px; border-radius: 16px; border: 2px solid var(--line); background: var(--bg); font-size: 30px; line-height: 1; padding: 0; display: grid; place-items: center; transition: transform .1s; }
+.smile[aria-pressed="true"] { border-color: var(--pc); background: var(--pc-soft); }
+.smile.dim { opacity: .45; }
+.smile:active { transform: scale(.92); }
+.thanks { color: var(--muted); font-size: 15px; }
+
+/* Sheet: Gerichtsauswahl */
+.dishgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; max-height: 340px; overflow-y: auto; padding: 2px; }
+.dbtn { border: 2px solid var(--line); background: var(--bg); border-radius: 16px; padding: 12px 8px 10px; display: grid; justify-items: center; gap: 6px; text-align: center; min-height: 118px; }
+.dbtn[aria-pressed="true"] { border-color: var(--food); background: var(--food-soft); }
+.dbtn .n { font-weight: 640; font-size: 15px; line-height: 1.2; overflow-wrap: anywhere; }
+.dbtn .s { font-size: 13px; color: var(--muted); }
+
+/* Gerichte */
+.gbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+@media (max-width: 400px) { .cards { grid-template-columns: 1fr; } }
+.gcard { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 14px; align-items: start; text-align: left; background: var(--surface); border: 1px solid transparent; border-radius: var(--r); padding: 14px; }
+.gcard:hover { border-color: var(--line); }
+.gcard.paused { opacity: .62; }
+.gname { font: 680 18px/1.25 var(--font-display); overflow-wrap: anywhere; }
+.gkat { color: var(--muted); font-size: 14.5px; margin-top: 1px; }
+.gtags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.gstat { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 8px; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.gstat b { color: var(--fg); font-weight: 650; }
+
+/* Statistik */
+.statbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 12px; }
+.seg button { border: 0; background: transparent; min-height: 40px; padding: 0 16px; border-radius: 9px; font-weight: 600; font-size: 15.5px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+@media (max-width: 860px) { .kpis { grid-template-columns: 1fr 1fr; } }
+.kpi { background: var(--surface); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 2px; align-content: start; }
+.kpi .k { font-weight: 650; font-size: 15px; color: var(--muted); }
+.kpi .v { font: 700 36px/1.1 var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.kpi .s { color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+.chead { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+.chead h2 { font-size: 17px; font-weight: 700; }
+.chead p { color: var(--muted); font-size: 14px; }
+.blist { display: grid; gap: 10px; }
+.brow { display: grid; grid-template-columns: 22px 36px minmax(0, 1fr) minmax(70px, 34%) 64px; gap: 10px; align-items: center; font-size: 16px; }
+.brow .rk { color: var(--muted); font-size: 14px; font-weight: 650; text-align: right; font-variant-numeric: tabular-nums; }
+.brow .bl { font-weight: 600; overflow-wrap: anywhere; line-height: 1.25; }
+.brow .bl small { display: block; color: var(--muted); font-weight: 500; font-size: 13px; }
+.bt { height: 12px; border-radius: 6px; background: var(--surface-2); overflow: hidden; }
+.bt i { display: block; height: 100%; background: var(--food); border-radius: 6px; }
+.brow .bv { text-align: right; font-weight: 650; font-variant-numeric: tabular-nums; font-size: 15px; white-space: nowrap; }
+.blist.plain .brow { grid-template-columns: minmax(0, 1fr) minmax(70px, 40%) 72px; }
+@media (max-width: 520px) {
+  .brow { grid-template-columns: 18px 32px minmax(0, 1fr) 56px; }
+  .brow .bt { grid-column: 3 / -1; grid-row: 2; }
+  .blist.plain .brow { grid-template-columns: minmax(0, 1fr) 64px; }
+  .blist.plain .brow .bt { grid-column: 1 / -1; }
+}
+.persons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 760px) { .persons { grid-template-columns: 1fr; } }
+.pcol h3 { display: flex; align-items: center; gap: 8px; color: var(--pc); font-size: 16px; font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid var(--line); margin-bottom: 6px; }
+.pli { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 0; font-size: 15.5px; }
+.pli .n { font-weight: 600; overflow-wrap: anywhere; }
+.pli .v { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14.5px; white-space: nowrap; }
+.mrow { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 15.5px; }
+.mrow:last-child { border-bottom: 0; }
+.mrow .n { font-weight: 600; overflow-wrap: anywhere; }
+.mrow .n small { display: block; color: var(--muted); font-weight: 500; font-size: 13.5px; }
+.mrow .who3 { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+
+.foot { color: var(--muted); font-size: 13.5px; text-align: center; }
+
+/* Sheet */
+.overlay { position: fixed; inset: 0; background: var(--scrim); display: grid; place-items: center; z-index: 50; padding: 20px max(16px, env(safe-area-inset-right, 0px)) 20px max(16px, env(safe-area-inset-left, 0px)); }
+.sheet { background: var(--surface); width: min(640px, 100%); max-height: calc(100% - 20px); overflow-y: auto; border-radius: 22px; padding: 24px; display: grid; gap: 18px; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+.sheet h2 { font: 700 22px/1.2 var(--font-display); }
+.sheet .sub { color: var(--muted); margin-top: -10px; }
+@media (max-width: 600px) {
+  .overlay { place-items: end stretch; padding: 0; }
+  .sheet { width: 100%; border-radius: 22px 22px 0 0; padding: 22px max(18px, env(safe-area-inset-right, 0px)) calc(22px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px)); max-height: 92%; }
+}
+.field { display: grid; gap: 8px; }
+.field > label, .field .lbl { font-weight: 650; font-size: 15px; }
+.field input[type="text"], .field input[type="search"], .field textarea { min-height: 50px; border: 1px solid var(--line); border-radius: 12px; padding: 0 14px; background: var(--bg); width: 100%; font-size: 17px; }
+.field textarea { padding: 12px 14px; min-height: 80px; resize: vertical; }
+.field input.emoji { width: 90px; text-align: center; font-size: 28px; }
+.hint { color: var(--muted); font-size: 14px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips button { border: 1px solid var(--line); background: var(--bg); min-height: 44px; padding: 0 16px; border-radius: 999px; font-weight: 600; font-size: 15.5px; color: var(--fg); }
+.chips button[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+.chips.small button { min-height: 38px; padding: 0 13px; font-size: 14.5px; }
+.photo { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.filelbl { position: relative; overflow: hidden; }
+.filelbl input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.checkline { display: flex; gap: 10px; align-items: center; font-size: 16px; min-height: 44px; }
+.checkline input { width: 22px; height: 22px; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+.actions .left { margin-right: auto; }
+.err { color: var(--due); font-weight: 600; font-size: 15px; }
+.confirm { display: grid; gap: 10px; background: var(--surface-2); padding: 14px; border-radius: 14px; }
+.lrow { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.lrow:last-child { border-bottom: 0; }
+.lrow .c { color: var(--muted); font-size: 14px; white-space: nowrap; }
+.lrow .btn { min-height: 40px; font-size: 14.5px; padding: 0 12px; }
+.addrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+.cancel { justify-self: center; }
+
+/* Toast */
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); width: min(640px, calc(100% - 32px)); background: var(--ink); color: var(--on-ink); border-radius: 16px; padding: 10px 10px 10px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; z-index: 60; box-shadow: 0 12px 30px rgba(0,0,0,.22); font-size: 15.5px; }
+.toast span { flex: 1 1 220px; }
+.toast button { border: 1px solid color-mix(in srgb, var(--on-ink) 35%, transparent); background: transparent; color: var(--on-ink); min-height: 40px; padding: 0 14px; border-radius: 10px; font-weight: 650; font-size: 15px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<style>
+#fz-status{display:block}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="title">
+      <h1>Essen</h1>
+      <p id="sub">Abendessen · Woche von Donnerstag bis Mittwoch</p>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Bereiche">
+      <button role="tab" data-act="view" data-view="woche" id="tab-woche">Woche</button>
+      <button role="tab" data-act="view" data-view="gerichte" id="tab-gerichte">Gerichte</button>
+      <button role="tab" data-act="view" data-view="statistik" id="tab-statistik">Statistik</button>
+    </nav>
+    <div id="topaction"></div>
+  </header>
+  <main id="view" aria-live="polite"></main>
+  <p class="foot"><span id="fz-status"></span></p>
+</div>
+
+<div id="overlay" class="overlay" hidden>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+</div>
+<div id="toast" class="toast" role="status" hidden></div>
+<script src="../core.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- Grundlagen ---------- */
+  const KEY = "familie.essen.v1";
+  const PEOPLE = { chris: "Christian", lisa: "Lisa", ruby: "Ruby" };
+  const RATERS = ["chris", "lisa", "ruby"];
+  const SMILE = { 3: "😋", 2: "🙂", 1: "😕" };
+  const SMILE_TXT = { 3: "lecker", 2: "okay", 1: "nicht so" };
+  const STATUS = {
+    auswaerts: { emoji: "🍽️", label: "Auswärts essen", kid: "Heute essen wir auswärts", meta: "kein Abendessen zu Hause" },
+    eingeladen: { emoji: "🎉", label: "Eingeladen", kid: "Heute sind wir eingeladen", meta: "kein Abendessen zu Hause" },
+    reste: { emoji: "🥡", label: "Reste", kid: "Heute gibt's Reste", meta: "was noch da ist" }
+  };
+  const WD_SHORT = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+  const WD_LONG = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+  const MON = ["Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sep.", "Okt.", "Nov.", "Dez."];
+  const MON_LONG = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+
+  const ICON = {
+    chevR: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+    chevL: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+    shuffle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4M4 20l16-16M20 16v4h-4M15 15l5 5M4 4l5 5"/></svg>',
+    plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+    spark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.9L19 9.7l-5.2 1.8L12 16.4l-1.8-4.9L5 9.7l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>'
+  };
+
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const pad = (n) => String(n).padStart(2, "0");
+  const iso = (d) => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  const parse = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+  const todayIso = () => iso(new Date());
+  const addDays = (s, n) => { const d = parse(s); d.setDate(d.getDate() + n); return iso(d); };
+  const dow = (s) => parse(s).getDay();
+  const diffDays = (a, b) => Math.round((parse(b) - parse(a)) / 86400000);
+  // Essens-Woche beginnt donnerstags (Einkaufstag)
+  const weekStart = (s) => addDays(s, -((dow(s) + 3) % 7));
+  const fmtDM = (s) => { const d = parse(s); return d.getDate() + "." + (d.getMonth() + 1) + "."; };
+  const fmtLong = (s) => { const d = parse(s); return WD_LONG[d.getDay()] + ", " + d.getDate() + ". " + MON_LONG[d.getMonth()]; };
+  const num = (n, dig) => Number(n).toLocaleString("de-DE", { minimumFractionDigits: dig == null ? 1 : dig, maximumFractionDigits: dig == null ? 1 : dig });
+  const avg = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+  const smileOf = (v) => SMILE[Math.max(1, Math.min(3, Math.round(v)))];
+  const uid = () => "tmp-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  const ago = (n) => (n === 0 ? "heute" : n === 1 ? "gestern" : "vor " + n + " Tagen");
+
+  /* ---------- Daten aus der Google-Tabelle ---------- */
+  const ja = (v) => String(v || "").trim().toLowerCase() === "ja";
+  function fromSheet() {
+    const L = FZ.reiter("Essen-Listen").filter((r) => r.Name);
+    const sortL = (a, b) => (Number(a.Reihenfolge) || 99) - (Number(b.Reihenfolge) || 99);
+    const kategorien = L.filter((r) => r.Art === "kategorie").sort(sortL).map((r) => ({ name: r.Name, aktiv: ja(r.Aktiv) }));
+    const merkmale = L.filter((r) => r.Art === "merkmal").sort(sortL).map((r) => ({ name: r.Name, aktiv: ja(r.Aktiv) }));
+    const gerichte = FZ.reiter("Gerichte").filter((r) => r.ID && r.Name).map((r) => ({
+      id: r.ID, name: r.Name, emoji: r.Emoji || "🍽️", bildLink: r["Bild-Link"] || "", bild: FZ.bildUrl(r["Bild-Link"]), kategorie: r.Kategorie || "",
+      merkmale: String(r.Merkmale || "").split(",").map((x) => x.trim()).filter(Boolean), notiz: r["Notiz / Rezept-Link"] || "", aktiv: ja(r.Aktiv)
+    }));
+    const plan = {};
+    FZ.reiter("Essensplan").forEach((r) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(r.Datum || "")) return;
+      const st = String(r.Status || "").trim();
+      if (st === "gericht" && r["Gericht-ID"]) plan[r.Datum] = { status: "gericht", gerichtId: r["Gericht-ID"], vorschlag: ja(r.Vorschlag) };
+      else if (STATUS[st]) plan[r.Datum] = { status: st };
+    });
+    const bewertungen = FZ.reiter("Bewertungen").filter((r) => r.Datum && r.Person && Number(r.Wert))
+      .map((r) => ({ datum: r.Datum, gerichtId: r["Gericht-ID"], person: r.Person, wert: Math.max(1, Math.min(3, Number(r.Wert))) }));
+    return { kategorien, merkmale, gerichte, plan, bewertungen };
+  }
+  function save() { /* gespeichert wird in der Tabelle */ }
+  const idMap = {};
+  const real = (id) => idMap[id] || id;
+  function adoptId(tmp, realId) {
+    if (!realId || tmp === realId) return;
+    idMap[tmp] = realId;
+    S.gerichte.forEach((g) => { if (g.id === tmp) g.id = realId; });
+    Object.values(S.plan).forEach((e) => { if (e.gerichtId === tmp) e.gerichtId = realId; });
+    S.bewertungen.forEach((b) => { if (b.gerichtId === tmp) b.gerichtId = realId; });
+  }
+  // Essensplan-Zeile so schreiben, wie der Tag jetzt in der App steht
+  function opPlan(d) {
+    const e = S.plan[d];
+    if (!e) return { art: "loeschen", reiter: "Essensplan", wo: { Datum: d } };
+    return { art: "setzen", reiter: "Essensplan", wo: { Datum: d }, werte: { Status: e.status, "Gericht-ID": e.status === "gericht" ? real(e.gerichtId) : "", Vorschlag: e.vorschlag ? "ja" : "nein" } };
+  }
+  const dishRow = (g) => ({ Name: g.name, Emoji: g.emoji, "Bild-Link": g.bildLink || "", Kategorie: g.kategorie, Merkmale: (g.merkmale || []).join(","), "Notiz / Rezept-Link": g.notiz || "", Aktiv: g.aktiv ? "ja" : "nein" });
+
+  let S = fromSheet();
+  const ui = { view: "woche", weekOffset: 0, statMode: "monat", statOffset: 0, filter: "alle" };
+
+  /* ---------- Abfragen ---------- */
+  const G = (id) => S.gerichte.find((g) => g.id === id);
+  const ratingsOf = (id) => S.bewertungen.filter((b) => b.gerichtId === id);
+  const dishAvg = (id) => avg(ratingsOf(id).map((b) => b.wert));
+  const rating = (d, p) => { const b = S.bewertungen.find((x) => x.datum === d && x.person === p); return b ? b.wert : null; };
+  function eatenDays(id) {
+    const t = todayIso();
+    return Object.keys(S.plan).filter((d) => d < t && S.plan[d].status === "gericht" && S.plan[d].gerichtId === id).sort();
+  }
+  const optNames = (art) => (art === "kat" ? S.kategorien : S.merkmale).filter((o) => o.aktiv).map((o) => o.name);
+
+  function thumb(g, cls) {
+    const c = "th" + (cls ? " " + cls : "");
+    if (!g) return '<span class="' + c + '">❔</span>';
+    if (g.bild) return '<span class="' + c + '"><img src="' + esc(g.bild) + '" alt=""></span>';
+    return '<span class="' + c + '" aria-hidden="true">' + esc(g.emoji || "🍽️") + "</span>";
+  }
+  function entryVisual(e, cls) {
+    if (!e) return '<span class="th open' + (cls ? " " + cls : "") + '">+</span>';
+    if (e.status === "gericht") return thumb(G(e.gerichtId), cls);
+    return '<span class="th' + (cls ? " " + cls : "") + '" aria-hidden="true">' + STATUS[e.status].emoji + "</span>";
+  }
+  function entryName(e) {
+    if (!e) return "Noch nicht geplant";
+    if (e.status === "gericht") { const g = G(e.gerichtId); return g ? g.name : "Gelöschtes Gericht"; }
+    return STATUS[e.status].label;
+  }
+
+  /* ---------- Vorschläge ---------- */
+  // Gut bewertete Gerichte kommen öfter, neue (unbewertete) bekommen eine faire Chance.
+  function weight(id) { const a = dishAvg(id); return a == null ? 1.2 : 0.25 + (a - 1) * 0.9; }
+  function pickSuggestion(exclude) {
+    const cand = S.gerichte.filter((g) => g.aktiv && !exclude.has(g.id));
+    if (!cand.length) return null;
+    const w = cand.map((g) => weight(g.id));
+    let x = Math.random() * w.reduce((a, b) => a + b, 0);
+    for (let i = 0; i < cand.length; i++) { x -= w[i]; if (x <= 0) return cand[i].id; }
+    return cand[cand.length - 1].id;
+  }
+  function weekDishes(ws) {
+    const set = new Set();
+    for (let i = 0; i < 7; i++) { const e = S.plan[addDays(ws, i)]; if (e && e.status === "gericht") set.add(e.gerichtId); }
+    return set;
+  }
+  function suggestWeek() {
+    const t = todayIso(), ws = addDays(weekStart(t), 7 * ui.weekOffset);
+    const used = weekDishes(ws), filled = [];
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(ws, i);
+      if (d < t || S.plan[d]) continue;
+      const id = pickSuggestion(used); if (!id) break;
+      used.add(id); S.plan[d] = { status: "gericht", gerichtId: id, vorschlag: true }; filled.push(d);
+    }
+    if (!filled.length) { toast(S.gerichte.some((g) => g.aktiv) ? "Alle Abende dieser Woche sind schon geplant." : "Lege zuerst ein paar Gerichte an."); return; }
+    FZ.send(() => filled.map(opPlan));
+    render();
+    toast(filled.length + (filled.length === 1 ? " Abend" : " Abende") + " vorgeschlagen. Einzelne Tage kannst du tauschen oder antippen.", [
+      { label: "Rückgängig", fn: () => { filled.forEach((d) => delete S.plan[d]); FZ.send(() => filled.map(opPlan)); render(); } }
+    ]);
+  }
+  function shuffleDay(d) {
+    const prev = S.plan[d];
+    const used = weekDishes(weekStart(d));
+    if (prev && prev.gerichtId) used.add(prev.gerichtId);
+    const id = pickSuggestion(used);
+    if (!id) { toast("Keine weiteren Gerichte zur Auswahl. Lege neue Gerichte an oder pausierte wieder an."); return; }
+    S.plan[d] = { status: "gericht", gerichtId: id, vorschlag: true };
+    const hadRatings = prev && prev.status === "gericht" && S.bewertungen.some((b) => b.datum === d);
+    if (hadRatings) S.bewertungen = S.bewertungen.filter((b) => b.datum !== d);
+    FZ.send(() => [opPlan(d)].concat(hadRatings ? [{ art: "loeschen", reiter: "Bewertungen", wo: { Datum: d } }] : []));
+    render();
+    toast(WD_LONG[dow(d)] + ": " + G(id).name, [{ label: "Rückgängig", fn: () => { if (prev) S.plan[d] = prev; else delete S.plan[d]; FZ.send(() => [opPlan(d)]); render(); } }]);
+  }
+
+  /* ---------- Ansicht Woche ---------- */
+  function ratingChips(d) {
+    const rs = RATERS.map((p) => { const v = rating(d, p); return v ? '<span class="rs ' + p + '" title="' + PEOPLE[p] + ": " + SMILE_TXT[v] + '">' + PEOPLE[p][0] + " " + SMILE[v] + "</span>" : ""; }).join("");
+    return rs || "<span>noch nicht bewertet</span>";
+  }
+  function dayRow(d) {
+    const t = todayIso(), e = S.plan[d], past = d < t, isToday = d === t;
+    let meta = "";
+    if (!e) meta = past ? "<span>nichts eingetragen</span>" : "<span>Tippen zum Planen</span>";
+    else if (e.status === "gericht") {
+      const g = G(e.gerichtId), parts = [];
+      if (e.vorschlag && !past) parts.push('<span class="tag sug">Vorschlag</span>');
+      if (past) parts.push(ratingChips(d));
+      else if (g) { parts.push("<span>" + esc(g.kategorie) + "</span>"); (g.merkmale || []).forEach((m) => parts.push('<span class="tag">' + esc(m) + "</span>")); }
+      meta = parts.join("");
+    } else meta = "<span>" + STATUS[e.status].meta + "</span>";
+    const canShuffle = !past && (!e || e.status === "gericht");
+    const wdl = WD_SHORT[dow(d)];
+    return '<div class="day' + (isToday ? " today" : "") + (past ? " past" : "") + '">' +
+      '<button class="dayopen" data-act="day" data-d="' + d + '" aria-label="' + esc(fmtLong(d)) + ": " + esc(entryName(e)) + '">' +
+      '<span class="dd"><b>' + wdl + "</b><span>" + fmtDM(d) + "</span></span>" + entryVisual(e) +
+      '<span style="min-width:0"><span class="dn' + (e ? "" : " muted") + '">' + esc(entryName(e)) + '</span><span class="dmeta">' + meta + "</span></span></button>" +
+      (canShuffle ? '<button class="iconbtn" data-act="shuffle" data-d="' + d + '" aria-label="' + (e ? "Anderes Gericht vorschlagen" : "Gericht vorschlagen") + " für " + WD_LONG[dow(d)] + '">' + ICON.shuffle + "</button>" : "<span></span>") +
+      "</div>";
+  }
+  function kidTile() {
+    const t = todayIso(), e = S.plan[t], tm = addDays(t, 1), e2 = S.plan[tm];
+    let lbl = "Heute Abend gibt's", name = entryName(e);
+    if (e && e.status !== "gericht") { lbl = "Heute Abend"; name = STATUS[e.status].kid; }
+    if (!e) { lbl = "Heute Abend"; name = "Noch nicht geplant"; }
+    return '<section class="panel kid"><p class="eyebrow">Kinderseite · den ganzen Tag</p>' +
+      '<div class="kidmain">' + entryVisual(e, "xl") + '<div style="min-width:0"><p class="kidlbl">' + lbl + '</p><p class="kidname">' + esc(name) + "</p></div></div>" +
+      '<div class="kidnext">' + entryVisual(e2, "sm") + "<span>Morgen: <b>" + esc(entryName(e2)) + "</b></span></div></section>";
+  }
+  function rateRows(d) {
+    return RATERS.map((p) => {
+      const cur = rating(d, p);
+      return '<div class="rrow ' + p + '"><span class="rname"><span class="dot"></span>' + PEOPLE[p] + '</span><div class="smiles">' +
+        [3, 2, 1].map((v) => '<button class="smile' + (cur && cur !== v ? " dim" : "") + '" data-act="rate" data-d="' + d + '" data-p="' + p + '" data-v="' + v + '" aria-pressed="' + (cur === v) + '" aria-label="' + PEOPLE[p] + ": " + SMILE_TXT[v] + '">' + SMILE[v] + "</button>").join("") +
+        "</div></div>";
+    }).join("");
+  }
+  function rateCard() {
+    const y = addDays(todayIso(), -1), e = S.plan[y];
+    if (!e || e.status !== "gericht") {
+      return '<section class="panel rate"><p class="eyebrow">Startseite · morgens</p><p class="muted">Gestern gab es kein Gericht zum Bewerten. Die Karte erscheint nur nach einem Abendessen zu Hause.</p></section>';
+    }
+    const g = G(e.gerichtId), done = RATERS.every((p) => rating(y, p));
+    return '<section class="panel rate"><p class="eyebrow">Startseite · morgens bis 17 Uhr</p>' +
+      '<div class="ratehead">' + thumb(g) + '<div style="min-width:0"><h2>Wie war\'s gestern?</h2><p>' + esc(g ? g.name : "") + "</p></div></div>" +
+      '<div id="rate-' + y + '" style="display:grid;gap:10px">' + rateRows(y) + "</div>" +
+      (done ? '<p class="thanks">Alle haben bewertet, danke! Auf der Startseite verschwindet die Karte jetzt.</p>' : '<p class="thanks">Ruby tippt selbst. Wer nicht bewertet, wird einfach nicht gezählt.</p>') +
+      "</section>";
+  }
+  function renderWoche() {
+    const t = todayIso();
+    const ws = addDays(weekStart(t), 7 * ui.weekOffset), we = addDays(ws, 6);
+    let h = "";
+    const wd = dow(t);
+    if (ui.weekOffset === 0 && wd >= 1 && wd <= 3) {
+      const nws = addDays(weekStart(t), 7);
+      let open = 0; for (let i = 0; i < 7; i++) if (!S.plan[addDays(nws, i)]) open++;
+      if (open) h += '<div class="note"><span>Die Woche ab <b>Donnerstag, ' + fmtDM(nws) + "</b> ist noch offen (" + open + (open === 1 ? " Abend" : " Abende") + "). Geplant wird bis Mittwochabend, eingekauft am Donnerstag.</span>" +
+        '<button class="btn" data-act="wk" data-d="1">Nächste Woche planen</button></div>';
+    }
+    let planned = 0; for (let i = 0; i < 7; i++) if (S.plan[addDays(ws, i)]) planned++;
+    const label = ui.weekOffset === 0 ? "Diese Woche" : ui.weekOffset === 1 ? "Nächste Woche" : ui.weekOffset === -1 ? "Letzte Woche" : "";
+    h += '<section class="panel"><div class="weekhead"><div class="weeknav">' +
+      '<button data-act="wk" data-d="-1" aria-label="Vorherige Woche"' + (ui.weekOffset <= -26 ? " disabled" : "") + ">" + ICON.chevL + "</button>" +
+      "<span>" + (label ? label + " · " : "") + "Do " + fmtDM(ws) + " – Mi " + fmtDM(we) + "</span>" +
+      '<button data-act="wk" data-d="1" aria-label="Nächste Woche"' + (ui.weekOffset >= 4 ? " disabled" : "") + ">" + ICON.chevR + "</button></div>" +
+      '<p class="weekinfo"><b>' + planned + " von 7</b> Abenden geplant</p></div>" +
+      '<div class="days">' + Array.from({ length: 7 }, (_, i) => dayRow(addDays(ws, i))).join("") + "</div></section>";
+    return h;
+  }
+
+  /* ---------- Ansicht Gerichte ---------- */
+  function dishCard(g) {
+    const a = dishAvg(g.id), days = eatenDays(g.id), last = days[days.length - 1];
+    const stat = [];
+    stat.push(a == null ? "<span>noch nicht bewertet</span>" : "<span>" + smileOf(a) + " <b>" + num(a) + "</b></span>");
+    stat.push("<span><b>" + days.length + "×</b> gegessen</span>");
+    if (last) stat.push("<span>zuletzt " + ago(diffDays(last, todayIso())) + "</span>");
+    return '<button class="gcard' + (g.aktiv ? "" : " paused") + '" data-act="editdish" data-id="' + g.id + '">' + thumb(g, "lg") +
+      '<span style="min-width:0;display:block"><span class="gname" style="display:block">' + esc(g.name) + '</span><span class="gkat" style="display:block">' + esc(g.kategorie || "ohne Kategorie") + (g.aktiv ? "" : " · pausiert") + "</span>" +
+      ((g.merkmale || []).length ? '<span class="gtags">' + g.merkmale.map((m) => '<span class="tag">' + esc(m) + "</span>").join("") + "</span>" : "") +
+      '<span class="gstat">' + stat.join("") + "</span></span></button>";
+  }
+  function renderGerichte() {
+    const kats = optNames("kat");
+    let h = '<div class="gbar"><div class="chips small" role="group" aria-label="Nach Kategorie filtern">' +
+      ["alle"].concat(kats).map((k) => '<button data-act="filter" data-val="' + esc(k) + '" aria-pressed="' + (ui.filter === k) + '">' + (k === "alle" ? "Alle" : esc(k)) + "</button>").join("") +
+      '</div><button class="btn" data-act="lists">Kategorien &amp; Merkmale</button></div>';
+    const list = S.gerichte.filter((g) => ui.filter === "alle" || g.kategorie === ui.filter).sort((a, b) => a.name.localeCompare(b.name, "de"));
+    const act = list.filter((g) => g.aktiv), paused = list.filter((g) => !g.aktiv);
+    h += '<p class="hint">' + act.length + (act.length === 1 ? " Gericht" : " Gerichte") + " im Vorschlags-Topf. Tippe auf ein Gericht, um es zu bearbeiten.</p>";
+    h += act.length ? '<div class="cards">' + act.map(dishCard).join("") + "</div>" : '<p class="empty">In dieser Kategorie gibt es noch keine Gerichte.</p>';
+    if (paused.length) h += '<p class="eyebrow">Pausiert, wird nicht vorgeschlagen</p><div class="cards">' + paused.map(dishCard).join("") + "</div>";
+    return h;
+  }
+
+  /* ---------- Ansicht Statistik ---------- */
+  function statRange() {
+    const t = todayIso(), tt = parse(t);
+    if (ui.statMode === "monat") {
+      const m = new Date(tt.getFullYear(), tt.getMonth() + ui.statOffset, 1);
+      return { from: iso(m), to: iso(new Date(m.getFullYear(), m.getMonth() + 1, 0)), label: MON_LONG[m.getMonth()] + " " + m.getFullYear(), name: "im " + MON_LONG[m.getMonth()] };
+    }
+    if (ui.statMode === "jahr") {
+      const y = tt.getFullYear() + ui.statOffset;
+      return { from: y + "-01-01", to: y + "-12-31", label: String(y), name: y === tt.getFullYear() ? "in diesem Jahr" : "im Jahr " + y };
+    }
+    return { from: "0000-01-01", to: t, label: "Alle Einträge", name: "insgesamt" };
+  }
+  function bar(rank, g, pct, val, sub) {
+    return '<div class="brow"><span class="rk">' + rank + "</span>" + thumb(g, "sm") + '<span class="bl">' + esc(g ? g.name : "?") + (sub ? "<small>" + sub + "</small>" : "") + "</span>" +
+      '<span class="bt"><i style="width:' + Math.max(3, pct) + '%"></i></span><span class="bv">' + val + "</span></div>";
+  }
+  function renderStats() {
+    const t = todayIso(), R = statRange();
+    let h = '<div class="statbar"><div class="seg" role="group" aria-label="Zeitraum">' +
+      [["monat", "Monat"], ["jahr", "Jahr"], ["gesamt", "Gesamt"]].map(([k, l]) => '<button data-act="smode" data-mode="' + k + '" aria-pressed="' + (ui.statMode === k) + '">' + l + "</button>").join("") + "</div>" +
+      '<div class="weeknav">' + (ui.statMode === "gesamt" ? "<span>Alle Einträge</span>" :
+        '<button data-act="soff" data-d="-1" aria-label="Zeitraum zurück">' + ICON.chevL + "</button><span>" + R.label + '</span><button data-act="soff" data-d="1" aria-label="Zeitraum vor"' + (ui.statOffset >= 0 ? " disabled" : "") + ">" + ICON.chevR + "</button>") +
+      "</div></div>";
+    if (S.bewertungen.some((b) => b.beispiel) || Object.values(S.plan).some((e) => e.beispiel)) {
+      h += '<div class="note"><span>Die Einträge der letzten Monate sind <b>Beispiele</b>, damit du die Statistik gefüllt siehst.</span><button class="btn" data-act="clear-demo">Beispiele entfernen</button></div>';
+    }
+
+    const days = Object.keys(S.plan).filter((d) => d >= R.from && d <= R.to && d < t).sort();
+    let home = 0, dishMeals = 0, aus = 0, ein = 0, reste = 0;
+    const cnt = {}, katCnt = {}, mkCnt = {};
+    days.forEach((d) => {
+      const e = S.plan[d];
+      if (e.status === "gericht") {
+        home++; dishMeals++; cnt[e.gerichtId] = (cnt[e.gerichtId] || 0) + 1;
+        const g = G(e.gerichtId);
+        if (g) { const k = g.kategorie || "ohne Kategorie"; katCnt[k] = (katCnt[k] || 0) + 1; (g.merkmale || []).forEach((m) => { mkCnt[m] = (mkCnt[m] || 0) + 1; }); }
+      } else if (e.status === "reste") { home++; reste++; }
+      else if (e.status === "auswaerts") aus++;
+      else if (e.status === "eingeladen") ein++;
+    });
+    const rs = S.bewertungen.filter((b) => b.datum >= R.from && b.datum <= R.to && b.datum <= t);
+    const per = {};
+    rs.forEach((b) => {
+      if (!per[b.gerichtId]) per[b.gerichtId] = { all: [], chris: [], lisa: [], ruby: [] };
+      per[b.gerichtId].all.push(b.wert); per[b.gerichtId][b.person].push(b.wert);
+    });
+    const firstDate = {};
+    Object.keys(S.plan).filter((d) => d < t).sort().forEach((d) => { const e = S.plan[d]; if (e.status === "gericht" && !firstDate[e.gerichtId]) firstDate[e.gerichtId] = d; });
+    const neu = ui.statMode === "gesamt" ? [] : Object.keys(firstDate).filter((id) => firstDate[id] >= R.from && firstDate[id] <= R.to).sort((a, b) => (firstDate[a] < firstDate[b] ? -1 : 1));
+    const allAvg = avg(rs.map((b) => b.wert));
+
+    if (!days.length && !rs.length) {
+      return h + '<section class="panel"><p class="empty">Für ' + esc(R.label) + " gibt es noch keine Einträge.</p></section>";
+    }
+
+    h += '<div class="kpis">' +
+      '<div class="kpi"><span class="k">Zu Hause gegessen</span><span class="v">' + home + '</span><span class="s">von ' + days.length + " eingetragenen Abenden</span></div>" +
+      '<div class="kpi"><span class="k">Ø Bewertung</span><span class="v">' + (allAvg == null ? "–" : smileOf(allAvg) + " " + num(allAvg)) + '</span><span class="s">aus ' + rs.length + " Bewertungen</span></div>" +
+      '<div class="kpi"><span class="k">Auswärts &amp; eingeladen</span><span class="v">' + (aus + ein) + '</span><span class="s">' + aus + " auswärts · " + ein + " eingeladen</span></div>" +
+      '<div class="kpi"><span class="k">Verschiedene Gerichte</span><span class="v">' + Object.keys(cnt).length + '</span><span class="s">' + (ui.statMode === "gesamt" ? reste + "× Reste" : neu.length + " neu ausprobiert · " + reste + "× Reste") + "</span></div></div>";
+
+    // Lieblingsgerichte
+    const scored = Object.keys(per).map((id) => ({ id, a: avg(per[id].all), n: per[id].all.length })).filter((x) => x.n >= 2);
+    const top = scored.slice().sort((x, y) => y.a - x.a || y.n - x.n).slice(0, 5);
+    const flops = scored.filter((x) => x.a <= 1.8).sort((x, y) => x.a - y.a).slice(0, 4);
+    const often = Object.keys(cnt).map((id) => ({ id, n: cnt[id] })).sort((x, y) => y.n - x.n).slice(0, 6);
+    const maxOften = often.length ? often[0].n : 1;
+
+    h += '<div class="grid2"><section class="panel"><div class="chead"><h2>Lieblingsgerichte der Familie</h2><p>Ø aller Bewertungen ' + esc(R.name) + "</p></div>" +
+      (top.length ? '<div class="blist">' + top.map((x, i) => bar(i + 1, G(x.id), ((x.a - 1) / 2) * 100, smileOf(x.a) + " " + num(x.a), x.n + " Bewertungen")).join("") + "</div>" : '<p class="empty">Noch zu wenige Bewertungen.</p>') +
+      "</section>" +
+      '<section class="panel"><div class="chead"><h2>Am häufigsten gegessen</h2><p>' + esc(R.name) + "</p></div>" +
+      (often.length ? '<div class="blist">' + often.map((x, i) => bar(i + 1, G(x.id), (x.n / maxOften) * 100, x.n + "×")).join("") + "</div>" : '<p class="empty">Noch nichts gegessen.</p>') +
+      "</section></div>";
+
+    // Je Person
+    h += '<section class="panel"><div class="chead"><h2>Wer mag was am liebsten?</h2><p>Top 3 je Person ' + esc(R.name) + '</p></div><div class="persons">' +
+      RATERS.map((p) => {
+        let list = Object.keys(per).map((id) => ({ id, a: avg(per[id][p]), n: per[id][p].length })).filter((x) => x.n >= 2);
+        if (!list.length) list = Object.keys(per).map((id) => ({ id, a: avg(per[id][p]), n: per[id][p].length })).filter((x) => x.n >= 1);
+        list.sort((x, y) => y.a - x.a || y.n - x.n);
+        return '<div class="pcol ' + p + '"><h3><span class="dot"></span>' + PEOPLE[p] + "</h3>" +
+          (list.length ? list.slice(0, 3).map((x) => { const g = G(x.id); return '<div class="pli">' + thumb(g, "sm") + '<span class="n">' + esc(g ? g.name : "?") + '</span><span class="v">' + smileOf(x.a) + " " + num(x.a) + "</span></div>"; }).join("") : '<p class="empty">Noch keine Bewertungen.</p>') +
+          "</div>";
+      }).join("") + "</div></section>";
+
+    // Kategorien und Merkmale
+    const kats = Object.keys(katCnt).map((k) => ({ k, n: katCnt[k] })).sort((x, y) => y.n - x.n);
+    const mks = optNames("mk").map((m) => ({ k: m, n: mkCnt[m] || 0 })).sort((x, y) => y.n - x.n);
+    const pct = (n) => (dishMeals ? Math.round((n / dishMeals) * 100) : 0);
+    h += '<div class="grid2"><section class="panel"><div class="chead"><h2>Kategorien</h2><p>Anteil der gekochten Abende ' + esc(R.name) + "</p></div>" +
+      (kats.length ? '<div class="blist plain">' + kats.map((x) => '<div class="brow"><span class="bl">' + esc(x.k) + '</span><span class="bt"><i style="width:' + Math.max(3, pct(x.n)) + '%"></i></span><span class="bv">' + pct(x.n) + " % · " + x.n + "×</span></div>").join("") + "</div>" : '<p class="empty">Noch keine Gerichte.</p>') +
+      "</section>" +
+      '<section class="panel"><div class="chead"><h2>Merkmale</h2><p>So oft war es …</p></div>' +
+      (mks.length ? '<div class="blist plain">' + mks.map((x) => '<div class="brow"><span class="bl">' + esc(x.k) + '</span><span class="bt"><i style="width:' + Math.max(3, pct(x.n)) + '%"></i></span><span class="bv">' + pct(x.n) + " %</span></div>").join("") + "</div>" : '<p class="empty">Noch keine Merkmale angelegt.</p>') +
+      "</section></div>";
+
+    // Mal wieder, Uneinig, Flops, Neu
+    const again = S.gerichte.filter((g) => g.aktiv).map((g) => { const d = eatenDays(g.id); const a = dishAvg(g.id); return { g, a, last: d[d.length - 1] }; })
+      .filter((x) => x.a != null && x.a >= 2.3 && x.last && diffDays(x.last, t) > 30).sort((x, y) => (x.last < y.last ? -1 : 1)).slice(0, 5);
+    const split = Object.keys(per).map((id) => {
+      const av = RATERS.map((p) => avg(per[id][p]));
+      if (av.some((v) => v == null)) return null;
+      return { id, av, spread: Math.max(...av) - Math.min(...av) };
+    }).filter((x) => x && x.spread >= 0.9).sort((x, y) => y.spread - x.spread).slice(0, 4);
+
+    h += '<div class="grid2"><section class="panel"><div class="chead"><h2>Mal wieder?</h2><p>Gut bewertet, aber über 30 Tage nicht dran</p></div>' +
+      (again.length ? again.map((x) => '<div class="mrow">' + thumb(x.g, "sm") + '<span class="n">' + esc(x.g.name) + "<small>zuletzt " + ago(diffDays(x.last, t)) + '</small></span><span class="tag">' + smileOf(x.a) + " " + num(x.a) + "</span></div>").join("") : '<p class="empty">Alle Lieblingsgerichte gab es in letzter Zeit.</p>') +
+      "</section>" +
+      '<section class="panel"><div class="chead"><h2>Geschmäcker gehen auseinander</h2><p>' + esc(R.name) + "</p></div>" +
+      (split.length ? split.map((x) => { const g = G(x.id); return '<div class="mrow">' + thumb(g, "sm") + '<span class="n">' + esc(g ? g.name : "?") + '</span><span class="who3">' + RATERS.map((p, i) => '<span class="rs ' + p + '">' + PEOPLE[p][0] + " " + smileOf(x.av[i]) + "</span>").join("") + "</span></div>"; }).join("") : '<p class="empty">Ihr seid euch einig.</p>') +
+      "</section></div>";
+
+    h += '<div class="grid2"><section class="panel"><div class="chead"><h2>Eher nicht</h2><p>Ø 1,8 oder schlechter ' + esc(R.name) + "</p></div>" +
+      (flops.length ? flops.map((x) => { const g = G(x.id); return '<div class="mrow">' + thumb(g, "sm") + '<span class="n">' + esc(g ? g.name : "?") + "<small>" + x.n + ' Bewertungen</small></span><span class="tag">' + smileOf(x.a) + " " + num(x.a) + "</span></div>"; }).join("") : '<p class="empty">Keine Flops in diesem Zeitraum.</p>') +
+      "</section>" +
+      (ui.statMode === "gesamt" ? "" : '<section class="panel"><div class="chead"><h2>Neu ausprobiert</h2><p>Zum ersten Mal auf dem Tisch</p></div>' +
+        (neu.length ? neu.map((id) => { const g = G(id); const a = dishAvg(id); return '<div class="mrow">' + thumb(g, "sm") + '<span class="n">' + esc(g ? g.name : "?") + "<small>am " + fmtDM(firstDate[id]) + "</small></span>" + (a == null ? "<span></span>" : '<span class="tag">' + smileOf(a) + " " + num(a) + "</span>") + "</div>"; }).join("") : '<p class="empty">Nichts Neues in diesem Zeitraum.</p>') +
+        "</section>") +
+      "</div>";
+    return h;
+  }
+
+  /* ---------- Rendern ---------- */
+  function render() {
+    FZ.status();
+    if (FZ.gate($("#view"))) { $("#topaction").innerHTML = ""; return; }
+    for (const v of VIEWS) $("#tab-" + v).setAttribute("aria-selected", String(ui.view === v));
+    $("#topaction").innerHTML = ui.view === "woche" ? '<button class="btn primary" data-act="suggest">' + ICON.spark + "<span>Woche vorschlagen</span></button>"
+      : ui.view === "gerichte" ? '<button class="btn primary" data-act="newdish">' + ICON.plus + "<span>Gericht</span></button>" : "";
+    $("#view").innerHTML = '<div class="stack">' + (ui.view === "woche" ? renderWoche() : ui.view === "gerichte" ? renderGerichte() : renderStats()) + "</div>";
+  }
+
+  /* ---------- Toast ---------- */
+  let toastTimer = null, toastActions = [];
+  function toast(msg, actions) {
+    const el = $("#toast");
+    toastActions = actions || [];
+    el.innerHTML = "<span>" + esc(msg) + "</span>" + toastActions.map((a, i) => '<button data-ti="' + i + '">' + esc(a.label) + "</button>").join("");
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.hidden = true; }, 7000);
+  }
+  $("#toast").addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-ti]"); if (!b) return;
+    const a = toastActions[Number(b.dataset.ti)]; $("#toast").hidden = true; if (a) a.fn();
+  });
+
+  /* ---------- Bewerten ---------- */
+  function setRating(d, p, v) {
+    const e = S.plan[d]; if (!e || e.status !== "gericht") return;
+    const i = S.bewertungen.findIndex((b) => b.datum === d && b.person === p);
+    if (i >= 0 && S.bewertungen[i].wert === v) {
+      S.bewertungen.splice(i, 1);
+      FZ.send(() => [{ art: "loeschen", reiter: "Bewertungen", wo: { Datum: d, Person: p } }]);
+    } else {
+      if (i >= 0) { S.bewertungen[i].wert = v; S.bewertungen[i].gerichtId = e.gerichtId; }
+      else S.bewertungen.push({ datum: d, gerichtId: e.gerichtId, person: p, wert: v });
+      FZ.send(() => [{ art: "setzen", reiter: "Bewertungen", wo: { Datum: d, Person: p }, werte: { "Gericht-ID": real(e.gerichtId), Wert: String(v) } }]);
+    }
+    render();
+    const box = $("#sheet-rate");
+    if (box && box.dataset.d === d) box.innerHTML = rateRows(d);
+  }
+
+  /* ---------- Sheets ---------- */
+  let draft = null;
+  function openSheet(html) { $("#sheet").innerHTML = html; $("#overlay").hidden = false; $("#sheet").scrollTop = 0; }
+  function closeSheet() { $("#overlay").hidden = true; $("#sheet").innerHTML = ""; draft = null; }
+
+  function openDay(d) {
+    const t = todayIso(), e = S.plan[d];
+    draft = { mode: "day", d, q: "", kat: "alle" };
+    let h = "<h2>" + esc(fmtLong(d)) + '</h2><p class="sub">Abendessen' + (e ? " · jetzt: " + esc(entryName(e)) : "") + "</p>";
+    if (d <= t && e && e.status === "gericht") {
+      h += '<div class="field"><span class="lbl">Wie war es?</span><div id="sheet-rate" data-d="' + d + '" style="display:grid;gap:10px">' + rateRows(d) + "</div></div>";
+    }
+    h += '<div class="field"><label for="f-q">Gericht wählen</label><input id="f-q" type="search" autocomplete="off" placeholder="Suchen …"></div>' +
+      '<div class="chips small" id="katchips">' + ["alle"].concat(optNames("kat")).map((k) => '<button type="button" data-act="dkat" data-val="' + esc(k) + '" aria-pressed="' + (k === "alle") + '">' + (k === "alle" ? "Alle" : esc(k)) + "</button>").join("") + "</div>" +
+      '<div class="dishgrid" id="dishgrid"></div>' +
+      '<div class="field"><span class="lbl">Kein Abendessen zu Hause oder Reste</span><div class="chips">' +
+      Object.keys(STATUS).map((k) => '<button type="button" data-act="setstatus" data-val="' + k + '" aria-pressed="' + (!!e && e.status === k) + '">' + STATUS[k].emoji + " " + STATUS[k].label + "</button>").join("") + "</div></div>" +
+      '<div class="actions">' + (e ? '<button type="button" class="btn ghost left" data-act="clearday">Tag leeren</button>' : "") + '<button type="button" class="btn" data-act="close">Schließen</button></div>';
+    openSheet(h);
+    fillDishGrid();
+  }
+  function fillDishGrid() {
+    if (!draft || draft.mode !== "day") return;
+    const e = S.plan[draft.d], q = draft.q.trim().toLowerCase();
+    const list = S.gerichte.filter((g) => g.aktiv && (draft.kat === "alle" || g.kategorie === draft.kat) && (!q || g.name.toLowerCase().includes(q))).sort((a, b) => a.name.localeCompare(b.name, "de"));
+    $("#dishgrid").innerHTML = list.length ? list.map((g) => {
+      const a = dishAvg(g.id);
+      return '<button type="button" class="dbtn" data-act="setdish" data-id="' + g.id + '" aria-pressed="' + (!!e && e.gerichtId === g.id) + '">' + thumb(g) + '<span class="n">' + esc(g.name) + '</span><span class="s">' + (a == null ? "neu" : smileOf(a) + " " + num(a)) + "</span></button>";
+    }).join("") : '<p class="empty">Kein passendes Gericht. Neue Gerichte legst du im Reiter „Gerichte“ an.</p>';
+    $("#katchips").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.val === draft.kat)));
+  }
+  function setEntry(d, entry, msg) {
+    const prev = S.plan[d];
+    if (entry) S.plan[d] = entry; else delete S.plan[d];
+    let cleared = false;
+    if (prev && prev.status === "gericht" && (!entry || entry.gerichtId !== prev.gerichtId)) {
+      cleared = S.bewertungen.some((b) => b.datum === d);
+      S.bewertungen = S.bewertungen.filter((b) => b.datum !== d);
+    }
+    FZ.send(() => [opPlan(d)].concat(cleared ? [{ art: "loeschen", reiter: "Bewertungen", wo: { Datum: d } }] : []));
+    closeSheet(); render();
+    toast(msg, [{ label: "Rückgängig", fn: () => { if (prev) S.plan[d] = prev; else delete S.plan[d]; FZ.send(() => [opPlan(d)]); render(); } }]);
+  }
+
+  function openDishForm(g) {
+    const isNew = !g;
+    draft = { mode: "dish", id: g ? g.id : null, kat: g ? g.kategorie : (optNames("kat")[0] || ""), mk: new Set(g ? g.merkmale : []), bild: g ? g.bild : "" };
+    const used = g ? eatenDays(g.id).length : 0;
+    let h = "<h2>" + (isNew ? "Neues Gericht" : "Gericht bearbeiten") + "</h2>" +
+      '<div class="field"><label for="f-name">Name</label><input id="f-name" type="text" maxlength="50" autocomplete="off" placeholder="z. B. Gemüselasagne" value="' + esc(g ? g.name : "") + '"></div>' +
+      '<div class="field"><span class="lbl">Bild</span><div class="photo"><span id="f-prev"></span>' +
+      '<div class="field"><label for="f-emoji" class="hint">Emoji, solange es kein Foto gibt</label><input id="f-emoji" class="emoji" type="text" maxlength="8" value="' + esc(g ? g.emoji : "🍽️") + '"></div>' +
+      '<span class="btn filelbl">Foto wählen<input id="f-foto" type="file" accept="image/*" aria-label="Foto wählen"></span>' +
+      '<button type="button" class="btn ghost" data-act="rmfoto" id="b-rmfoto">Foto entfernen</button></div></div>' +
+      '<div class="field"><span class="lbl">Kategorie</span><div class="chips" id="c-kat">' + optNames("kat").map((k) => '<button type="button" data-act="fkat" data-val="' + esc(k) + '">' + esc(k) + "</button>").join("") + "</div></div>" +
+      '<div class="field"><span class="lbl">Merkmale</span><div class="chips" id="c-mk">' + optNames("mk").map((m) => '<button type="button" data-act="fmk" data-val="' + esc(m) + '">' + esc(m) + "</button>").join("") + "</div>" +
+      '<p class="hint">Kategorien und Merkmale pflegt ihr in der Tabelle (Reiter „Essen-Listen“) oder unter „Kategorien &amp; Merkmale“.</p></div>' +
+      '<div class="field"><label for="f-notiz">Notiz oder Rezept-Link (optional)</label><textarea id="f-notiz" maxlength="300">' + esc(g ? g.notiz : "") + "</textarea></div>" +
+      '<label class="checkline"><input type="checkbox" id="f-aktiv"' + (!g || g.aktiv ? " checked" : "") + "> Wird für den Wochenplan vorgeschlagen</label>" +
+      '<p class="err" id="f-err" hidden></p>' +
+      '<div class="actions">' +
+      '<button type="button" class="btn" data-act="close">Abbrechen</button><button type="button" class="btn primary" data-act="savedish">Speichern</button></div>' +
+      (!isNew ? '<p class="hint">' + (used ? "Steht " + used + "× im Verlauf. " : "") + "Zum Aussortieren den Haken bei „Wird vorgeschlagen“ entfernen. Ganz löschen geht in der Tabelle.</p>" : "") +
+      (!isNew && !used ? '<div class="confirm" id="del-box" hidden><p>„' + esc(g.name) + '“ wirklich löschen?</p><div class="actions"><button type="button" class="btn" data-act="del-no">Behalten</button><button type="button" class="btn primary" data-act="del-yes">Löschen</button></div></div>' : "");
+    openSheet(h);
+    syncDishForm();
+  }
+  function syncDishForm() {
+    const sh = $("#sheet");
+    sh.querySelectorAll("[data-act=fkat]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.val === draft.kat)));
+    sh.querySelectorAll("[data-act=fmk]").forEach((b) => b.setAttribute("aria-pressed", String(draft.mk.has(b.dataset.val))));
+    const em = $("#f-emoji") ? $("#f-emoji").value : "🍽️";
+    $("#f-prev").innerHTML = thumb({ bild: draft.bild, emoji: em || "🍽️" }, "lg");
+    $("#b-rmfoto").hidden = !draft.bild;
+  }
+  function saveDish() {
+    const errEl = $("#f-err");
+    const name = $("#f-name").value.trim();
+    if (!name) { errEl.textContent = "Bitte einen Namen eintragen."; errEl.hidden = false; return; }
+    const dup = S.gerichte.find((g) => g.id !== real(draft.id) && g.name.toLowerCase() === name.toLowerCase());
+    if (dup) { errEl.textContent = "„" + dup.name + "“ gibt es schon."; errEl.hidden = false; return; }
+    const data = { name, emoji: $("#f-emoji").value.trim() || "🍽️", bild: draft.bild || "", kategorie: draft.kat, merkmale: optNames("mk").filter((m) => draft.mk.has(m)), notiz: $("#f-notiz").value.trim(), aktiv: $("#f-aktiv").checked };
+    const old = draft.id ? G(real(draft.id)) : null;
+    data.bildLink = data.bild.indexOf("data:") === 0 ? data.bild : data.bild ? (old ? old.bildLink : "") : "";
+    if (old) {
+      Object.assign(old, data);
+      FZ.send(() => [{ art: "setzen", reiter: "Gerichte", wo: { ID: real(old.id) }, werte: dishRow(old) }]);
+    } else {
+      const ng = Object.assign({ id: uid() }, data), tmp = ng.id;
+      S.gerichte.push(ng);
+      FZ.send(() => [{ art: "anfuegen", reiter: "Gerichte", werte: dishRow(ng) }], (j) => adoptId(tmp, j.ergebnisse[0].id));
+    }
+    closeSheet(); render();
+    toast("„" + name + "“ gespeichert" + (data.aktiv ? "" : " (pausiert)"));
+  }
+  function readPhoto(file) {
+    if (!file) return;
+    const fr = new FileReader();
+    fr.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let url = "";
+        for (const [max, q] of [[360, 0.72], [280, 0.62], [220, 0.55]]) {
+          const sc = Math.min(1, max / Math.max(img.width, img.height));
+          const c = document.createElement("canvas"); c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          url = c.toDataURL("image/jpeg", q);
+          if (url.length < 45000) break;
+        }
+        if (url.length >= 45000) { toast("Das Foto ist zu groß. Bitte ein anderes wählen."); return; }
+        if (draft && draft.mode === "dish") { draft.bild = url; syncDishForm(); }
+      };
+      img.onerror = () => toast("Das Foto ließ sich nicht öffnen. Bitte ein JPG oder PNG wählen.");
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  }
+
+  function openLists() {
+    draft = { mode: "lists" };
+    const usedKat = (k) => S.gerichte.filter((g) => g.kategorie === k).length;
+    const usedMk = (m) => S.gerichte.filter((g) => (g.merkmale || []).includes(m)).length;
+    const block = (title, items, used) => '<div class="field"><span class="lbl">' + title + "</span><div>" +
+      items.map((o) => { const n = used(o.name); return '<div class="lrow"><span>' + esc(o.name) + '</span><span class="c">' + n + (n === 1 ? " Gericht" : " Gerichte") + "</span></div>"; }).join("") + "</div></div>";
+    openSheet('<h2>Kategorien &amp; Merkmale</h2><p class="sub">Neue anlegen, umbenennen oder ausblenden geht in der Google-Tabelle im Reiter „Essen-Listen“ (Spalte Aktiv).</p>' +
+      block("Kategorien (eine pro Gericht)", S.kategorien.filter((o) => o.aktiv), usedKat) +
+      block("Merkmale (beliebig viele pro Gericht)", S.merkmale.filter((o) => o.aktiv), usedMk) +
+      '<div class="actions"><button type="button" class="btn primary" data-act="close">Fertig</button></div>');
+  }
+
+  /* ---------- Ereignisse ---------- */
+  document.addEventListener("click", (ev) => {
+    if (ev.target === $("#overlay")) return closeSheet();
+    const el = ev.target.closest("[data-act]"); if (!el) return;
+    const act = el.dataset.act, d = el.dataset.d;
+    switch (act) {
+      case "view": go(el.dataset.view); break;
+      case "wk": ui.weekOffset = Math.max(-26, Math.min(4, ui.weekOffset + Number(el.dataset.d))); if (ui.view !== "woche") go("woche"); else render(); break;
+      case "suggest": suggestWeek(); break;
+      case "shuffle": shuffleDay(d); break;
+      case "day": openDay(d); break;
+      case "rate": setRating(d, el.dataset.p, Number(el.dataset.v)); break;
+      case "dkat": draft.kat = el.dataset.val; fillDishGrid(); break;
+      case "setdish": { const g = G(el.dataset.id); setEntry(draft.d, { status: "gericht", gerichtId: g.id }, WD_LONG[dow(draft.d)] + ": " + g.name); break; }
+      case "setstatus": { const k = el.dataset.val; setEntry(draft.d, { status: k }, WD_LONG[dow(draft.d)] + ": " + STATUS[k].label); break; }
+      case "clearday": setEntry(draft.d, null, WD_LONG[dow(draft.d)] + " ist wieder offen"); break;
+      case "filter": ui.filter = el.dataset.val; render(); break;
+      case "newdish": openDishForm(null); break;
+      case "editdish": openDishForm(G(el.dataset.id)); break;
+      case "fkat": draft.kat = el.dataset.val; syncDishForm(); break;
+      case "fmk": { const m = el.dataset.val; if (draft.mk.has(m)) draft.mk.delete(m); else draft.mk.add(m); syncDishForm(); break; }
+      case "rmfoto": draft.bild = ""; syncDishForm(); break;
+      case "savedish": saveDish(); break;
+      case "del-ask": $("#del-box").hidden = false; break;
+      case "del-no": $("#del-box").hidden = true; break;
+      case "del-yes": { const g = G(draft.id); S.gerichte = S.gerichte.filter((x) => x.id !== draft.id); save(); closeSheet(); render(); if (g) toast("„" + g.name + "“ gelöscht"); break; }
+      case "lists": openLists(); break;
+      case "smode": ui.statMode = el.dataset.mode; ui.statOffset = 0; render(); break;
+      case "soff": ui.statOffset = Math.min(0, ui.statOffset + Number(el.dataset.d)); render(); break;
+      case "clear-demo": {
+        for (const k of Object.keys(S.plan)) if (S.plan[k].beispiel) delete S.plan[k];
+        S.bewertungen = S.bewertungen.filter((b) => !b.beispiel);
+        save(); render(); toast("Beispiele entfernt. Die Gerichte bleiben.");
+        break;
+      }
+      case "close": closeSheet(); break;
+    }
+  });
+  document.addEventListener("input", (ev) => {
+    if (ev.target.id === "f-q" && draft && draft.mode === "day") { draft.q = ev.target.value; fillDishGrid(); }
+    if (ev.target.id === "f-emoji" && draft && draft.mode === "dish") syncDishForm();
+  });
+  document.addEventListener("change", (ev) => { if (ev.target.id === "f-foto") readPhoto(ev.target.files && ev.target.files[0]); });
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape" && !$("#overlay").hidden) closeSheet();
+  });
+
+  const VIEWS = ["woche", "gerichte", "statistik"];
+  function go(v) {
+    ui.view = v; render();
+
+  }
+  window.addEventListener("hashchange", () => { const h = (location.hash || "").slice(1); if (VIEWS.includes(h)) { ui.view = h; render(); } });
+
+  // Tageswechsel erkennen
+  let lastDay = todayIso();
+  setInterval(() => { if (todayIso() !== lastDay) { lastDay = todayIso(); render(); } }, 60000);
+
+  const h0 = (location.hash || "").slice(1);
+  if (VIEWS.includes(h0)) ui.view = h0;
+  FZ.toast = toast;
+  FZ.on(() => { S = fromSheet(); if ($("#overlay").hidden) render(); });
+  FZ.nav("essen");
+  FZ.start();
+  render();
+})();
+</script>
+</body>
+</html>
