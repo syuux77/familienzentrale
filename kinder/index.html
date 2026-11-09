@@ -140,30 +140,66 @@ p { margin: 0; }
 .ticks span:last-child { transform: translateX(-100%); }
 @media (max-width: 560px) { .ticks span.mid { display: none; } .seg { font-size: 20px; } .track { height: 44px; } }
 
-/* Karten */
+/* Karten: Abendessen + bis zu 3 Aufgaben in einer Reihe */
 .cards { display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 270px)); justify-content: center; gap: 22px; }
 @media (max-width: 640px) { .cards { grid-template-columns: repeat(var(--mcols, 2), minmax(0, 1fr)); gap: 14px; } }
-.card { background: var(--surface); border-radius: var(--r); padding: 14px 14px 20px; display: grid; gap: 14px; justify-items: center; text-align: center; box-shadow: 0 1px 0 var(--line); }
+.card { position: relative; background: var(--surface); border: 0; border-radius: var(--r); padding: 14px 14px 20px; display: grid; grid-template-rows: auto 1fr; gap: 14px; justify-items: center; align-content: start; text-align: center; box-shadow: 0 1px 0 var(--line); color: var(--fg); width: 100%; }
+button.card { cursor: pointer; touch-action: manipulation; }
 .tile { width: 100%; aspect-ratio: 5 / 4; max-width: 100%; border-radius: 20px; background: var(--soft); display: grid; place-items: center; overflow: hidden; container-type: inline-size; }
 .tile .emo { font-size: clamp(40px, 9vw, 112px); white-space: nowrap; }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
 @supports (font-size: 1cqw) {
   .tile .emo { font-size: min(52cqw, 120px); }
   .tile .emo.two { font-size: min(32cqw, 80px); }
   .tile .emo.many { font-size: min(22cqw, 56px); }
 }
-.card h2 { font: 700 28px/1.15 var(--font-display); letter-spacing: -.01em; overflow-wrap: anywhere; padding-inline: 4px; }
-@media (max-width: 640px) { .card h2 { font-size: 21px; } .card { padding: 10px 10px 14px; gap: 10px; border-radius: 22px; } }
+.card .ttl { display: grid; align-content: center; gap: 2px; font: 700 28px/1.15 var(--font-display); letter-spacing: -.01em; overflow-wrap: anywhere; padding-inline: 4px; }
+.card .ttl small { font: 600 17px/1.2 var(--font); letter-spacing: 0; color: var(--muted); }
+.card .mm { color: var(--muted); font: 500 16px/1.25 var(--font); letter-spacing: 0; margin-top: 6px; }
+.card .mm b { color: var(--fg); font-weight: 650; }
+@media (max-width: 640px) { .card .ttl { font-size: 21px; } .card .ttl small { font-size: 14px; } .card { padding: 10px 10px 14px; gap: 10px; border-radius: 22px; } }
 .note { justify-self: center; color: var(--muted); font-size: 18px; text-align: center; }
 .note b { color: var(--fg); font-weight: 650; }
 
-:root[data-mode="hell"] .cards.fresh .card { animation: rise .45s ease both; }
-:root[data-mode="hell"] .cards.fresh .card:nth-child(2) { animation-delay: .06s; }
-:root[data-mode="hell"] .cards.fresh .card:nth-child(3) { animation-delay: .12s; }
-:root[data-mode="hell"] .cards.fresh .card:nth-child(4) { animation-delay: .18s; }
-:root[data-mode="hell"] .cards.fresh .card:nth-child(5) { animation-delay: .24s; }
-:root[data-mode="hell"] .cards.fresh .card:nth-child(6) { animation-delay: .3s; }
-@keyframes rise { from { transform: translateY(10px); opacity: .4; } to { transform: none; opacity: 1; } }
+/* Abhaken */
+.chk { position: absolute; top: 24px; right: 24px; width: 46px; height: 46px; border-radius: 50%; border: 3px solid var(--accent); background: var(--surface); display: grid; place-items: center; opacity: .9; }
+.chk svg { width: 28px; height: 28px; fill: none; stroke: var(--on-ink); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
+.card.done .chk { background: var(--accent); opacity: 1; }
+.card.done .chk svg { opacity: 1; }
+.card.done .tile, .card.done .ttl { opacity: .38; filter: grayscale(1); transition: opacity .3s, filter .3s; }
+.card.done .ttl { text-decoration: line-through; text-decoration-thickness: 3px; }
+.card.pop .chk { animation: pop .45s cubic-bezier(.3, 1.6, .5, 1) both; }
+.card.leaving { animation: leave .42s ease forwards; pointer-events: none; }
+.card.yay .tile { background: var(--soft); }
+@media (max-width: 640px) { .chk { top: 16px; right: 16px; width: 38px; height: 38px; } .chk svg { width: 22px; height: 22px; } }
+@keyframes pop { 0% { transform: scale(.4); } 100% { transform: scale(1); } }
+@keyframes leave { to { opacity: 0; transform: scale(.86); } }
+
+.card.enter { animation: appear .5s ease both; }
+.card.enter:nth-child(2) { animation-delay: .06s; }
+.card.enter:nth-child(3) { animation-delay: .12s; }
+.card.enter:nth-child(4) { animation-delay: .18s; }
+@keyframes appear { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
 :root[data-mode="leise"] .card, :root[data-mode="abend"] .card { box-shadow: none; }
+
+/* Tablet quer: alles auf einen Bildschirm, ohne Scrollen */
+@media (orientation: landscape) and (min-width: 900px) and (min-height: 560px) {
+  .app {
+    height: calc(100vh - 96px - env(safe-area-inset-top, 0px) - 2 * env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - 96px - env(safe-area-inset-top, 0px) - 2 * env(safe-area-inset-bottom, 0px));
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: 20px; padding-block: 18px 18px;
+  }
+  #main { min-height: 0; display: grid; align-items: center; }
+  .cards { height: 100%; max-height: 440px; min-height: 0; grid-template-rows: minmax(0, 1fr) auto; row-gap: 0; }
+  .card { min-height: 0; grid-template-rows: minmax(0, 1fr) auto; }
+  @supports (grid-template-rows: subgrid) {
+    /* gleiche Kachelhöhe in allen Karten, auch wenn ein Titel zwei Zeilen hat */
+    .card { grid-row: span 2; grid-template-rows: subgrid; row-gap: 14px; }
+  }
+  .tile { aspect-ratio: auto; height: 100%; min-height: 90px; }
+  .card .ttl { font-size: 26px; }
+}
 
 /* Nacht */
 .night { min-height: 62vh; display: grid; place-items: center; text-align: center; border: 0; background: transparent; width: 100%; padding: 40px 0; }
@@ -193,17 +229,6 @@ p { margin: 0; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
-<style>
-.meal { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px 22px; margin-top: 22px; padding: 18px 22px; border-radius: var(--r); background: var(--surface); }
-.meal .mv { width: 120px; height: 120px; border-radius: 22px; background: var(--soft); display: grid; place-items: center; overflow: hidden; }
-.meal .mv .emo { font-size: 76px; }
-.meal .mv img { width: 100%; height: 100%; object-fit: cover; }
-.meal .ml { margin: 0; font-size: 20px; color: var(--muted); font-weight: 600; }
-.meal .mn { margin: 0; font: 700 34px/1.15 var(--font-display); overflow-wrap: anywhere; }
-.meal .mm { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 17px; border-top: 1px solid var(--line); padding-top: 10px; }
-.meal .mm b { color: var(--fg); }
-@media (max-width: 560px) { .meal .mv { width: 84px; height: 84px; } .meal .mv .emo { font-size: 52px; } .meal .mn { font-size: 26px; } }
-</style>
 </head>
 <body>
 <div class="app">
@@ -230,9 +255,17 @@ p { margin: 0; }
   function aufgaben() {
     return FZ.reiter("Kinderaufgaben").filter((r) => r.ID).map((r) => ({
       id: r.ID, text: r.Text, emoji: r.Emoji, phasen: r.Tagesphasen, wochentage: r.Wochentage, wann: (r.Wann || "immer").trim(),
-      aktiv: String(r.Aktiv || "").trim().toLowerCase(), rf: Number(r.Reihenfolge) || 99
+      aktiv: String(r.Aktiv || "").trim().toLowerCase(), rf: Number(r.Reihenfolge) || 99,
+      erledigt: String(r["Erledigt am"] || "").trim()
     }));
   }
+  // In diesen Tageszeiten lassen sich Aufgaben abhaken. Pro Tageszeit stehen höchstens MAX Aufgaben da;
+  // erledigte verschwinden, die nächsten rücken nach. Am nächsten Tag ist alles wieder offen.
+  const ABHAKEN = ["morgen", "abend"];
+  const MAX = 3;
+  const FADE_MS = 2600, LEAVE_MS = 420;
+  const fading = new Map(); // id -> { timer, leaving }
+  let popId = "", shown = new Set(), lastPhase = "";
   function itemsFor(phase, s) {
     const today = FZ.dayInfo(s), tomorrow = FZ.dayInfo(addDays(s, 1));
     const w = WD[parse(s).getDay()];
@@ -271,17 +304,26 @@ p { margin: 0; }
     });
     return h + "</div>";
   }
-  function mealTile(date) {
+  // Abendessen als Kachel (wie die Aufgaben)
+  function mealCard(date) {
     const m = FZ.meal(date), m2 = FZ.meal(addDays(date, 1));
-    if (!m && !m2) return "";
-    let lbl = "Heute Abend gibt's", name = m ? m.name : "";
+    if (!m && !m2) return null;
+    let lbl = "Heute Abend gibt's", name = m ? m.name : "noch nicht geplant";
     if (m && m.status !== "gericht") { lbl = "Heute Abend"; name = m.kid; }
-    const vis = (x, cls) => '<span class="' + cls + '">' + (x && x.bild ? '<img src="' + esc(x.bild) + '" alt="">' : '<span class="emo" aria-hidden="true">' + esc(x ? x.emoji : "❔") + "</span>") + "</span>";
-    return '<section class="meal">' + (m ? vis(m, "mv") + '<div class="mt"><p class="ml">' + lbl + '</p><p class="mn">' + esc(name) + "</p></div>" : '<div class="mt"><p class="ml">Heute Abend</p><p class="mn">noch nicht geplant</p></div>') +
-      (m2 ? '<p class="mm">Morgen: <b>' + esc(m2.status === "gericht" ? m2.name : m2.name) + "</b></p>" : "") + "</section>";
+    if (!m) lbl = "Heute Abend";
+    const vis = m && m.bild ? '<img src="' + esc(m.bild) + '" alt="">' : '<span class="emo' + emojiClass(m ? m.emoji : "❔") + '" aria-hidden="true">' + esc(m ? m.emoji : "❔") + "</span>";
+    return { id: "meal", html: '<article class="card meal"><span class="tile">' + vis + '</span><span class="ttl"><small>' + lbl + "</small>" + esc(name) +
+      (m2 ? '<span class="mm">Morgen: <b>' + esc(m2.name) + "</b></span>" : "") + "</span></article>" };
+  }
+  const CHECK = '<span class="chk" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>';
+  function taskCard(k, check) {
+    const inner = '<span class="tile"><span class="emo' + emojiClass(k.emoji) + '" aria-hidden="true">' + esc(k.emoji) + '</span></span><span class="ttl">' + esc(k.text) + "</span>";
+    if (!check) return { id: k.id, html: '<article class="card">' + inner + "</article>" };
+    const f = fading.has(k.id);
+    return { id: k.id, html: '<button type="button" class="card task' + (f ? " done" : "") + (popId === k.id ? " pop" : "") + '" data-id="' + esc(k.id) + '" aria-pressed="' + f + '" aria-label="' + esc(k.text) + (f ? " – erledigt, nochmal tippen macht es rückgängig" : " – antippen, wenn erledigt") + '">' + inner + CHECK + "</button>" };
   }
 
-  let peekUntil = 0, peekTimer = null, lastKey = "";
+  let peekUntil = 0, peekTimer = null;
   function render() {
     const now = new Date(), date = iso(now), min = now.getHours() * 60 + now.getMinutes();
     const P = FZ.phasen();
@@ -303,7 +345,7 @@ p { margin: 0; }
       $("#daybar").hidden = true;
       $("#main").innerHTML = '<button type="button" class="night" id="night" aria-label="Kurz die Kinderseite zeigen"><span class="inner">' +
         '<span class="clock">' + fmtTime(min) + '</span><span class="emo">😴</span><p>Schlafenszeit · Antippen zeigt kurz die Seite</p></span></button>';
-      lastKey = "nacht";
+      lastPhase = "nacht"; shown = new Set();
       return;
     }
 
@@ -320,20 +362,62 @@ p { margin: 0; }
       "</div>";
     $("#daybar").innerHTML = renderDaybar(P, phase, min);
 
-    const key = phase.id + "|" + items.map((k) => k.id).join(",");
-    const fresh = key !== lastKey;
-    lastKey = key;
-    const cols = items.length <= 4 ? Math.max(1, items.length) : Math.ceil(items.length / 2);
-    let h = items.length
-      ? '<div class="cards' + (fresh ? " fresh" : "") + '" style="--cols:' + cols + ";--mcols:" + Math.min(cols, 2) + '">' + items.map((k) =>
-          '<article class="card"><div class="tile"><span class="emo' + emojiClass(k.emoji) + '" aria-hidden="true">' + esc(k.emoji) + "</span></div><h2>" + esc(k.text) + "</h2></article>").join("") + "</div>"
+    // Offene Aufgaben (erledigte von heute fallen weg), davon höchstens MAX
+    const check = ABHAKEN.includes(phase.id) && !peek;
+    const open = check ? items.filter((k) => k.erledigt !== date) : items;
+    const cards = [];
+    if (phase.modus !== "nacht") { const mc = mealCard(date); if (mc) cards.push(mc); }
+    open.slice(0, MAX).forEach((k) => cards.push(taskCard(k, check)));
+    if (check && items.length && !open.length) {
+      cards.push({ id: "yay", html: '<article class="card yay"><span class="tile"><span class="emo" aria-hidden="true">🎉</span></span><span class="ttl"><small>Super gemacht!</small>Alles geschafft</span></article>' });
+    }
+
+    // Nur neue Karten einblenden (Tageszeit-Wechsel: alle)
+    const phaseChanged = phase.id !== lastPhase;
+    lastPhase = phase.id;
+    const html = cards.map((c) => (phaseChanged || !shown.has(c.id)) ? c.html.replace('class="card', 'class="card enter') : c.html);
+    shown = new Set(cards.map((c) => c.id));
+    popId = "";
+
+    const cols = Math.max(1, cards.length);
+    let h = cards.length
+      ? '<div class="cards" style="--cols:' + cols + ";--mcols:" + Math.min(cols, 2) + '">' + html.join("") + "</div>"
       : '<p class="note">Gerade steht nichts an.</p>';
-    if (phase.modus !== "nacht") h += mealTile(date);
     if (peek) h += '<p class="peekbar">Gleich wird es wieder dunkel.</p>';
     $("#main").innerHTML = h;
   }
 
+  // Abhaken: Karte wird grau mit Haken, nach kurzer Zeit verschwindet sie und die nächste rückt nach.
+  // Nochmal Tippen, solange sie grau ist, macht es rückgängig.
+  function toggleTask(id) {
+    const f = fading.get(id);
+    if (f) {
+      if (f.leaving) return;
+      clearTimeout(f.timer); fading.delete(id); render(); return;
+    }
+    const entry = { leaving: false, timer: 0 };
+    entry.timer = setTimeout(() => {
+      entry.leaving = true;
+      const el = document.querySelector('.card[data-id="' + id.replace(/"/g, "") + '"]');
+      if (el) el.classList.add("leaving");
+      setTimeout(() => commit(id), LEAVE_MS);
+    }, FADE_MS);
+    fading.set(id, entry);
+    popId = id;
+    render();
+  }
+  function commit(id) {
+    fading.delete(id);
+    const date = iso(new Date());
+    const row = FZ.reiter("Kinderaufgaben").find((r) => r.ID === id);
+    if (row) row["Erledigt am"] = date;
+    FZ.send([{ art: "setzen", reiter: "Kinderaufgaben", wo: { ID: id }, werte: { "Erledigt am": date } }]);
+    render();
+  }
+
   $("#main").addEventListener("click", (ev) => {
+    const t = ev.target.closest(".card.task[data-id]");
+    if (t) { toggleTask(t.dataset.id); return; }
     if (!ev.target.closest("#night")) return;
     peekUntil = Date.now() + 15000;
     render();

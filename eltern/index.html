@@ -296,16 +296,18 @@ svg.ic { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-wid
       return '<div class="phase"><h3><span class="emo" aria-hidden="true">' + p.symbol + "</span>" + esc(p.name) + " <small>" + esc(zeiten(p.id)) + "</small></h3>" +
         items.map((k, i) => {
           const on = aktiv(k), w = (k.Wann || "immer").trim();
+          const sub = [WANN[w] || "", on ? "" : "ausgeblendet", on && String(k["Erledigt am"] || "").trim() === date ? "✓ heute erledigt" : ""].filter(Boolean).join(" · ");
           return '<div class="item' + (on ? "" : " off") + (lastMoved === k.ID ? " moved" : "") + '">' +
             '<span class="emo" aria-hidden="true">' + esc(k.Emoji) + "</span>" +
-            '<span class="t">' + esc(k.Text) + (WANN[w] ? "<small>" + esc(WANN[w]) + "</small>" : on ? "" : "<small>ausgeblendet</small>") + "</span>" +
+            '<span class="t">' + esc(k.Text) + (sub ? "<small>" + esc(sub) + "</small>" : "") + "</span>" +
             '<span class="order"><button type="button" data-move="up" data-id="' + esc(k.ID) + '" aria-label="' + esc(k.Text) + ' nach oben"' + (i === 0 ? " disabled" : "") + ">" + IC.up + "</button>" +
             '<button type="button" data-move="down" data-id="' + esc(k.ID) + '" aria-label="' + esc(k.Text) + ' nach unten"' + (i === items.length - 1 ? " disabled" : "") + ">" + IC.down + "</button></span>" +
             '<button type="button" class="switch sm" role="switch" data-toggle="' + esc(k.ID) + '" aria-checked="' + on + '" aria-label="' + esc(k.Text) + ' anzeigen"></button></div>';
         }).join("") + "</div>";
     }).join("");
     const aufgaben =
-      '<section class="card"><div class="card-h"><h2>' + IC.list + 'Kinderaufgaben</h2><span class="hint">Neue Karten, Texte und Emojis in der Tabelle</span></div>' + phasen + "</section>";
+      '<section class="card"><div class="card-h"><h2>' + IC.list + 'Kinderaufgaben</h2><span class="hint">Neue Karten, Texte und Emojis in der Tabelle</span></div>' +
+      '<p class="hint">Die Kinderseite zeigt je Tageszeit die ersten 3. Morgens und abends werden sie abgehakt, dann rücken die nächsten nach – am nächsten Tag ist alles wieder offen.</p>' + phasen + "</section>";
 
     $("#view").innerHTML = head + '<div class="grid" style="margin-top:22px"><div class="col">' + heute + kita + '</div><div class="col">' + aufgaben + "</div></div>";
     FZ.status();
