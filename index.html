@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Familienzentrale</title>
+<style>
+:root { --bg: #F3F4F1; --fg: #1B1F1C; --muted: #5F6761; --surface: #FFFFFF; --line: #DEE1DB; color-scheme: light; }
+@media (prefers-color-scheme: dark) { :root { --bg: #121513; --fg: #E7EBE6; --muted: #9AA39C; --surface: #1B1F1C; --line: #323833; color-scheme: dark; } }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.45 -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 560px; margin: 0 auto; padding: 48px max(16px, env(safe-area-inset-right)) 48px max(16px, env(safe-area-inset-left)); display: grid; gap: 16px; }
+h1 { margin: 0; font-size: 32px; }
+p { margin: 0; color: var(--muted); }
+a { display: block; padding: 16px 18px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); color: var(--fg); font-weight: 600; text-decoration: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Familienzentrale</h1>
+  <p>Im Aufbau. Zum Testen der Verbindung zur Google-Tabelle gibt es vorerst das Haushalt-Modul.</p>
+  <a id="hh" href="haushalt/">Haushalt öffnen</a>
+</main>
+<script>
+  // Einrichtungs-Link (#key=…) an das Modul weitergeben
+  if (location.hash) document.getElementById("hh").href = "haushalt/" + location.hash;
+</script>
+</body>
+</html>
