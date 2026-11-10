@@ -382,7 +382,7 @@ svg.ic { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-wid
     if (!FZ.wand || !ui.unlocked) return;
     const sperr = Math.max(30, parseInt(FZ.einst().sperrzeit_sekunden, 10) || 150);
     const left = sperr - Math.floor((Date.now() - ui.lastTouch) / 1000);
-    if (left <= 0 && !FZ.pending) { location.href = FZ.ruheUrl(); return; }
+    if (left <= 0 && !FZ.pending) { ui.unlocked = false; ui.pinIn = ""; ui.pinErr = false; render(); FZ.geheZu(FZ.ruheUrl()); return; }
     const el = document.querySelector("#lockinfo span");
     if (el) el.textContent = "sperrt in " + Math.floor(Math.max(0, left) / 60) + ":" + pad(Math.max(0, left) % 60);
   }, 1000);

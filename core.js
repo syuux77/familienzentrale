@@ -173,6 +173,17 @@
     return "start";
   };
   FZ.ruheUrl = () => ROOT + (FZ.ruheSeite() === "kinder" ? "kinder/" : "");
+  // Automatischer Seitenwechsel nur, wenn die Zielseite erreichbar ist.
+  // Ohne WLAN bliebe sonst an der Wand eine Fehlerseite des Browsers stehen.
+  let wechsel = false;
+  FZ.geheZu = function (url, neuLaden) {
+    if (wechsel) return;
+    wechsel = true;
+    fetch(url, { cache: "no-store" }).then((r) => {
+      if (!r.ok) throw new Error("nicht erreichbar");
+      if (neuLaden) location.reload(); else location.href = url;
+    }).catch(() => { setTimeout(() => { wechsel = false; }, 20000); });
+  };
 
   /* ---------- Feiertage Sachsen, Kita-Tag ---------- */
   function easter(y) {
@@ -323,8 +334,8 @@
     setInterval(() => {
       const sek = Math.max(30, parseInt(FZ.einst().sperrzeit_sekunden, 10) || 150);
       const ziel = FZ.ruheSeite();
-      if (FZ.page && FZ.page !== ziel && Date.now() - touched > sek * 1000 && !pending) { location.href = FZ.ruheUrl(); return; }
-      if (FZ.today() !== startDay && FZ.page === "start" && Date.now() - touched > 60000) location.reload();
+      if (FZ.page && FZ.page !== ziel && Date.now() - touched > sek * 1000 && !pending) { FZ.geheZu(FZ.ruheUrl()); return; }
+      if (FZ.today() !== startDay && FZ.page === "start" && Date.now() - touched > 60000) FZ.geheZu(location.pathname, true);
     }, 5000);
     void lock;
   }
