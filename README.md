@@ -17,4 +17,5 @@ Familien-Dashboard als Web-App für ein Wandtablet (iPad im Flur) und die Handys
 - Startseite im Tablet-Querformat: alles auf einem Bildschirm; lange Listen werden mit „+ n weitere“ gekürzt.
 - Haushalt und Essen nutzen dieselben Farben nach Tageszeit wie Start- und Kinderseite (Leisezeit gedimmt, abends und nachts warm-dunkel).
 - Kinderseite: Aufgaben zuerst, dahinter Infokarten (morgens „Heute anziehen“ nach Wetter, immer das Abendessen). Ein Stern pro Aufgabe zeigt den Fortschritt; beim Abhaken sprühen Sterne, am Ende gibt es Konfetti. Die Anzieh-Regeln (gefühlte Temperatur 7–17 Uhr, Regen, Schnee) stehen in `kinder/index.html` in der Funktion `anziehen`.
+- Geplante Überarbeitung (gemeinsames Design, Wetter-Baustein, Kinderseite): `docs/plan-design-und-wetter.md`.
 - Eltern-PIN am Wand-iPad: Haushalt, Essen und die Eltern-Seite fragen nach der PIN (`pin` in den Einstellungen). Einmal entsperrt bleiben alle drei offen, bis `sperrzeit_sekunden` lang keine dieser Seiten berührt wurde oder das iPad in den Ruhezustand springt. Handys fragen nie.
