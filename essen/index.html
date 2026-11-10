@@ -317,8 +317,10 @@ p { margin: 0; }
 .cancel { justify-self: center; }
 
 /* Toast */
-.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); width: min(640px, calc(100% - 32px)); background: var(--ink); color: var(--on-ink); border-radius: 20px; padding: 10px 10px 10px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; z-index: 60; box-shadow: 0 12px 30px rgba(0,0,0,.22); font-size: 15.5px; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(108px + env(safe-area-inset-bottom, 0px)); width: min(640px, calc(100% - 32px)); background: var(--ink); color: var(--on-ink); border-radius: 20px; padding: 10px 10px 10px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; z-index: 60; box-shadow: 0 12px 30px rgba(0,0,0,.22); font-size: 15.5px; }
 .toast span { flex: 1 1 220px; }
+/* über der Leiste unten, damit sie bedienbar bleibt */
+@media (max-width: 560px) { .toast { bottom: calc(92px + env(safe-area-inset-bottom, 0px)); } }
 .toast button { border: 1px solid color-mix(in srgb, var(--on-ink) 35%, transparent); background: transparent; color: var(--on-ink); min-height: 40px; padding: 0 14px; border-radius: 999px; font-weight: 650; font-size: 15px; }
 
 :root[data-mode="leise"] .panel, :root[data-mode="abend"] .panel, :root[data-mode="leise"] .kpi, :root[data-mode="abend"] .kpi { box-shadow: none; }

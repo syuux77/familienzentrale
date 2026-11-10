@@ -504,7 +504,10 @@ a.hint small { font-size: 16px; color: var(--muted); }
 
     // Termine
     const tage = Math.max(1, parseInt(E.termine_tage, 10) || 7);
-    const evs = eventsFrom(date, tage);
+    // Termine von heute, die schon vorbei sind, ausblenden (ganztägige bleiben)
+    const nowHM = pad(now.getHours()) + ":" + pad(now.getMinutes());
+    const endOf = (t) => t.ende || (() => { const m = FZ.toMin(t.zeit) + 60; return m >= 1440 ? "24:00" : pad(Math.floor(m / 60)) + ":" + pad(m % 60); })();
+    const evs = eventsFrom(date, tage).filter((t) => !(t.zeit && /^\d{2}:\d{2}$/.test(t.zeit) && (t.bis || t.datum) === date && endOf(t) <= nowHM));
     let evHtml = "", lastDay = "";
     evs.slice(0, FIT.matches ? 14 : 6).forEach((e) => {
       if (e.datum !== lastDay) { evHtml += '<p class="dayhead">' + esc(dayLabel(e.datum, date)) + "</p>"; lastDay = e.datum; }
