@@ -104,7 +104,7 @@ svg.ic { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-wid
   max-width: 1180px; margin: 0 auto;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 20px calc(118px + env(safe-area-inset-bottom, 0px));
+  padding-block: 20px 28px;
   display: grid; gap: 22px;
 }
 
@@ -195,7 +195,6 @@ button.card { cursor: pointer; }
   .tab { min-height: 62px; font-size: 13px; } .tab svg { width: 26px; height: 26px; }
   .nav .tabs { gap: 2px; } .nav .in { gap: 6px; }
   .tab .lock { right: calc(50% - 24px); }
-  .app { padding-block-end: calc(100px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* Nacht */
@@ -240,16 +239,19 @@ a.card { color: inherit; text-decoration: none; }
 .dish .img img { width: 100%; height: 100%; object-fit: cover; }
 .extras { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 20px; margin-bottom: 20px; align-items: start; }
 .rate .ratehead { display: flex; align-items: center; gap: 14px; font-size: 22px; min-width: 0; }
-.rate .ratehead b { overflow-wrap: anywhere; }
+.rate .rtxt { display: grid; gap: 2px; min-width: 0; }
+.rate .rtxt small { font: 700 14px/1.2 var(--font); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.rate .rtxt b { overflow-wrap: anywhere; line-height: 1.15; }
 .rate .rt { width: 64px; height: 64px; border-radius: 16px; background: var(--soft); display: grid; place-items: center; overflow: hidden; flex: none; }
 .rate .rt .emo { font-size: 38px; }
 .rate .rt img { width: 100%; height: 100%; object-fit: cover; }
 .rrows { display: grid; gap: 10px; }
 .rrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-@media (min-width: 761px) {
+@media (min-width: 1000px) {
   .rate { grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 28px; }
-  .rate .card-h { grid-column: 1 / -1; }
-  .rrows { grid-template-columns: repeat(3, auto); gap: 24px; }
+}
+@media (min-width: 761px) {
+  .rrows { grid-template-columns: repeat(3, auto); gap: 24px; justify-content: start; }
   .rrow { flex-direction: column; align-items: flex-start; gap: 6px; }
   .rname { font-size: 17px; color: var(--muted); }
   .smile { width: 58px; height: 58px; font-size: 30px; }
@@ -263,12 +265,69 @@ a.hint { display: flex; align-items: center; gap: 16px; }
 a.hint svg { width: 36px; height: 36px; color: var(--accent); }
 a.hint b { display: block; font-size: 22px; }
 a.hint small { font-size: 16px; color: var(--muted); }
+.more { font-size: 15px; color: var(--muted); padding: 2px 4px; }
+
+/* Tablet quer (Wand): alles auf einen Bildschirm, ohne Scrollen */
+@media (orientation: landscape) and (min-width: 900px) and (min-height: 560px) {
+  .app {
+    height: calc(100vh - 96px - env(safe-area-inset-top, 0px) - 2 * env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - 96px - env(safe-area-inset-top, 0px) - 2 * env(safe-area-inset-bottom, 0px));
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 16px; padding-block: 14px 14px;
+  }
+  .top { position: relative; min-height: 60px; }
+  .topbar { position: absolute; top: 0; right: 0; height: 100%; min-height: 0; margin: 0; flex-direction: column-reverse; justify-content: center; align-items: flex-end; gap: 2px; }
+  .head { padding-right: 76px; align-items: center; }
+  .timebox { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 22px; }
+  .bigclock { font-size: 88px; }
+  .dateline { flex-direction: column; align-items: flex-start; gap: 6px; font-size: 24px; }
+  .weather { grid-template-columns: auto auto auto; padding: 10px 20px; column-gap: 16px; row-gap: 2px; }
+  .weather .wicon, .weather .temp { grid-row: 1 / span 2; }
+  .weather .wicon svg { width: 48px; height: 48px; }
+  .weather .temp { font-size: 44px; }
+  .weather .wtxt { grid-column: 3; align-self: end; }
+  .weather .wrow { grid-column: 3; align-self: start; border-top: 0; padding-top: 0; margin-top: 0; gap: 12px; font-size: 15px; }
+
+  #main { min-height: 0; display: flex; flex-direction: column; gap: 16px; }
+  .extras { margin: 0; flex: none; gap: 12px; grid-template-columns: 1fr; }
+  .grid { flex: 1 1 0; min-height: 0; align-items: stretch; grid-template-rows: minmax(0, 1fr); }
+  .card { min-height: 0; grid-template-rows: auto minmax(0, 1fr); grid-auto-rows: auto; align-content: stretch; padding: 16px 18px 18px; gap: 12px; }
+
+  .rate { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto; align-items: center; padding: 10px 18px; column-gap: 24px; }
+  .rate .rt { width: 52px; height: 52px; border-radius: 14px; }
+  .rate .rt .emo { font-size: 30px; }
+  .rate .ratehead { font-size: 20px; }
+  .rrows { grid-template-columns: repeat(3, auto); gap: 22px; }
+  .rrow { flex-direction: row; align-items: center; flex-wrap: nowrap; gap: 10px; }
+  .rname { font-size: 16px; color: var(--muted); font-weight: 600; }
+  .smiles { gap: 6px; }
+  .smile { width: 48px; height: 48px; font-size: 26px; border-radius: 14px; }
+  a.hint { grid-template-rows: auto; padding: 12px 18px; }
+  a.hint b { font-size: 20px; }
+
+  .dish { min-height: 0; grid-template-rows: minmax(0, 1fr) auto auto; gap: 10px; }
+  .dish .img { aspect-ratio: auto; height: 100%; min-height: 70px; }
+  .dish .img .emo { font-size: clamp(48px, 9vh, 84px); }
+  .dish h3 { font-size: 30px; }
+  .dish .meta:empty { display: none; }
+  .next { padding-top: 8px; }
+  .tasks, .events { min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+  .tasks > *, .events > * { flex: none; }
+  .task { min-height: 48px; padding: 6px 12px; }
+  .task .t { font-size: 19px; line-height: 1.2; }
+  .ev { padding: 6px 2px; }
+  .ev .what { font-size: 18px; } .ev.today .what { font-size: 19px; }
+
+  .night { min-height: 0; height: 100%; padding: 0; }
+}
 </style>
 </head>
 <body>
 <div class="app">
+  <div class="top">
   <div class="topbar"><span id="fz-status"></span><a class="gear" href="eltern/" aria-label="Eltern-Seite"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></a></div>
   <header class="head" id="head"></header>
+  </div>
   <main id="main" aria-live="polite"></main>
 </div>
 <script src="core.js"></script>
@@ -358,6 +417,7 @@ a.hint small { font-size: 16px; color: var(--muted); }
   const rating = (d, p) => { const b = FZ.reiter("Bewertungen").find((x) => x.Datum === d && x.Person === p); return b ? Number(b.Wert) : null; };
 
   /* ---------- Rendern ---------- */
+  const FIT = window.matchMedia("(orientation: landscape) and (min-width: 900px) and (min-height: 560px)");
   let peekUntil = 0, peekTimer = null, lastKey = "";
   function render() {
     const now = new Date(), date = iso(now), min = now.getHours() * 60 + now.getMinutes();
@@ -400,8 +460,8 @@ a.hint small { font-size: 16px; color: var(--muted); }
     const bis = /^\d{1,2}:\d{2}$/.test(E.essen_bewertung_bis || "") ? FZ.toMin(E.essen_bewertung_bis) : 17 * 60;
     const y = addDays(date, -1), gm = FZ.meal(y);
     if (min < bis && gm && gm.status === "gericht" && !RATERS.every(([p]) => rating(y, p))) {
-      extra += '<section class="card rate"><div class="card-h"><h2>' + IC.essen + "Wie war's gestern?</h2></div>" +
-        '<div class="ratehead">' + visual(gm, "rt") + '<b>' + esc(gm.name) + "</b></div>" +
+      extra += '<section class="card rate">' +
+        '<div class="ratehead">' + visual(gm, "rt") + '<span class="rtxt"><small>Wie war\'s gestern?</small><b>' + esc(gm.name) + "</b></span></div>" +
         '<div class="rrows">' + RATERS.map(([p, name]) => {
           const cur = rating(y, p);
           return '<div class="rrow"><span class="rname">' + name + '</span><span class="smiles">' + [3, 2, 1].map((v) =>
@@ -446,7 +506,7 @@ a.hint small { font-size: 16px; color: var(--muted); }
     const tage = Math.max(1, parseInt(E.termine_tage, 10) || 7);
     const evs = eventsFrom(date, tage);
     let evHtml = "", lastDay = "";
-    evs.slice(0, 6).forEach((e) => {
+    evs.slice(0, FIT.matches ? 14 : 6).forEach((e) => {
       if (e.datum !== lastDay) { evHtml += '<p class="dayhead">' + esc(dayLabel(e.datum, date)) + "</p>"; lastDay = e.datum; }
       evHtml += '<div class="ev' + (e.datum === date ? " today" : "") + '"><span class="when">' + esc(e.zeit || "ganzt.") + '</span><span class="what">' + esc(e.titel) +
         (e.ort ? '<span class="where">' + esc(e.ort) + "</span>" : "") + "</span></div>";
@@ -460,6 +520,24 @@ a.hint small { font-size: 16px; color: var(--muted); }
     const fresh = key !== lastKey;
     lastKey = key;
     $("#main").innerHTML = (extra ? '<div class="extras">' + extra + "</div>" : "") + '<div class="grid' + (fresh ? " fresh" : "") + '">' + mealCard + taskCard + evCard + "</div>";
+    fit($("#main .tasks"), ".task");
+    fit($("#main .events"), ".ev");
+  }
+  // Tablet quer: Listen so kürzen, dass alles auf einen Bildschirm passt ("+ n weitere")
+  function fit(box, sel) {
+    if (!box || !FIT.matches) return;
+    let n = 0, more = null;
+    const last = () => (more ? more.previousElementSibling : box.lastElementChild);
+    while (box.scrollHeight > box.clientHeight + 1 && box.querySelectorAll(sel).length > 1) {
+      let el = last();
+      if (el && !el.matches(sel)) { el.remove(); el = last(); }
+      if (!el) break;
+      el.remove(); n++;
+      const tail = last();
+      if (tail && !tail.matches(sel)) tail.remove();
+      if (!more) { more = document.createElement(box.tagName === "UL" ? "li" : "p"); more.className = "more"; box.appendChild(more); }
+      more.textContent = "+ " + n + (n === 1 ? " weiterer" : " weitere");
+    }
   }
   function visual(m, cls) {
     return '<span class="' + cls + '">' + (m.bild ? '<img src="' + esc(m.bild) + '" alt="">' : '<span class="emo" aria-hidden="true">' + esc(m.emoji) + "</span>") + "</span>";
@@ -491,6 +569,8 @@ a.hint small { font-size: 16px; color: var(--muted); }
   });
 
   FZ.on(render);
+  if (FIT.addEventListener) FIT.addEventListener("change", render);
+  window.addEventListener("resize", render);
   FZ.nav("start");
   FZ.start();
   render();

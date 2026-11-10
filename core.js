@@ -150,6 +150,30 @@
     return P[0];
   };
 
+  // Arbeitsseiten (Haushalt, Essen): Farben wie Start- und Kinderseite nach Tageszeit.
+  // Nachts gilt der Abendmodus, damit die Seiten bedienbar bleiben.
+  FZ.theme = function () {
+    const now = new Date(), ph = FZ.phaseAt(now.getHours() * 60 + now.getMinutes());
+    const root = document.documentElement;
+    root.dataset.phase = ph.id;
+    root.dataset.mode = ph.modus === "nacht" ? "abend" : ph.modus;
+    return ph;
+  };
+  // Ruhezustand am Wand-iPad: morgens und abends (bis kinderseite_abends_bis, sonst 19:00) die Kinderseite, sonst die Startseite.
+  FZ.ruheSeite = function () {
+    const now = new Date(), min = now.getHours() * 60 + now.getMinutes();
+    const ph = FZ.phaseAt(min);
+    if (ph.id === "morgen") return "kinder";
+    if (ph.id === "abend") {
+      const v = String(FZ.einst().kinderseite_abends_bis || "").trim();
+      const bis = /^\d{1,2}:\d{2}$/.test(v) ? toMin(v) : 19 * 60;
+      const a = toMin(ph.start);
+      if (min >= a && min < bis) return "kinder";
+    }
+    return "start";
+  };
+  FZ.ruheUrl = () => ROOT + (FZ.ruheSeite() === "kinder" ? "kinder/" : "");
+
   /* ---------- Feiertage Sachsen, Kita-Tag ---------- */
   function easter(y) {
     const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4;
@@ -291,14 +315,15 @@
     let lock = null;
     const wake = () => { try { if (navigator.wakeLock && document.visibilityState === "visible") navigator.wakeLock.request("screen").then((l) => { lock = l; }).catch(() => {}); } catch (e) { /* ignorieren */ } };
     wake(); document.addEventListener("visibilitychange", wake);
-    // Ohne Berührung zurück zur Startseite (nicht auf der Startseite selbst)
+    // Ohne Berührung zurück zur Ruheseite: morgens und abends die Kinderseite, sonst die Startseite
     let touched = Date.now();
     ["pointerdown", "keydown", "touchstart"].forEach((t) => document.addEventListener(t, () => { touched = Date.now(); }, { passive: true }));
     // Neuer Tag: Seite neu laden (holt auch neue App-Versionen)
     const startDay = FZ.today();
     setInterval(() => {
       const sek = Math.max(30, parseInt(FZ.einst().sperrzeit_sekunden, 10) || 150);
-      if (FZ.page && FZ.page !== "start" && Date.now() - touched > sek * 1000 && !pending) location.href = ROOT;
+      const ziel = FZ.ruheSeite();
+      if (FZ.page && FZ.page !== ziel && Date.now() - touched > sek * 1000 && !pending) { location.href = FZ.ruheUrl(); return; }
       if (FZ.today() !== startDay && FZ.page === "start" && Date.now() - touched > 60000) location.reload();
     }, 5000);
     void lock;
