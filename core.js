@@ -273,6 +273,18 @@
       ".fz-gate .row{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}" +
       ".fz-gate button{min-height:48px;padding:0 18px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-weight:600;font-size:16px}" +
       ".fz-gate button.p{background:var(--ink,var(--fg));color:var(--on-ink,var(--bg));border-color:var(--ink,var(--fg))}" +
+      ".fz-pin{position:fixed;inset:0;z-index:39;background:var(--bg);display:grid;place-items:center;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(112px + env(safe-area-inset-bottom,0px));font:17px/1.4 -apple-system,BlinkMacSystemFont,system-ui,'Segoe UI',Roboto,sans-serif;color:var(--fg);overflow:auto}" +
+      ".fz-pin .in{display:grid;gap:16px;justify-items:center;width:min(330px,100%)}" +
+      ".fz-pin h1{margin:0;font-weight:700;font-size:30px;line-height:1.15;text-align:center}.fz-pin p{margin:0;color:var(--muted);font-size:16px;text-align:center}" +
+      ".fz-pin .dots{display:flex;gap:18px;height:22px}.fz-pin .dots span{width:18px;height:18px;border-radius:50%;border:2px solid var(--muted)}.fz-pin .dots span.f{background:var(--fg);border-color:var(--fg)}" +
+      ".fz-pin .dots.err{animation:fz-shake .35s ease}.fz-pin .dots.err span{border-color:var(--due,var(--warn,#B4542A))}" +
+      "@keyframes fz-shake{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}" +
+      ".fz-pin .msg{color:var(--due,var(--warn,#B4542A));font-weight:600;min-height:22px}" +
+      ".fz-pin .keys{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%}" +
+      ".fz-pin .keys button{aspect-ratio:1.35;max-width:100%;border-radius:22px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-weight:600;font-size:28px;line-height:1;font-variant-numeric:tabular-nums;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}" +
+      ".fz-pin .keys button.ghost{border-color:transparent;background:transparent;font-size:16px;color:var(--muted)}" +
+      ".fz-pin .keys button:active{background:var(--soft,var(--surface-2,rgba(127,127,127,.15)))}" +
+      "@media (max-height:720px){.fz-pin .in{gap:10px;width:min(280px,100%)}.fz-pin h1{font-size:24px}.fz-pin .keys{gap:8px}}" +
       "#fz-status{font-size:13px;color:var(--muted)}#fz-status.err{color:var(--due,var(--warn,#B4542A));font-weight:600}";
     document.head.appendChild(css);
     const nav = document.createElement("nav");
@@ -280,6 +292,63 @@
     nav.innerHTML = '<div class="fz-in">' + NAV.map(([id, label, path]) =>
       '<a href="' + ROOT + path + '"' + (id === active ? ' aria-current="page"' : "") + '><svg viewBox="0 0 24 24" aria-hidden="true">' + IC[id] + "</svg>" + label + "</a>").join("") + "</div>";
     document.body.appendChild(nav);
+  };
+
+  /* ---------- Eltern-PIN am Wand-iPad (Haushalt, Essen, Eltern-Seite) ---------- */
+  // Einmal entsperrt bleiben die drei Seiten offen, bis sperrzeit_sekunden lang niemand eine von ihnen
+  // berührt hat oder das iPad in den Ruhezustand springt. Handys fragen nie nach der PIN.
+  const SS = {
+    get(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { sessionStorage.setItem(k, v); } catch (e) { /* ignorieren */ } },
+    del(k) { try { sessionStorage.removeItem(k); } catch (e) { /* ignorieren */ } }
+  };
+  const GESCHUETZT = ["haushalt", "essen", "eltern"];
+  const sperrSek = () => Math.max(30, parseInt(FZ.einst().sperrzeit_sekunden, 10) || 150);
+  FZ.entsperrt = () => !FZ.wand || Date.now() - (Number(SS.get("fz.offen")) || 0) < sperrSek() * 1000;
+  FZ.entsperren = () => SS.set("fz.offen", String(Date.now()));
+  FZ.sperren = () => SS.del("fz.offen");
+  // PIN-Abfrage über der Seite (Haushalt, Essen). Die Leiste unten bleibt bedienbar.
+  FZ.schutz = function (titel) {
+    if (!FZ.wand) return;
+    let box = null, eingabe = "", fehler = false;
+    const app = () => document.querySelector(".app");
+    const zeichne = () => {
+      const dots = [0, 1, 2, 3].map((i) => '<span class="' + (i < eingabe.length ? "f" : "") + '"></span>').join("");
+      const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "zurück", "0", "löschen"].map((k) =>
+        '<button type="button" data-pin="' + k + '"' + (k.length > 1 ? ' class="ghost"' : "") + ">" + (k === "zurück" ? "Abbrechen" : k === "löschen" ? "Löschen" : k) + "</button>").join("");
+      box.innerHTML = '<div class="in"><h1>' + esc(titel) + "</h1><p>Eltern-PIN eingeben</p>" +
+        '<div class="dots' + (fehler ? " err" : "") + '" aria-label="' + eingabe.length + ' von 4 Ziffern">' + dots + "</div>" +
+        '<p class="msg" role="alert">' + (fehler ? "Falsche PIN, bitte noch einmal." : "") + "</p>" +
+        '<div class="keys">' + keys + "</div></div>";
+    };
+    const auf = () => { if (!box) return; box.remove(); box = null; const a = app(); if (a) a.inert = false; document.documentElement.style.overflow = ""; };
+    const zu = () => {
+      if (box) return;
+      box = document.createElement("div");
+      box.className = "fz-pin"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "Eltern-PIN");
+      eingabe = ""; fehler = false;
+      box.addEventListener("click", (ev) => {
+        const b = ev.target.closest("[data-pin]"); if (!b) return;
+        const k = b.dataset.pin;
+        if (k === "zurück") { location.href = ROOT; return; }
+        if (k === "löschen") { eingabe = eingabe.slice(0, -1); fehler = false; return zeichne(); }
+        if (eingabe.length >= 4) return;
+        eingabe += k; fehler = false;
+        if (eingabe.length === 4) {
+          if (eingabe === String(FZ.einst().pin || "0000")) { FZ.entsperren(); return auf(); }
+          fehler = true; eingabe = "";
+        }
+        zeichne();
+      });
+      document.body.appendChild(box);
+      const a = app(); if (a) a.inert = true;
+      document.documentElement.style.overflow = "hidden";
+      window.scrollTo(0, 0);
+      zeichne();
+    };
+    const pruefe = () => { if (FZ.entsperrt() || !FZ.key) auf(); else zu(); };
+    pruefe();
+    setInterval(pruefe, 2000);
   };
 
   /* ---------- Einrichtung / keine Verbindung ---------- */
@@ -328,13 +397,16 @@
     wake(); document.addEventListener("visibilitychange", wake);
     // Ohne Berührung zurück zur Ruheseite: morgens und abends die Kinderseite, sonst die Startseite
     let touched = Date.now();
-    ["pointerdown", "keydown", "touchstart"].forEach((t) => document.addEventListener(t, () => { touched = Date.now(); }, { passive: true }));
+    ["pointerdown", "keydown", "touchstart"].forEach((t) => document.addEventListener(t, () => {
+      touched = Date.now();
+      if (GESCHUETZT.includes(FZ.page) && FZ.entsperrt()) FZ.entsperren();
+    }, { passive: true }));
     // Neuer Tag: Seite neu laden (holt auch neue App-Versionen)
     const startDay = FZ.today();
     setInterval(() => {
       const sek = Math.max(30, parseInt(FZ.einst().sperrzeit_sekunden, 10) || 150);
       const ziel = FZ.ruheSeite();
-      if (FZ.page && FZ.page !== ziel && Date.now() - touched > sek * 1000 && !pending) { FZ.geheZu(FZ.ruheUrl()); return; }
+      if (FZ.page && FZ.page !== ziel && Date.now() - touched > sek * 1000 && !pending) { FZ.sperren(); FZ.geheZu(FZ.ruheUrl()); return; }
       if (FZ.today() !== startDay && FZ.page === "start" && Date.now() - touched > 60000) FZ.geheZu(location.pathname, true);
     }, 5000);
     void lock;

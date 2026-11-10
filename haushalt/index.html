@@ -1062,6 +1062,7 @@ p { margin: 0; }
   setInterval(() => { FZ.theme(); if (todayIso() !== lastDay) { lastDay = todayIso(); render(); } }, 60000);
 
   FZ.nav("haushalt");
+  FZ.schutz("Haushalt");
   FZ.start({ auto: false });
   render();
   refresh(true).then(() => { if (!loaded) render(); });

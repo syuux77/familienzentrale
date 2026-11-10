@@ -209,7 +209,7 @@ svg.ic { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-wid
     { id: "abend", name: "Abend", symbol: "🌙" }, { id: "nacht", name: "Nacht", symbol: "✨" }
   ];
 
-  const ui = { unlocked: !FZ.wand, pinIn: "", pinErr: false, lastTouch: Date.now() };
+  const ui = { unlocked: FZ.entsperrt(), pinIn: "", pinErr: false, lastTouch: Date.now() };
   const today = () => iso(new Date());
   const kinder = () => FZ.reiter("Kinderaufgaben").filter((r) => r.ID);
   const aktiv = (r) => String(r.Aktiv || "").trim().toLowerCase() === "ja";
@@ -334,12 +334,12 @@ svg.ic { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-wid
       if (ui.pinIn.length >= 4) return;
       ui.pinIn += k; ui.pinErr = false;
       if (ui.pinIn.length === 4) {
-        if (ui.pinIn === String(E.pin || "0000")) { ui.unlocked = true; ui.pinIn = ""; ui.lastTouch = Date.now(); return render(); }
+        if (ui.pinIn === String(E.pin || "0000")) { ui.unlocked = true; ui.pinIn = ""; ui.lastTouch = Date.now(); FZ.entsperren(); return render(); }
         ui.pinErr = true; ui.pinIn = "";
       }
       return renderPin();
     }
-    if (ev.target.closest("#close")) { location.href = FZ.root; return; }
+    if (ev.target.closest("#close")) { FZ.sperren(); location.href = FZ.root; return; }
     if (ev.target.closest("#zuhause")) {
       const date = today();
       const an = E.zuhause_bis && E.zuhause_bis >= date;
@@ -382,7 +382,7 @@ svg.ic { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-wid
     if (!FZ.wand || !ui.unlocked) return;
     const sperr = Math.max(30, parseInt(FZ.einst().sperrzeit_sekunden, 10) || 150);
     const left = sperr - Math.floor((Date.now() - ui.lastTouch) / 1000);
-    if (left <= 0 && !FZ.pending) { ui.unlocked = false; ui.pinIn = ""; ui.pinErr = false; render(); FZ.geheZu(FZ.ruheUrl()); return; }
+    if (left <= 0 && !FZ.pending) { FZ.sperren(); ui.unlocked = false; ui.pinIn = ""; ui.pinErr = false; render(); FZ.geheZu(FZ.ruheUrl()); return; }
     const el = document.querySelector("#lockinfo span");
     if (el) el.textContent = "sperrt in " + Math.floor(Math.max(0, left) / 60) + ":" + pad(Math.max(0, left) % 60);
   }, 1000);

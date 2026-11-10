@@ -140,9 +140,48 @@ p { margin: 0; }
 .ticks span:last-child { transform: translateX(-100%); }
 @media (max-width: 560px) { .ticks span.mid { display: none; } .seg { font-size: 20px; } .track { height: 44px; } }
 
-/* Karten: Abendessen + bis zu 3 Aufgaben in einer Reihe */
-.cards { display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 270px)); justify-content: center; gap: 22px; }
-@media (max-width: 640px) { .cards { grid-template-columns: repeat(var(--mcols, 2), minmax(0, 1fr)); gap: 14px; } }
+/* Karten: bis zu 3 Aufgaben in einer Reihe, rechts daneben die Infokarten (Anziehen, Abendessen) */
+.cards { display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 270px)); justify-content: center; align-items: start; gap: 22px; }
+.cards.only-info { grid-template-columns: minmax(0, 560px); }
+@media (max-width: 640px) {
+  .cards, .cards.only-info { grid-template-columns: repeat(var(--mcols, 2), minmax(0, 1fr)); gap: 14px; }
+}
+
+/* Fortschritt: ein Stern pro Aufgabe */
+.progress { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 16px; min-height: 44px; }
+.stars { display: flex; gap: 8px; }
+.star { width: 40px; height: 40px; display: grid; place-items: center; font-size: 32px; line-height: 1; }
+.star.off::before { content: ""; width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--muted); opacity: .45; }
+.star.pop { animation: starpop .7s cubic-bezier(.3, 1.9, .5, 1) both; }
+.progress .ptxt { font: 700 21px/1 var(--font-display); color: var(--muted); font-variant-numeric: tabular-nums; }
+.progress .ptxt b { color: var(--fg); }
+@keyframes starpop { 0% { transform: scale(.2) rotate(-40deg); } 100% { transform: none; } }
+
+/* Infokarten: keine Aufgaben, deshalb mit Rahmen und rundem Bild statt Kachel und Haken.
+   Grundform (Handy, Hochformat): unter den Aufgaben, Bild links, Text rechts. */
+.info { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 14px; min-width: 0; align-items: stretch; }
+.icard { border: 2px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 14px; row-gap: 8px; text-align: left; color: var(--fg); min-width: 0; }
+.plate { width: 76px; aspect-ratio: 1; max-width: 100%; border-radius: 50%; background: var(--soft); display: grid; place-items: center; overflow: hidden; flex: none; container-type: inline-size; }
+.plate .emo { font-size: 42px; white-space: nowrap; }
+.plate img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@supports (font-size: 1cqw) {
+  .plate .emo { font-size: 56cqw; }
+  .plate .emo.two { font-size: 34cqw; }
+  .plate .emo.many { font-size: 25cqw; }
+}
+.itxt { display: grid; gap: 3px; min-width: 0; }
+.icard .lbl { font: 700 13.5px/1.2 var(--font); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.icard .ttl { font: 700 19px/1.15 var(--font-display); letter-spacing: -.01em; overflow-wrap: break-word; }
+.icard .mm { color: var(--muted); font: 500 14.5px/1.25 var(--font); }
+.icard .mm b { color: var(--fg); font-weight: 650; }
+/* Anziehen: die Kleidungsstücke groß in einer Reihe, Text darunter */
+.icard.kleid { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+.wear { display: flex; gap: 4px; padding: 8px 18px; border-radius: 999px; background: var(--soft); font-size: 42px; line-height: 1; white-space: nowrap; }
+@media (max-width: 640px) {
+  .wear { font-size: 36px; }
+  .star { width: 32px; height: 32px; font-size: 26px; }
+  .progress .ptxt { font-size: 18px; }
+}
 .card { position: relative; background: var(--surface); border: 0; border-radius: var(--r); padding: 14px 14px 20px; display: grid; grid-template-rows: auto 1fr; gap: 14px; justify-items: center; align-content: start; text-align: center; box-shadow: 0 1px 0 var(--line); color: var(--fg); width: 100%; }
 button.card { cursor: pointer; touch-action: manipulation; }
 .tile { width: 100%; aspect-ratio: 5 / 4; max-width: 100%; border-radius: 20px; background: var(--soft); display: grid; place-items: center; overflow: hidden; container-type: inline-size; }
@@ -169,18 +208,28 @@ button.card { cursor: pointer; touch-action: manipulation; }
 .card.done .tile, .card.done .ttl { opacity: .38; filter: grayscale(1); transition: opacity .3s, filter .3s; }
 .card.done .ttl { text-decoration: line-through; text-decoration-thickness: 3px; }
 .card.pop .chk { animation: pop .45s cubic-bezier(.3, 1.6, .5, 1) both; }
+.card.pop { animation: bump .45s ease both; }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+/* Effekte beim Abhaken (Sterne) und wenn alles geschafft ist (Konfetti) */
+.fx { position: fixed; inset: 0; pointer-events: none; z-index: 45; overflow: hidden; }
+.bit { position: absolute; font-size: 30px; margin: -15px 0 0 -15px; animation: bit .95s cubic-bezier(.2, .7, .3, 1) forwards; }
+@keyframes bit { 0% { transform: translate(0, 0) scale(.3); opacity: 1; } 70% { opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(1.15) rotate(50deg); opacity: 0; } }
+.fall { position: absolute; top: -60px; font-size: var(--s, 34px); animation: fall var(--t, 2.8s) linear var(--d, 0s) forwards; }
+@keyframes fall { to { transform: translateY(calc(100vh + 140px)) rotate(var(--r, 180deg)); } }
 .card.leaving { animation: leave .42s ease forwards; pointer-events: none; }
 .card.yay .tile { background: var(--soft); }
 @media (max-width: 640px) { .chk { top: 16px; right: 16px; width: 38px; height: 38px; } .chk svg { width: 22px; height: 22px; } }
 @keyframes pop { 0% { transform: scale(.4); } 100% { transform: scale(1); } }
 @keyframes leave { to { opacity: 0; transform: scale(.86); } }
 
-.card.enter { animation: appear .5s ease both; }
+.card.enter, .icard.enter { animation: appear .5s ease both; }
 .card.enter:nth-child(2) { animation-delay: .06s; }
 .card.enter:nth-child(3) { animation-delay: .12s; }
 .card.enter:nth-child(4) { animation-delay: .18s; }
 @keyframes appear { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
 :root[data-mode="leise"] .card, :root[data-mode="abend"] .card { box-shadow: none; }
+:root[data-mode="abend"] .star.on { filter: saturate(.85) brightness(.9); }
 
 /* Tablet quer: alles auf einen Bildschirm, ohne Scrollen */
 @media (orientation: landscape) and (min-width: 900px) and (min-height: 560px) {
@@ -190,8 +239,24 @@ button.card { cursor: pointer; touch-action: manipulation; }
     grid-template-rows: auto auto minmax(0, 1fr);
     gap: 20px; padding-block: 18px 18px;
   }
-  #main { min-height: 0; display: grid; align-items: center; }
-  .cards { height: 100%; max-height: 440px; min-height: 0; grid-template-rows: minmax(0, 1fr) auto; row-gap: 0; }
+  #main { min-height: 0; display: flex; flex-direction: column; justify-content: center; gap: 14px; }
+  .progress { flex: none; }
+  .cards { flex: 1 1 0; max-height: 440px; min-height: 0; grid-template-rows: minmax(0, 1fr) auto; row-gap: 0; align-items: stretch; grid-template-columns: repeat(var(--cols, 3), minmax(0, 264px)); }
+  /* Infokarten rechts neben den Aufgaben */
+  .cards.has-info { grid-template-columns: repeat(var(--tcols, 3), minmax(0, 264px)) minmax(0, 264px); }
+  .cards.only-info { grid-template-columns: minmax(0, 300px); }
+  .info { grid-column: -2 / -1; grid-row: 1 / span 2; min-height: 0; display: flex; flex-direction: column; }
+  .icard { flex: 1 1 0; min-height: 0; overflow: hidden; align-content: center; }
+  .icard.kleid { flex-grow: 1.6; }
+  .info.two .plate { width: 68px; }
+  .wear { font-size: 46px; }
+  /* eine Infokarte allein: hochkant mit großem Teller */
+  .info:not(.two) .icard { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; row-gap: 12px; padding: 14px; }
+  .info:not(.two) .plate { width: min(150px, 72%, 22vh); }
+  .info:not(.two) .icard .ttl { font-size: 22px; }
+  .info:not(.two) .icard .mm { font-size: 15px; }
+  .note { flex: none; }
+  @media (max-height: 760px) { .icard.kleid .wx, .info.two .icard.meal .mm { display: none; } .wear { font-size: 38px; padding: 6px 14px; } }
   .card { min-height: 0; grid-template-rows: minmax(0, 1fr) auto; }
   @supports (grid-template-rows: subgrid) {
     /* gleiche Kachelhöhe in allen Karten, auch wenn ein Titel zwei Zeilen hat */
@@ -236,6 +301,7 @@ button.card { cursor: pointer; touch-action: manipulation; }
   <div class="daybar" id="daybar" aria-hidden="true"></div>
   <main id="main" aria-live="polite"></main>
 </div>
+<div class="fx" id="fx" aria-hidden="true"></div>
 <script src="../core.js"></script>
 <script>(function () {
   "use strict";
@@ -265,7 +331,8 @@ button.card { cursor: pointer; touch-action: manipulation; }
   const MAX = 3;
   const FADE_MS = 2600, LEAVE_MS = 420;
   const fading = new Map(); // id -> { timer, leaving }
-  let popId = "", shown = new Set(), lastPhase = "";
+  let popId = "", popStar = false, shown = new Set(), lastPhase = "";
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
   function itemsFor(phase, s) {
     const today = FZ.dayInfo(s), tomorrow = FZ.dayInfo(addDays(s, 1));
     const w = WD[parse(s).getDay()];
@@ -304,16 +371,63 @@ button.card { cursor: pointer; touch-action: manipulation; }
     });
     return h + "</div>";
   }
-  // Abendessen als Kachel (wie die Aufgaben)
+  // Infokarte Abendessen: steht hinter den Aufgaben und sieht anders aus (runder Teller, kein Haken)
   function mealCard(date) {
     const m = FZ.meal(date), m2 = FZ.meal(addDays(date, 1));
     if (!m && !m2) return null;
-    let lbl = "Heute Abend gibt's", name = m ? m.name : "noch nicht geplant";
-    if (m && m.status !== "gericht") { lbl = "Heute Abend"; name = m.kid; }
-    if (!m) lbl = "Heute Abend";
+    const name = !m ? "Noch nicht geplant" : m.status === "gericht" ? m.name : m.kid;
     const vis = m && m.bild ? '<img src="' + esc(m.bild) + '" alt="">' : '<span class="emo' + emojiClass(m ? m.emoji : "❔") + '" aria-hidden="true">' + esc(m ? m.emoji : "❔") + "</span>";
-    return { id: "meal", html: '<article class="card meal"><span class="tile">' + vis + '</span><span class="ttl"><small>' + lbl + "</small>" + esc(name) +
+    return { id: "meal", html: '<article class="icard meal"><span class="plate">' + vis + '</span><span class="itxt"><small class="lbl">Heute Abend</small><b class="ttl">' + esc(name) + "</b>" +
       (m2 ? '<span class="mm">Morgen: <b>' + esc(m2.name) + "</b></span>" : "") + "</span></article>" };
+  }
+
+  /* ---------- Anziehen nach Wetter (Open-Meteo, Chemnitz) – nur morgens ---------- */
+  // Grundlage ist die gefühlte Temperatur zwischen 7 und 17 Uhr, dazu Regen und Schnee.
+  let kleid = null;
+  try { kleid = JSON.parse(localStorage.getItem("fz.kleidung") || "null"); } catch (e) { kleid = null; }
+  async function loadKleidung() {
+    try {
+      const u = "https://api.open-meteo.com/v1/forecast?latitude=50.83&longitude=12.92&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,weather_code&timezone=Europe%2FBerlin&forecast_days=1";
+      const j = await (await fetch(u, { cache: "no-store" })).json();
+      const H = j && j.hourly;
+      if (!H || !Array.isArray(H.time) || !H.time.length) return;
+      const idx = H.time.map((t, i) => [Number(String(t).slice(11, 13)), i]).filter(([h]) => h >= 7 && h <= 17).map(([, i]) => i);
+      const pick = (k) => idx.map((i) => (H[k] || [])[i]).filter((v) => typeof v === "number");
+      const te = pick("temperature_2m"), ap = pick("apparent_temperature"), pp = pick("precipitation_probability"), pr = pick("precipitation"), wc = pick("weather_code");
+      if (!te.length) return;
+      const f = ap.length ? ap : te;
+      kleid = {
+        datum: String(H.time[0]).slice(0, 10),
+        fmin: Math.round(Math.min(...f)), fmax: Math.round(Math.max(...f)), tmin: Math.round(Math.min(...te)), tmax: Math.round(Math.max(...te)),
+        regen: pp.length ? Math.max(...pp) : null, menge: pr.reduce((a, b) => a + b, 0),
+        schnee: wc.some((c) => (c >= 71 && c <= 77) || c === 85 || c === 86),
+        sonne: wc.length > 0 && wc.filter((c) => c <= 1).length >= wc.length / 2,
+        zeit: Date.now()
+      };
+      try { localStorage.setItem("fz.kleidung", JSON.stringify(kleid)); } catch (e) { /* ignorieren */ }
+      render();
+    } catch (e) { /* ohne Wetter keine Anzieh-Karte */ }
+  }
+  function anziehen(k) {
+    let emo, txt, dazu = "";
+    if (k.fmin < 2) { emo = ["🧥", "🧤"]; txt = "Winterjacke, Mütze und Handschuhe"; }
+    else if (k.fmin < 8) { emo = ["🧥", "🧣"]; txt = "Warme Jacke und Mütze"; }
+    else if (k.fmin < 14) { emo = ["🧥"]; txt = "Jacke"; }
+    else if (k.fmin < 19) { emo = ["🧥"]; txt = "Dünne Jacke"; }
+    else if (k.fmax >= 25) { emo = ["👕", "🩳"]; txt = "T-Shirt und kurze Hose"; }
+    else { emo = ["👕"]; txt = "T-Shirt"; }
+    const nass = (k.regen != null && k.regen >= 50) || k.menge >= 1;
+    if (k.schnee) { emo.push("❄️"); dazu = "Schneehose und Stiefel"; }
+    else if (nass) { emo.push("☔"); dazu = k.fmin < 14 ? "Regenhose und Gummistiefel" : "Regenjacke und Gummistiefel"; }
+    else if (k.sonne && k.fmax >= 22) { emo.push("🧢"); dazu = "Sonnenhut und Sonnencreme"; }
+    return { emo: emo.join(""), txt, dazu };
+  }
+  function clothesCard(date) {
+    if (!kleid || kleid.datum !== date) return null;
+    const a = anziehen(kleid);
+    const wetter = kleid.tmin + "° bis " + kleid.tmax + "°" + (kleid.regen != null ? " · Regen " + Math.round(kleid.regen) + " %" : "");
+    return { id: "kleid", html: '<article class="icard kleid"><span class="wear emo" aria-hidden="true">' + a.emo + '</span><span class="itxt"><small class="lbl">Heute anziehen</small><b class="ttl">' + esc(a.txt) + "</b>" +
+      (a.dazu ? '<span class="mm">dazu <b>' + esc(a.dazu) + "</b></span>" : "") + '<span class="mm wx">' + esc(wetter) + "</span></span></article>" };
   }
   const CHECK = '<span class="chk" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>';
   function taskCard(k, check) {
@@ -366,22 +480,37 @@ button.card { cursor: pointer; touch-action: manipulation; }
     const check = ABHAKEN.includes(phase.id) && !peek;
     const open = check ? items.filter((k) => k.erledigt !== date) : items;
     const cards = [];
-    if (phase.modus !== "nacht") { const mc = mealCard(date); if (mc) cards.push(mc); }
     open.slice(0, MAX).forEach((k) => cards.push(taskCard(k, check)));
     if (check && items.length && !open.length) {
       cards.push({ id: "yay", html: '<article class="card yay"><span class="tile"><span class="emo" aria-hidden="true">🎉</span></span><span class="ttl"><small>Super gemacht!</small>Alles geschafft</span></article>' });
     }
+    // Infokarten hinter den Aufgaben: morgens Anziehen nach Wetter, immer das Abendessen
+    const infos = [];
+    if (phase.id === "morgen" && !peek) { const cc = clothesCard(date); if (cc) infos.push(cc); }
+    if (phase.modus !== "nacht") { const mc = mealCard(date); if (mc) infos.push(mc); }
 
     // Nur neue Karten einblenden (Tageszeit-Wechsel: alle)
     const phaseChanged = phase.id !== lastPhase;
     lastPhase = phase.id;
-    const html = cards.map((c) => (phaseChanged || !shown.has(c.id)) ? c.html.replace('class="card', 'class="card enter') : c.html);
-    shown = new Set(cards.map((c) => c.id));
+    const neu = (c) => (phaseChanged || !shown.has(c.id)) ? c.html.replace(/class="(i?card)/, 'class="$1 enter') : c.html;
+    const html = cards.map(neu), ihtml = infos.map(neu);
+    shown = new Set(cards.concat(infos).map((c) => c.id));
     popId = "";
 
-    const cols = Math.max(1, cards.length);
-    let h = cards.length
-      ? '<div class="cards" style="--cols:' + cols + ";--mcols:" + Math.min(cols, 2) + '">' + html.join("") + "</div>"
+    // Fortschritt: ein Stern pro Aufgabe dieser Tageszeit
+    let h = "";
+    if (check && items.length) {
+      const done = items.filter((k) => k.erledigt === date || fading.has(k.id)).length;
+      h += '<div class="progress" role="img" aria-label="' + done + " von " + items.length + ' Aufgaben geschafft"><span class="stars">' +
+        items.map((_, i) => i < done ? '<span class="star on emo' + (popStar && i === done - 1 ? " pop" : "") + '">⭐</span>' : '<span class="star off"></span>').join("") +
+        '</span><span class="ptxt"><b>' + done + "</b> von " + items.length + "</span></div>";
+    }
+    popStar = false;
+
+    const t = cards.length;
+    h += t || infos.length
+      ? '<div class="cards' + (infos.length ? (t ? " has-info" : " only-info") : "") + '" style="--cols:' + Math.max(1, t) + ";--tcols:" + t + ";--mcols:" + Math.min(Math.max(1, t), 2) + '">' + html.join("") +
+        (infos.length ? '<div class="info' + (infos.length > 1 ? " two" : "") + '">' + ihtml.join("") + "</div>" : "") + "</div>"
       : '<p class="note">Gerade steht nichts an.</p>';
     if (peek) h += '<p class="peekbar">Gleich wird es wieder dunkel.</p>';
     $("#main").innerHTML = h;
@@ -403,8 +532,41 @@ button.card { cursor: pointer; touch-action: manipulation; }
       setTimeout(() => commit(id), LEAVE_MS);
     }, FADE_MS);
     fading.set(id, entry);
-    popId = id;
+    popId = id; popStar = true;
     render();
+    burst(document.querySelector('.card[data-id="' + id.replace(/"/g, "") + '"]'));
+  }
+  // Sterne sprühen aus der abgehakten Karte
+  function burst(el) {
+    const fx = $("#fx");
+    if (!fx || !el || reduced.matches) return;
+    const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height * 0.42;
+    ["⭐", "✨", "🌟", "⭐", "✨", "💛", "⭐", "✨", "🌟", "⭐", "✨", "💛"].forEach((e, i, all) => {
+      const s = document.createElement("span");
+      const a = (i / all.length) * 2 * Math.PI + Math.random() * 0.5, d = 100 + Math.random() * 90;
+      s.className = "bit emo"; s.textContent = e;
+      s.style.left = cx + "px"; s.style.top = cy + "px";
+      s.style.setProperty("--dx", (Math.cos(a) * d).toFixed(0) + "px"); s.style.setProperty("--dy", (Math.sin(a) * d).toFixed(0) + "px");
+      fx.appendChild(s);
+      setTimeout(() => s.remove(), 1100);
+    });
+  }
+  // Konfetti, wenn die letzte Aufgabe der Tageszeit geschafft ist
+  function celebrate() {
+    const fx = $("#fx");
+    if (!fx || reduced.matches) return;
+    const E = ["🎉", "⭐", "🎈", "✨", "🌟", "💛", "🎊"];
+    for (let i = 0; i < 40; i++) {
+      const s = document.createElement("span");
+      s.className = "fall emo"; s.textContent = E[i % E.length];
+      s.style.left = (Math.random() * 100).toFixed(1) + "%";
+      s.style.setProperty("--s", (26 + Math.random() * 22).toFixed(0) + "px");
+      s.style.setProperty("--t", (2.2 + Math.random() * 1.4).toFixed(2) + "s");
+      s.style.setProperty("--d", (Math.random() * 0.9).toFixed(2) + "s");
+      s.style.setProperty("--r", (Math.random() * 540 - 270).toFixed(0) + "deg");
+      fx.appendChild(s);
+      setTimeout(() => s.remove(), 4800);
+    }
   }
   function commit(id) {
     fading.delete(id);
@@ -413,6 +575,8 @@ button.card { cursor: pointer; touch-action: manipulation; }
     if (row) row["Erledigt am"] = date;
     FZ.send([{ art: "setzen", reiter: "Kinderaufgaben", wo: { ID: id }, werte: { "Erledigt am": date } }]);
     render();
+    const now = new Date(), items = itemsFor(FZ.phaseAt(now.getHours() * 60 + now.getMinutes()), date);
+    if (items.length && !fading.size && items.every((k) => k.erledigt === date)) celebrate();
   }
 
   $("#main").addEventListener("click", (ev) => {
@@ -430,6 +594,11 @@ button.card { cursor: pointer; touch-action: manipulation; }
   FZ.start();
   render();
   setInterval(render, 20000);
+  // Wetter für die Anzieh-Karte: morgens laden und halbstündlich auffrischen
+  const morgens = () => { const n = new Date(); return FZ.phaseAt(n.getHours() * 60 + n.getMinutes()).id === "morgen"; };
+  const kleidAlt = () => !kleid || kleid.datum !== iso(new Date()) || Date.now() - (kleid.zeit || 0) > 30 * 60000;
+  if (morgens() && kleidAlt()) loadKleidung();
+  setInterval(() => { if (morgens() && kleidAlt()) loadKleidung(); }, 5 * 60000);
 })();
 </script>
 </body>
