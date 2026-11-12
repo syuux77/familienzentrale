@@ -1,16 +1,19 @@
 # Plan: gemeinsames Design und Wetter-Baustein
 
-Stand: 10.11.2026 · Status: Entwurf. Die Geschmacksfragen werden im Leitfaden entschieden. Danach wird dieser Plan ergänzt.
+Stand: 12.11.2026 · Status: Entwurf, Version 2. Nichts davon ist live. Die Geschmacksfragen werden nach dem gemeinsamen Gespräch entschieden.
 
-Leitfaden zum Anklicken (privat, nur für die Familie): https://claude.ai/artifact/NjNWS4X2QHnQY7d2VwMNoh
+- Entwürfe Version 2 mit klickbarem Prototyp (privat): https://claude.ai/artifact/EkmezUXkwRXoSKkeWsTGXw
+- Leitfaden zum Anklicken, Version 1 (privat): https://claude.ai/artifact/NjNWS4X2QHnQY7d2VwMNoh. Die Etappe „Startseite am Wand-iPad“ zeigt dort noch das Querformat.
 
 ## 1. Rahmen
 
 - Kostenlos wie bisher: GitHub Pages, Google-Tabelle, Apps Script, kein eigener Server.
 - Weiterentwicklung nur mit Claude. Deshalb soll alles in kleinen, klar getrennten Dateien liegen und eine Musterseite haben, die man ansehen und fotografieren kann.
-- Wand-iPad: neueres Modell mit iPadOS 17 oder neuer. Moderne CSS-Technik (Container Queries, `:has()`, `color-mix()`, Web Animations) ist erlaubt.
+- Wand-iPad: 11 Zoll, iPadOS 17 oder neuer, **im Hochformat** (820 × 1180 Punkte). Moderne CSS-Technik (Container Queries, `:has()`, `color-mix()`, Web Animations) ist erlaubt.
+- Zwei Handys: Chris und Lisa. Das Handy weiß, wem es gehört (Einrichtungs-Link mit `&person=chris` bzw. `lisa`).
 - Handy: Nachschauen, Abhaken, Planen und Pflegen. Das Handy ist das Werkzeug, die Wand ist der Überblick.
-- Kinderseite: zunächst für ein Kind (4 Jahre, liest noch nicht). Mehrere Kinder sollen später ohne Umbau möglich sein.
+- Kinderseite: zunächst für ein Kind (4 Jahre, liest noch nicht). Mehrere Kinder sollen später ohne Umbau möglich sein. Das Essen bewerten Chris, Lisa und Ruby schon heute am nächsten Morgen.
+- Inhalte: Wetter, Kalender (nur Anzeige), Haushalt, Essen, Kinderseite. Dahinter ein Statistik-Dashboard für Haushalt (ohne Uhrzeit-Auswertung) und Essen, dazu die neue Tagesstimmung.
 
 ## 2. Was die Recherche ergeben hat
 
@@ -40,6 +43,72 @@ Leitfaden zum Anklicken (privat, nur für die Familie): https://claude.ai/artifa
 **Claude Design**
 - Seit April 2026 verfügbar. Tester loben klickbare Prototypen und die Möglichkeit, ein Element zu markieren und zu kommentieren. Die Übergabe an Claude Code gilt als schwächer als angekündigt.
 - Reddit-Threads zu Familien-Dashboards mit Claude Design habe ich nicht gefunden, nur allgemeine Tests auf YouTube und in Blogs. Der Leitfaden übernimmt die Idee, dass man klickt, statt zu beschreiben.
+
+## 2b. Version 2: Vergleichsprodukte und neue Anforderungen
+
+### Was Familienplaner heute machen
+
+| Produkt | Stärken | Was fehlt oder kostet |
+| --- | --- | --- |
+| Skylight | Kalender-Displays 10–27″, Farbe pro Profil, Aufgaben, Sterne, Essensplan, KI-Import | Essen, Belohnungen, KI nur im Plus-Abo (ca. 39–79 $/Jahr) |
+| Hearth Display | 27″, Termine in Spalten je Person, Routinen mit Sternen und Serien, „Today's Feelings“ (16 Gefühle, Auswertung 90 Tage) | ca. 699 $ plus ca. 86 $/Jahr, ohne Abo nur Kalender |
+| Cozi | Klassiker: Kalender, Listen, Essensplan | Gratis nur mit Werbung und 30 Tagen Kalender-Vorschau |
+| FamilyWall | Breitester Umfang inkl. Standort und Finanzen | Google-Sync nur Premium |
+| TimeTree | Bester kostenloser Kalender, Chat pro Termin | Nur Kalender |
+| Nori | Hub, App und Web mit KI, Kalender, Aufgaben, Essen, Belohnungen | KI-Abo, Angaben fast nur vom Anbieter |
+| DAKboard, Mango | Software für eigene Bildschirme, Hoch- und Querformat | Erweiterte Funktionen im Abo |
+| Beacon (Open Source) | Wand-Dashboard mit Bestenliste, Layout mit einer Spalte für Tablets im Hochformat | Braucht Home Assistant |
+| Sweepy | Haushaltspunkte 1–3 nach Aufwand, Bestenliste | Haushalt allein |
+| Brili, Charty | Bild-Routinen für Kinder, aktuelle Aufgabe im Ablauf, verschiedene Feier-Stile | Kinder allein |
+| Daylio, Exist | Stimmung in 5 Stufen, Jahr in Pixeln, Zusammenhänge mit Wetter | Statistik im Abo |
+
+**Folgerungen**
+- Alle bauen auf Kalender, Aufgaben, Essen und Listen. Die Einkaufsliste bleibt ein spätes Update.
+- Statistik ist die Lücke der Wand-Geräte. Ein Dashboard für Haushalt, Essen und Stimmung ist das, was die Familienzentrale von den Kaufprodukten abhebt.
+- Feste Personenfarben überall (Kalender, Haushalt, Statistik), immer mit Namen daneben. Chris blau `#2a78d6`, Lisa grün `#1baf7a` (Text auf Hell `#14946a`), Kinder orange `#eb6834`, Familie violett `#6250d6`. Die Kombination ist mit dem Farbprüfer auf Farbsehschwächen getestet.
+- Abwechslung beim Feiern der Kinder bestätigt Charty. Gefühle als Schritt der Routine bestätigt Hearth.
+- Fast alle sperren die spannenden Funktionen hinter Abos. Kostenlos bleibt Pflicht.
+
+### Tagesphasen mit Kita-Zeit
+
+| Tagesart | Ablauf |
+| --- | --- |
+| Zuhause-Tag | Nacht · Morgen 06:00–08:30 · Vormittag 08:30–12:00 · Leisezeit 12:00–14:30 · Nachmittag 14:30–17:00 · Abend 17:00–21:00 · Nacht |
+| Kita-Tag | Nacht · Morgen 06:00–08:00 · Kita 08:00–15:00 · Nachmittag 15:00–17:00 · Abend 17:00–21:00 · Nacht |
+
+- Ob Kita-Tag ist, entscheidet wie heute `FZ.dayInfo()` aus den Eltern-Einstellungen (`kita_tage`, Feiertage Sachsen, `zuhause_bis`).
+- Reiter „Tagesphasen“ bekommt die Spalte `Tagesart` (`kita`, `zuhause`, `beide`). `FZ.phasen(datum)` liefert die passende Liste. Die bisherigen zwei „Tagsüber“-Zeilen werden zu Vormittag und Nachmittag.
+- Zeitstrahl als Baustein: an der Wand groß mit Namen, am Handy schmal, auf der Kinderseite als Bildleiste.
+- Kinderaufgaben bekommen die Phasen `vormittag`, `leise`, `kita`, `nachmittag`. Während der Kita-Zeit zeigt die Kinderseite keine Aufgaben, sondern „Du bist in der Kita, Abholen um 15 Uhr“ mit einem Stundenbalken.
+- Der Ruhezustand am Wand-iPad folgt den neuen Phasen (Kinderseite morgens und abends).
+
+### Tagesmaximum für wiederholbare Aufgaben
+
+- Reiter „Haushalt“: neue Spalte `Max pro Tag` ersetzt `Mehrfach`. Leer bedeutet 1. Bestehende Aufgaben mit „Mehrfach: ja“ bekommen beim Umstellen 3.
+- Heutige Erledigungen werden aus dem Reiter „Erledigt“ gezählt (`Aufgaben-ID`, Datum von `Zeitpunkt`). Ist das Maximum erreicht, verschwindet die Aufgabe für heute aus Start, Haushalt und Handy und erscheint morgen wieder.
+- Anzeige mit Punkte-Zähler (●●○ 2/3), bei Erreichen kurz „Für heute geschafft“.
+- An der Wand zwei große Knöpfe C und L je Aufgabe, damit die Punkte bei der richtigen Person landen. Am Handy reicht ein Tipp.
+
+### Tagesstimmung
+
+- Neuer Reiter `Stimmung`: Datum, Person, Wert 1–5, Notiz.
+- Gefragt wird ab Beginn der Abendphase an Wand und Handy, nachholbar am nächsten Morgen.
+- Auswertung als Jahr in Pixeln und Wochenschnitt. Zusammenhänge mit Wetter, Anzahl Termine, Haushaltspunkten und Essen erscheinen erst ab etwa 30 Tagen Daten.
+
+### Kalender (nur Anzeige)
+
+- Angelegt wird weiter im Google Kalender. Die Zentrale zeigt eine Wochenleiste mit Punkten je Tag und darunter die Tage als Liste, an der Wand 7 Tage, am Handy bis 4 Wochen.
+- Die Personenfarbe kommt aus einem Kalender pro Person oder aus einem Stichwort im Titel. Das wird im Apps Script eingestellt.
+
+### Statistik
+
+| Bereich | Kennzahlen |
+| --- | --- |
+| Haushalt | Punkte pro Woche gestapelt Chris/Lisa (12 Wochen), Verteilung in %, Serie (Tage mit allen Tagesaufgaben), „bleibt liegen“ (Ø Tage überfällig), häufigste Aufgaben, Wochentage. Keine Auswertung nach Uhrzeit. |
+| Essen | Hitliste (Ø 1–3 mit Anzahl), Flops, Ø je Person, Einigkeit der drei, Abwechslung, Verlauf pro Woche |
+| Stimmung | Jahr in Pixeln, Wochenschnitt je Person, Zusammenhänge ab 30 Tagen, beste Wochentage |
+
+Diagramme: eine Achse pro Diagramm, Personenfarben fest, Werte als Beschriftung, Hinweis beim Darüberfahren oder Antippen.
 
 ## 3. Teil A: Design-System
 
@@ -80,7 +149,7 @@ Das CSS wählt alles über diese Attribute. Die Seiten selbst kennen keine Farbe
 | Tippfläche Kinderseite | mindestens 105 px | entfällt |
 | Scrollen | nie auf der Startseite | normal |
 
-Testgrößen: 1180 × 820 (iPad 10. Generation, iPad Air 11"), dazu 1024 × 768 und 1366 × 1024. Handy: 390 × 844.
+Testgrößen: Wand 820 × 1180 im Hochformat (iPad 11"), zur Sicherheit auch 1024 × 1366. Handy: 390 × 844. Im Hochformat gilt: oben das Jetzt (Uhr, Wetter, Zeitstrahl), darunter Listen in voller Breite.
 
 ### Aufräumen
 
@@ -173,16 +242,20 @@ Die Struktur folgt der Wahl im Leitfaden. Unabhängig davon gilt:
 
 ## 7. Reihenfolge der Umsetzung
 
-Jede Etappe ist für sich nutzbar und geht einzeln live.
+Jede Etappe ist für sich nutzbar und geht einzeln live, erst nach dem gemeinsamen Gespräch.
 
-0. **Sicherheitsnetz**: Demo-Modus (`#demo` lädt Beispieldaten statt der Tabelle) und ein Skript, das alle Seiten in Wand- und Handy-Größe fotografiert. So lässt sich jede Änderung prüfen, ohne echte Familiendaten anzufassen.
+0. **Sicherheitsnetz**: Demo-Modus (`#demo`) und Bildschirmfotos aller Seiten für Wand (hoch) und Handy.
 1. **Design-Grundlage**: `design/` mit Tokens, Basis, Bausteinen und Musterseite. `core.js` setzt die Attribute.
-2. **Wetter-Baustein**: `wetter.js`, neue Einstellungen, Start- und Kinderseite umstellen.
-3. **Startseite** für Wand und Handy.
-4. **Essen**.
-5. **Haushalt**.
-6. **Kinderseite**: Welt, Karten, Animationen, Endbonus, Töne.
-7. **Eltern-Seite und Aufräumen**: neue Schalter (Töne, Wetterteile, Look), altes CSS entfernen, README aktualisieren.
+2. **Tagesphasen mit Kita-Zeit**: neues Phasenmodell, Spalte `Tagesart`, Zeitstrahl-Baustein.
+3. **Wetter-Baustein**: `wetter.js`, neue Einstellungen.
+4. **Startseite und Haushalt**: Hochformat, Tagesmaximum, C/L-Knöpfe an der Wand.
+5. **Essen und Bewertung**: Heute-Karte, Morgen-Bewertung zu dritt, Hitliste.
+6. **Kinderseite**: Bild-Zeitleiste, Karten im Hochformat, wechselnde Animationen, Endbonus.
+7. **Tagesstimmung und Statistik**: Reiter `Stimmung`, Statistik-Bildschirm auf Wand und Handy.
+8. **Kalender**: Wochenleiste, Personenfarben, Liste.
+9. **Eltern-Seite und Aufräumen**: neue Schalter, altes CSS entfernen, README.
+
+Später: Einkaufsliste, Fotomodus im Ruhezustand, Familien-Jahresrückblick im Dezember, mehrere Kinder, Kinder-Stimmung, Punkte nach Aufwand.
 
 ## 8. Offene Entscheidungen (im Leitfaden)
 
@@ -203,3 +276,10 @@ Grundstimmung, Farben nach Tageszeit, Schrift, Startseite Wand, Startseite Handy
 - Claude Design: https://www.anthropic.com/news/claude-design-anthropic-labs · https://www.macstories.net/stories/hands-on-with-anthropic-labs-claude-design-preview/
 - Open-Meteo (DWD-Modelle, 15 Minuten, Luftqualität): https://open-meteo.com/en/docs/dwd-api · https://open-meteo.com/en/docs/air-quality-api
 - Bright Sky: https://brightsky.dev/
+- Vergleiche 2026: https://familymind.ai/blog/best-family-organization-apps · https://familycockpit.com/ratgeber/familien-apps-im-vergleich · https://wenndannda.com/blog/familienkalender-app-vergleich-2026
+- Skylight: https://cybernews.com/reviews/skylight-calendar-review/ · Hearth: https://dakboard.com/c/comparisons/dakboard-vs-hearth/ · Today's Feelings: https://hearth.zendesk.com/hc/en-us/articles/42665254423443-Today-s-Feelings
+- Beacon (Hochformat): https://beacon-family-docs.netlify.app/docs/features/dashboard/
+- Daylio: https://daylio.net/ · Exist (Wetter und Stimmung): https://exist.io/blog/weather-in-exist/
+- Brili: https://www.commonsensemedia.org/app-reviews/brili-routines · Charty: https://www.educationalappstore.com/app/charty
+- Mehrfach-Aufgaben: https://lunatask.app/docs/features/habits · https://griply.app/help/features/habits
+- Sweepy: https://sweepy.com/ · Family Feasts: https://apps.apple.com/gb/app/family-feasts/id6471382642
