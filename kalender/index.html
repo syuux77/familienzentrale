@@ -40,12 +40,13 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
 .ev.past { opacity: .5; }
 .none { color: var(--muted); font-weight: 600; margin: 4px 0 0; }
 .note { color: var(--muted); font-size: 14px; font-weight: 600; }
+.more { margin: 2px 0 0; font-weight: 800; color: var(--muted); }
 @media (max-width: 560px) { .head h1 { font-size: 30px; } .week button { padding: 8px 0 6px; font-size: 12px; } .week button b { font-size: 18px; } .ev { padding: 10px 12px; gap: 10px; } .ev .tm { min-width: 50px; } .ev .who { display: none; } }
 </style>
 </head>
 <body>
 <div class="app" id="main"></div>
-<script src="../core.js?v=20261113g"></script>
+<script src="../core.js?v=20261113h"></script>
 <script>(function () {
   "use strict";
   const $ = (s) => document.querySelector(s);
@@ -58,7 +59,9 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
   function render() {
     if (FZ.gate($("#main"))) return;
     const now = new Date(), heute = iso(now), hm = pad(now.getHours()) + ":" + pad(now.getMinutes());
-    const tage = FZ.wand ? 7 : 28;
+    // Alle geladenen Termine (so weit wie termine_tage in der Tabelle). Heute und morgen stehen immer da,
+    // danach nur Tage mit Terminen. Am Wand-iPad kürzt fit() die Liste so, dass die Seite genau voll ist.
+    const tage = 120;
     const evs = FZ.termine.slice().sort((a, b) => (a.datum + (a.zeit || "00:00")).localeCompare(b.datum + (b.zeit || "00:00")));
     const amTag = (d) => evs.filter((t) => t.datum <= d && (t.bis || t.datum) >= d);
     const d0 = parse(heute), mo = addDays(heute, -((d0.getDay() + 6) % 7));
@@ -69,12 +72,25 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
       const d = addDays(heute, i), list = amTag(d);
       if (!list.length && i > 1) continue;
       const p = parse(d);
-      h += '<section class="day" id="d-' + d + '"><h2>' + (i === 0 ? "Heute" : i === 1 ? "Morgen" : WL[p.getDay()]) + " <span>" + p.getDate() + ". " + MON[p.getMonth()] + "</span></h2>" +
+      h += '<section class="day" id="d-' + d + '" data-n="' + list.length + '"><h2>' + (i === 0 ? "Heute" : i === 1 ? "Morgen" : WL[p.getDay()]) + " <span>" + p.getDate() + ". " + MON[p.getMonth()] + (i >= 7 ? " · in " + i + " Tagen" : "") + "</span></h2>" +
         (list.length ? list.map((t) => { const w = wer(t), vorbei = d === heute && t.zeit && (t.ende || t.zeit) < hm; return '<div class="ev' + (vorbei ? " past" : "") + '"><span class="bar" style="--pc:' + FARBE[w] + '"></span><span class="tm">' + esc(t.zeit || "ganzt.") + '</span><span class="tx">' + esc(t.titel) + (t.ort ? "<small>" + esc(t.ort) + "</small>" : "") + '</span><span class="who">' + NAME[w] + "</span></div>"; }).join("") : '<p class="none">Keine Termine</p>') + "</section>";
     }
-    h += '<p class="note">Termine legt ihr im Google Kalender an. Sie erscheinen hier automatisch. Die Farbe kommt aus dem Titel: Lisa oder Mama lila, Christian oder Papa blau, Ruby oder Elli rot. Mehrere Personen oder keine: Familie gelb.</p>';
+    h += '<p class="more" id="more" hidden></p><p class="note">Termine legt ihr im Google Kalender an. Sie erscheinen hier automatisch. Die Farbe kommt aus dem Titel: Lisa oder Mama lila, Christian oder Papa blau, Ruby oder Elli rot. Mehrere Personen oder keine: Familie gelb.</p>';
     $("#main").innerHTML = h;
+    fit();
     FZ.status();
+  }
+  // Wand-iPad: so viele Tage zeigen, wie über die Leiste unten passen; der Rest steht als Hinweis darunter
+  function fit() {
+    if (!FZ.wand) return;
+    const nav = document.querySelector(".fz-nav"), note = document.querySelector(".note"), more = $("#more");
+    const limit = (nav ? nav.getBoundingClientRect().top : innerHeight) + scrollY - 12;
+    const days = Array.from(document.querySelectorAll(".day"));
+    let weg = 0, bis = "";
+    while (days.length > 2 && note.getBoundingClientRect().bottom + scrollY > limit) {
+      const d = days.pop(); weg += Number(d.dataset.n) || 0; if (!bis) bis = d.id.slice(2); d.remove();
+      if (weg) { const p = parse(bis); more.hidden = false; more.textContent = "+ " + weg + (weg === 1 ? " weiterer Termin" : " weitere Termine") + " bis " + p.getDate() + ". " + MON[p.getMonth()]; }
+    }
   }
   document.addEventListener("click", (ev) => { const b = ev.target.closest("[data-day]"); if (!b) return; const el = document.getElementById("d-" + b.dataset.day); if (el) el.scrollIntoView({ behavior: "smooth" }); });
   FZ.on(render);

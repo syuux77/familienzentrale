@@ -85,7 +85,14 @@ function build(opts) {
     { datum: addDays(TODAY, 1), zeit: "18:00", ende: "19:30", titel: "Fußball Christian", ort: "" },
     { datum: addDays(TODAY, 2), zeit: "", titel: "Oma und Opa zu Besuch", ort: "" },
     { datum: addDays(TODAY, 4), zeit: "07:30", ende: "08:00", titel: "Zahnarzt Christian", ort: "" },
-    { datum: addDays(TODAY, 5), zeit: "20:00", ende: "21:00", titel: "Yoga Lisa", ort: "" }
+    { datum: addDays(TODAY, 5), zeit: "20:00", ende: "21:00", titel: "Yoga Lisa", ort: "" },
+    { datum: addDays(TODAY, 9), zeit: "15:00", ende: "16:00", titel: "Laternenfest Kita", ort: "Kindergarten" },
+    { datum: addDays(TODAY, 12), zeit: "", titel: "Geburtstag Oma", ort: "" },
+    { datum: addDays(TODAY, 16), zeit: "09:30", ende: "10:00", titel: "U-Untersuchung Elli", ort: "Kinderarztpraxis" },
+    { datum: addDays(TODAY, 19), zeit: "19:00", ende: "22:00", titel: "Weihnachtsfeier Christian", ort: "" },
+    { datum: addDays(TODAY, 24), zeit: "10:00", ende: "11:00", titel: "Friseur Lisa", ort: "" },
+    { datum: addDays(TODAY, 31), zeit: "", titel: "Weihnachtsmarkt", ort: "" },
+    { datum: addDays(TODAY, 38), zeit: "16:00", ende: "17:00", titel: "Ruby Turnen Probetraining", ort: "" }
   ];
   const daten = { Personen, Terminpersonen, Haushalt, Erledigt, Gerichte, "Essen-Listen": EssenListen, Essensplan, Bewertungen, Kinderaufgaben, Einstellungen, Tagesphasen: [] };
   if (!opts.ohneStimmung) daten.Stimmung = Stimmung;
