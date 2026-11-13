@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Familie">
+<title>Statistik · Familienzentrale</title>
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0}[hidden]{display:none!important}</style>
+<style>
+/* Familien-Dashboard: oben vier Kennzahlen, dann Haushalt, Essen und Stimmung.
+   Eine Achse pro Diagramm, Personenfarben fest, Werte als Beschriftung, Hinweis beim Darüberfahren. */
+*, *::before, *::after { box-sizing: border-box; }
+body { font: 16px/1.4 var(--font); -webkit-font-smoothing: antialiased; }
+.app { max-width: 920px; margin: 0 auto; padding: 18px max(18px, env(safe-area-inset-left, 0px)) 24px max(18px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 16px; }
+.head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.head h1 { margin: 0; font: 800 40px/1 var(--font-display); letter-spacing: -.02em; }
+.head small { display: block; color: var(--muted); font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+#fz-status { font-size: 13px; color: var(--muted); }
+h2.sec { margin: 14px 0 0; font: 800 24px var(--font-display); }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.card { background: var(--surface); border-radius: var(--r); padding: 16px 18px; min-width: 0; }
+.lbl { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.lbl em { font-style: normal; letter-spacing: 0; text-transform: none; font-weight: 700; }
+.kpi .v { font: 800 38px/1 var(--font-display); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.kpi .d { font-weight: 700; font-size: 13px; color: var(--muted); margin-top: 4px; }
+.kpi svg { width: 100%; height: auto; display: block; margin-top: 8px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+svg.ch { width: 100%; height: auto; display: block; overflow: visible; }
+svg.ch text { font-family: var(--font); fill: var(--muted); font-weight: 700; }
+svg.ch .vt { fill: var(--fg); }
+.legend { display: flex; gap: 14px; font-weight: 700; font-size: 13px; color: var(--muted); text-transform: none; letter-spacing: 0; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 11px; height: 11px; border-radius: 3px; background: var(--pc); }
+.rank { display: grid; gap: 8px; }
+.rank .r { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.rank .n { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; }
+.rank .b { height: 12px; border-radius: 0 4px 4px 0; background: var(--pc, var(--accent)); }
+.rank .x { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; }
+.segbar { display: flex; gap: 2px; height: 30px; border-radius: 8px; overflow: hidden; }
+.segbar i { display: flex; align-items: center; justify-content: center; font-style: normal; font-weight: 800; font-size: 12px; color: #fff; white-space: nowrap; overflow: hidden; }
+.seglab { display: flex; justify-content: space-between; gap: 6px; font-weight: 700; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.pix { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); gap: 4px; }
+.pix i { aspect-ratio: 1; border-radius: 4px; background: var(--mc); }
+.pix i.na { background: var(--line); }
+.mleg { display: flex; justify-content: space-between; margin-top: 10px; font-weight: 700; font-size: 13px; color: var(--muted); }
+.mleg span { display: inline-flex; align-items: center; gap: 4px; }
+.mleg i { width: 12px; height: 12px; border-radius: 3px; background: var(--mc); }
+.ins { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.ins .k { font: 800 28px var(--font-display); font-variant-numeric: tabular-nums; }
+.ins p { margin: 4px 0 0; font-weight: 600; font-size: 14px; color: var(--muted); }
+.li { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); }
+.li:first-of-type { border-top: 0; }
+.li .tx { flex: 1; min-width: 0; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.li b { font-variant-numeric: tabular-nums; }
+.empty { color: var(--muted); font-weight: 600; margin: 0; }
+.t-h { background: var(--t-haus); } .t-e { background: var(--t-essen); } .t-s { background: var(--t-stat); }
+.t-h .lbl, .t-e .lbl, .t-s .lbl, .t-h .d, .t-e .d, .t-s .d { color: rgba(15,19,23,.66); }
+@media (max-width: 700px) { .kpis { grid-template-columns: 1fr 1fr; } .grid2, .ins { grid-template-columns: 1fr; } .head h1 { font-size: 30px; } }
+</style>
+</head>
+<body>
+<div class="app" id="main"></div>
+<script src="../core.js"></script>
+<script>(function () {
+  "use strict";
+  const $ = (s) => document.querySelector(s);
+  const { esc, iso, parse, addDays } = FZ;
+  const C = { chris: "#2a78d6", lisa: "#14946a", ruby: "#e2602c" };
+  const N = { chris: "Christian", lisa: "Lisa", ruby: "Ruby" };
+  const MOODC = { 1: "#d64545", 2: "#ef9a8f", 3: "#cfcdc7", 4: "#86b6ef", 5: "#2a78d6" };
+  const komma = (v, n) => (v == null || isNaN(v) ? "–" : v.toFixed(n == null ? 1 : n).replace(".", ","));
+  const avg = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+  const montag = (s) => addDays(s, -((parse(s).getDay() + 6) % 7));
+  function kw(s) { const d = parse(s), t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())), n = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - n); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y) / 864e5 + 1) / 7); }
+  function spark(vals, col) {
+    const v = vals.filter((x) => x != null); if (v.length < 2) return "";
+    const w = 120, h = 34, mn = Math.min.apply(null, v), mx = Math.max.apply(null, v), x = (i) => 3 + i * (w - 6) / (vals.length - 1), y = (q) => h - 4 - (q - mn) / ((mx - mn) || 1) * (h - 10);
+    const pts = vals.map((q, i) => (q == null ? null : [x(i), y(q)])).filter(Boolean);
+    const d = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" "), l = pts[pts.length - 1];
+    return '<svg viewBox="0 0 ' + w + " " + h + '" aria-hidden="true"><path d="' + d + " L " + l[0].toFixed(1) + " " + h + " L " + pts[0][0].toFixed(1) + " " + h + ' Z" fill="' + col + '" opacity=".14"/><path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="2" stroke-linejoin="round"/><circle cx="' + l[0].toFixed(1) + '" cy="' + l[1].toFixed(1) + '" r="3.5" fill="' + col + '"/></svg>';
+  }
+  const segs = (rows) => { const tot = rows.reduce((a, r) => a + r[1], 0) || 1; return '<div class="segbar">' + rows.filter((r) => r[1]).map((r) => '<i style="flex:' + r[1] + ";background:" + r[2] + '" title="' + esc(r[0]) + ": " + r[1] + "×, " + Math.round(r[1] / tot * 100) + ' %">' + Math.round(r[1] / tot * 100) + " %</i>").join("") + '</div><div class="seglab">' + rows.map((r) => "<span>" + esc(r[0]) + " " + r[1] + "×</span>").join("") + "</div>"; };
+
+  function render() {
+    if (FZ.gate($("#main"))) return;
+    const heute = iso(new Date()), mo = montag(heute);
+    const wochen = Array.from({ length: 12 }, (_, i) => addDays(mo, (i - 11) * 7));
+    // ---------- Haushalt ----------
+    const erl = FZ.reiter("Erledigt").filter((e) => e.Art !== "ausgesetzt" && e.Zeitpunkt).map((e) => ({ tag: String(e.Zeitpunkt).slice(0, 10), von: e["Erledigt von"], id: e["Aufgaben-ID"], titel: e.Titel, p: Number(String(e.Punkte || "0").replace(",", ".")) || 0 }));
+    const proWoche = wochen.map((w) => { const b = addDays(w, 6), x = erl.filter((e) => e.tag >= w && e.tag <= b); return { w, kw: kw(w), chris: x.filter((e) => e.von === "chris").reduce((a, e) => a + e.p, 0), lisa: x.filter((e) => e.von === "lisa").reduce((a, e) => a + e.p, 0), n: x.length }; });
+    const cur = proWoche[11], prev = proWoche[10];
+    const anteil = cur.chris + cur.lisa ? Math.round(cur.chris / (cur.chris + cur.lisa) * 100) : 50;
+    // ---------- Essen ----------
+    const G = {}; FZ.reiter("Gerichte").forEach((g) => { G[g.ID] = g; });
+    const bew = FZ.reiter("Bewertungen").filter((b) => Number(b.Wert)).map((b) => ({ tag: b.Datum, g: b["Gericht-ID"], p: b.Person, v: Number(b.Wert) }));
+    const essenWoche = wochen.map((w) => avg(bew.filter((b) => b.tag >= w && b.tag <= addDays(w, 6)).map((b) => b.v)));
+    const ab28 = addDays(heute, -27);
+    const b28 = bew.filter((b) => b.tag >= ab28);
+    const lecker = b28.length ? Math.round(b28.filter((b) => b.v === 3).length / b28.length * 100) : null;
+    // ---------- Stimmung ----------
+    const st = FZ.reiter("Stimmung").filter((s) => Number(s.Wert)).map((s) => ({ tag: s.Datum, p: s.Person, v: Number(s.Wert) }));
+    const stWoche = wochen.map((w) => avg(st.filter((s) => s.tag >= w && s.tag <= addDays(w, 6)).map((s) => s.v)));
+    const st28 = st.filter((s) => s.tag >= ab28);
+
+    let h = '<div class="head"><div><small>Letzte 12 Wochen</small><h1>Statistik</h1></div><span id="fz-status"></span></div>';
+    h += '<div class="kpis">' +
+      '<div class="card kpi t-h"><div class="lbl">Aufgaben</div><div class="v">' + cur.n + '</div><div class="d">' + (cur.n - prev.n >= 0 ? "+" : "−") + Math.abs(cur.n - prev.n) + " ggü. Vorwoche</div>" + spark(proWoche.map((w) => w.n), "#0d6b4b") + "</div>" +
+      '<div class="card kpi t-h"><div class="lbl">Verteilung</div><div class="v">' + anteil + "/" + (100 - anteil) + '</div><div class="d">Christian / Lisa, Punkte diese Woche</div><div style="display:flex;gap:2px;height:8px;margin-top:10px"><i style="flex:' + anteil + ";background:" + C.chris + ';border-radius:4px 0 0 4px"></i><i style="flex:' + (100 - anteil) + ";background:" + C.lisa + ';border-radius:0 4px 4px 0"></i></div></div>' +
+      '<div class="card kpi t-e"><div class="lbl">Essen</div><div class="v">' + komma(avg(b28.map((b) => b.v))) + '</div><div class="d">Ø von 3 · ' + (lecker == null ? "–" : lecker + " % lecker") + " · 4 Wochen</div>" + spark(essenWoche, "#9A5A00") + "</div>" +
+      '<div class="card kpi t-s"><div class="lbl">Stimmung</div><div class="v">' + komma(avg(st28.map((s) => s.v))) + '</div><div class="d">Ø von 5 · 4 Wochen</div>' + spark(stWoche, "#6250d6") + "</div></div>";
+
+    // Haushaltspunkte pro Woche (gestapelt)
+    h += '<h2 class="sec">Haushalt</h2>';
+    const W = 720, H = 210, padL = 34, top = 18, bot = 24, gw = (W - padL) / 12, bw = Math.min(34, gw - 10);
+    const maxT = Math.max(30, Math.ceil(Math.max.apply(null, proWoche.map((w) => w.chris + w.lisa)) / 30) * 30);
+    const y = (v) => top + (H - top - bot) * (1 - v / maxT);
+    let svg = '<svg class="ch" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Haushaltspunkte pro Woche, Christian und Lisa gestapelt">';
+    for (let t = 0; t <= maxT; t += maxT / 3) svg += '<line x1="' + padL + '" x2="' + W + '" y1="' + y(t).toFixed(1) + '" y2="' + y(t).toFixed(1) + '" stroke="var(--line)"/><text x="' + (padL - 6) + '" y="' + (y(t) + 4).toFixed(1) + '" text-anchor="end" font-size="12">' + t + "</text>";
+    proWoche.forEach((w, i) => {
+      const x = padL + i * gw + (gw - bw) / 2, yc = y(w.chris), yl = y(w.chris + w.lisa);
+      svg += "<g><title>KW " + w.kw + ": Christian " + w.chris + ", Lisa " + w.lisa + " Punkte</title>" +
+        '<rect x="' + x.toFixed(1) + '" y="' + yc.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(0, y(0) - yc).toFixed(1) + '" fill="' + C.chris + '"/>' +
+        (w.lisa ? '<rect x="' + x.toFixed(1) + '" y="' + yl.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(0, yc - yl - 2).toFixed(1) + '" rx="4" fill="' + C.lisa + '"/><rect x="' + x.toFixed(1) + '" y="' + Math.min(yc - 2, yl + 4).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(0, yc - yl - 6).toFixed(1) + '" fill="' + C.lisa + '"/>' : "") + "</g>" +
+        '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="12">' + w.kw + "</text>";
+    });
+    svg += '<text class="vt" x="' + (padL + 11 * gw + gw / 2).toFixed(1) + '" y="' + (y(cur.chris + cur.lisa) - 6).toFixed(1) + '" text-anchor="middle" font-size="13">' + (cur.chris + cur.lisa) + "</text></svg>";
+    h += '<div class="card"><div class="lbl">Punkte pro Woche (Kalenderwoche)<span class="legend"><span style="--pc:' + C.chris + '"><i></i>Christian</span><span style="--pc:' + C.lisa + '"><i></i>Lisa</span></span></div>' + svg + "</div>";
+    // Häufigste Aufgaben, Wochentage, bleibt liegen
+    const e28 = erl.filter((e) => e.tag >= ab28), cnt = {};
+    e28.forEach((e) => { const k = e.titel || e.id; cnt[k] = cnt[k] || { n: 0, chris: 0, lisa: 0 }; cnt[k].n++; if (e.von === "chris" || e.von === "lisa") cnt[k][e.von]++; });
+    const top5 = Object.keys(cnt).map((k) => Object.assign({ k }, cnt[k])).sort((a, b) => b.n - a.n).slice(0, 6), maxN = top5.length ? top5[0].n : 1;
+    const wd = [1, 2, 3, 4, 5, 6, 0].map((d) => ({ d, n: erl.filter((e) => e.tag >= addDays(heute, -83) && parse(e.tag).getDay() === d).length }));
+    const maxWd = Math.max(1, Math.max.apply(null, wd.map((x) => x.n)));
+    const liegen = FZ.reiter("Haushalt").filter((r) => String(r.Aktiv).toLowerCase() === "ja" && FZ.maxProTag(r) === 1 && r["Nächste Fälligkeit"] && r["Nächste Fälligkeit"] < heute).map((r) => ({ t: r.Titel, d: Math.round((parse(heute) - parse(r["Nächste Fälligkeit"])) / 864e5) })).sort((a, b) => b.d - a.d);
+    h += '<div class="grid2"><div class="card"><div class="lbl">Häufigste Aufgaben<em>4 Wochen</em></div><div class="rank">' + (top5.length ? top5.map((r) => '<div class="r"><span class="n">' + esc(r.k) + '</span><span style="display:flex;gap:2px"><i class="b" style="width:' + (r.chris / maxN * 100).toFixed(0) + "%;--pc:" + C.chris + ';border-radius:4px 0 0 4px" title="Christian ' + r.chris + '×"></i><i class="b" style="width:' + (r.lisa / maxN * 100).toFixed(0) + "%;--pc:" + C.lisa + '" title="Lisa ' + r.lisa + '×"></i></span><span class="x">' + r.n + "×</span></div>").join("") : '<p class="empty">Noch nichts erledigt.</p>') + "</div></div>" +
+      '<div class="card"><div class="lbl">An welchen Tagen<em>12 Wochen</em></div><div class="rank">' + wd.map((x) => '<div class="r" style="grid-template-columns:40px 1fr auto"><span class="n">' + ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"][x.d] + '</span><i class="b" style="width:' + (x.n / maxWd * 100).toFixed(0) + '%"></i><span class="x">' + x.n + "</span></div>").join("") + "</div></div></div>";
+    h += '<div class="card"><div class="lbl">Bleibt liegen<em>gerade überfällig</em></div>' + (liegen.length ? liegen.slice(0, 5).map((l) => '<div class="li"><span class="tx">' + esc(l.t) + "</span><b>seit " + l.d + (l.d === 1 ? " Tag" : " Tagen") + "</b></div>").join("") : '<p class="empty">Nichts überfällig. 👍</p>') + "</div>";
+
+    // ---------- Essen ----------
+    h += '<h2 class="sec">Essen</h2>';
+    const proG = {}; bew.forEach((b) => { (proG[b.g] = proG[b.g] || []).push(b.v); });
+    const rank = Object.keys(proG).filter((g) => G[g] && proG[g].length >= 2).map((g) => ({ g: G[g], a: avg(proG[g]), n: proG[g].length })).sort((a, b) => b.a - a.a || b.n - a.n);
+    const plan28 = FZ.reiter("Essensplan").filter((e) => e.Datum >= ab28 && e.Datum <= heute && e.Status === "gericht" && G[e["Gericht-ID"]]).map((e) => G[e["Gericht-ID"]]);
+    const hat = (g, feld, wert) => String(g[feld] || "").split(",").map((x) => x.trim()).includes(wert);
+    const zeit = [["schnell", "#86b6ef"], ["normal", "#3987e5"], ["aufwendig", "#1c5cab"]].map((z) => [z[0], plan28.filter((g) => hat(g, "Merkmale", z[0])).length, z[1]]);
+    const ern = [["Fleisch", "#7b8492"], ["Fisch", "#4b5563"], ["Vegetarisch", "#16a34a"]].map((z) => [z[0], plan28.filter((g) => hat(g, "Kategorie", z[0])).length, z[1]]);
+    const proP = ["chris", "lisa", "ruby"].map((p) => ({ p, a: avg(b28.filter((b) => b.p === p).map((b) => b.v)) }));
+    const tage = {}; b28.forEach((b) => { (tage[b.tag] = tage[b.tag] || []).push(b.v); });
+    const mehr = Object.values(tage).filter((v) => v.length >= 2), einig = mehr.length ? Math.round(mehr.filter((v) => v.every((x) => x === v[0])).length / mehr.length * 100) : null;
+    h += '<div class="grid2"><div class="card t-e"><div class="lbl">Hitliste<em>Ø von 3, ab 2 Bewertungen</em></div><div class="rank">' + (rank.length ? rank.slice(0, 7).map((r) => '<div class="r"><span class="n"><span style="font-family:var(--font-emoji)">' + esc(r.g.Emoji || "🍽️") + "</span> " + esc(r.g.Name) + '</span><i class="b" style="width:' + (r.a / 3 * 100).toFixed(0) + '%;--pc:#9A5A00" title="' + esc(r.g.Name) + ": " + komma(r.a) + " von 3, " + r.n + ' Bewertungen"></i><span class="x">' + komma(r.a) + " · " + r.n + "×</span></div>").join("") : '<p class="empty">Noch zu wenige Bewertungen.</p>') + "</div></div>" +
+      '<div class="card"><div class="lbl">Wer mag was<em>Ø von 3 · 4 Wochen</em></div>' + proP.map((x) => '<div class="li"><span class="tx" style="display:flex;align-items:center;gap:8px"><i style="width:12px;height:12px;border-radius:3px;background:' + C[x.p] + '"></i>' + N[x.p] + "</span><b>" + komma(x.a) + "</b></div>").join("") +
+      '<div class="li"><span class="tx">Alle bewerten gleich</span><b>' + (einig == null ? "–" : einig + " %") + "</b></div></div></div>";
+    h += '<div class="grid2"><div class="card"><div class="lbl">Zeitaufwand<em>gekochte Abende · 4 Wochen</em></div>' + (zeit.some((z) => z[1]) ? segs(zeit) : '<p class="empty">Sobald die Gerichte einen Zeitaufwand haben, steht hier die Verteilung.</p>') + "</div>" +
+      '<div class="card"><div class="lbl">Fleisch, Fisch oder vegetarisch<em>4 Wochen</em></div>' + (ern.some((z) => z[1]) ? segs(ern) : '<p class="empty">Sobald die Gerichte eingeteilt sind, steht hier die Verteilung.</p>') + "</div></div>";
+
+    // ---------- Stimmung ----------
+    h += '<h2 class="sec">Stimmung</h2>';
+    const start = addDays(mo, -12 * 7), tageS = Array.from({ length: 13 * 7 }, (_, i) => addDays(start, i));
+    const tagAvg = (d) => avg(st.filter((s) => s.tag === d).map((s) => s.v));
+    const pix = '<div class="pix">' + tageS.map((d) => { const a = d > heute ? null : tagAvg(d), v = a == null ? 0 : Math.round(a); return '<i class="' + (v ? "" : "na") + '" style="--mc:' + (MOODC[v] || "") + '" title="' + d + (v ? ": " + FZ.MOOD[v] + " " + FZ.MOOD_TXT[v] + " (Ø " + komma(a) + ")" : ": keine Angabe") + '"></i>'; }).join("") + "</div>";
+    const leg = '<div class="mleg">' + [1, 2, 3, 4, 5].map((v) => '<span><i style="--mc:' + MOODC[v] + '"></i>' + FZ.MOOD[v] + "</span>").join("") + "</div>";
+    const wtag = [1, 2, 3, 4, 5, 6, 0].map((d) => ({ d, a: avg(st.filter((s) => parse(s.tag).getDay() === d).map((s) => s.v)) })).filter((x) => x.a != null).sort((a, b) => b.a - a.a);
+    const genug = new Set(st.map((s) => s.tag)).size >= 30;
+    let essenZus = null;
+    if (genug) { const gut = [], schlecht = []; Object.keys(tage).forEach(() => {}); new Set(st.map((s) => s.tag)).forEach((d) => { const e = avg(bew.filter((b) => b.tag === d).map((b) => b.v)), m = tagAvg(d); if (e == null) return; (e >= 2.5 ? gut : schlecht).push(m); }); if (gut.length >= 5 && schlecht.length >= 5) essenZus = avg(gut) - avg(schlecht); }
+    h += '<div class="grid2"><div class="card t-s"><div class="lbl">13 Wochen<em>ein Feld pro Tag, Ø der Familie</em></div>' + pix + leg + "</div>" +
+      '<div class="card"><div class="lbl">Im Schnitt<em>4 Wochen</em></div>' + ["chris", "lisa"].map((p) => { const a = avg(st28.filter((s) => s.p === p).map((s) => s.v)); return '<div class="li"><span class="tx" style="display:flex;align-items:center;gap:8px"><i style="width:12px;height:12px;border-radius:3px;background:' + C[p] + '"></i>' + N[p] + "</span><b>" + (a == null ? "–" : FZ.MOOD[Math.round(a)] + " " + komma(a)) + "</b></div>"; }).join("") +
+      (wtag.length ? '<div class="li"><span class="tx">Bester Wochentag</span><b>' + ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"][wtag[0].d] + "</b></div>" : "") + "</div></div>";
+    h += '<div class="ins"><div class="card"><div class="lbl">Essen und Stimmung</div><div class="k">' + (essenZus == null ? "–" : (essenZus >= 0 ? "+" : "−") + komma(Math.abs(essenZus))) + "</div><p>" + (essenZus == null ? "Erscheint ab etwa 30 Tagen mit Stimmung und Essensbewertung." : "So viel besser ist die Stimmung an Tagen mit leckerem Abendessen.") + "</p></div>" +
+      '<div class="card"><div class="lbl">Serie</div><div class="k">' + serie(erl, heute) + " Tage</div><p>in Folge wurde im Haushalt etwas erledigt.</p></div>" +
+      '<div class="card"><div class="lbl">Einträge</div><div class="k">' + new Set(st.map((s) => s.tag)).size + "</div><p>Tage mit Tagesstimmung bisher.</p></div></div>";
+    $("#main").innerHTML = h;
+    FZ.status();
+  }
+  function serie(erl, heute) { const s = new Set(erl.map((e) => e.tag)); let n = 0, d = s.has(heute) ? heute : addDays(heute, -1); while (s.has(d)) { n++; d = addDays(d, -1); } return n; }
+  FZ.on(render);
+  FZ.nav("statistik");
+  FZ.start();
+  render();
+})();
+</script>
+</body>
+</html>

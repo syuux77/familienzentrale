@@ -8,8 +8,17 @@ Familien-Dashboard als Web-App für ein Wandtablet (iPad im Flur) und die Handys
 | Kinderseite (Tagesablauf, Abendessen) | `/kinder/` |
 | Haushalt (Aufgaben, Punkte, Statistik) | `/haushalt/` |
 | Essen (Wochenplan Do–Mi, Gerichte, Statistik) | `/essen/` |
+| Kalender (nur Anzeige, Termine aus dem Google Kalender) | `/kalender/` |
+| Statistik (Haushalt, Essen, Tagesstimmung) | `/statistik/` |
 | Eltern-Seite (Zahnrad; PIN nur am Wand-iPad) | `/eltern/` |
 
+- `design/fz.css`: gemeinsames Design (Look „Kräftig“, Schrift Manrope), Himmel nach Uhrzeit, Wetter-Hintergrund, Zeitstrahl.
+- `wetter.js`: Wetter-Baustein (Open-Meteo, DWD-Warnungen über Bright Sky, Wetter-Ansicht mit Regenradar von RainViewer).
+- `kinder/effekte.js`: wechselnde Animationen beim Abhaken und Endbonus auf der Kinderseite.
+- Tagesphasen: Zuhause-Tag mit Morgen, Vormittag, Leisezeit, Nachmittag, Abend, Nacht; Kita-Tag mit Morgen, Kita (08–15 Uhr), Nachmittag, Abend, Nacht.
+- Haushalt: „Max pro Tag“ je Aufgabe; wiederholbare Aufgaben verschwinden, sobald das Tagesmaximum erreicht ist.
+- Handys fragen einmal „Wer bist du?“ (Christian oder Lisa) und merken sich das (`fz.person`).
+- Umstellung der Tabelle für Version 2: `docs/umstellung.md`. Tests mit Beispieldaten: `node tools/test/screens.js <ordner>`.
 - `core.js`: gemeinsamer Kern – Schlüssel und Gerät, Daten aus der Google-Tabelle über das Apps Script, Leiste unten, Tagesphasen, Kita-/Zuhause-Tag, Verhalten am Wand-iPad.
 - Daten: Google-Tabelle „Familienzentrale – Daten“, angebunden über ein Google Apps Script (Web-App).
 - Zugriff nur mit dem Familien-Schlüssel. Der Schlüssel steht **nie** in diesem Repository; jedes Gerät bekommt ihn einmalig über einen Einrichtungs-Link (`…/#key=…`, Wand-iPad zusätzlich `&geraet=wand`).

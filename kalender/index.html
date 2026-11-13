@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Familie">
+<title>Kalender · Familienzentrale</title>
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0}[hidden]{display:none!important}</style>
+<style>
+/* Kalender nur zum Anzeigen: Wochenleiste mit Punkten, darunter die Tage als Liste. Angelegt wird im Google Kalender. */
+*, *::before, *::after { box-sizing: border-box; }
+body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
+.app { max-width: 880px; margin: 0 auto; padding: 18px max(18px, env(safe-area-inset-left, 0px)) 24px max(18px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 16px; }
+.head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.head h1 { margin: 0; font: 800 40px/1 var(--font-display); letter-spacing: -.02em; }
+.head small { display: block; color: var(--muted); font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+#fz-status { font-size: 13px; color: var(--muted); }
+.week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
+.week button { border: 0; background: var(--surface); border-radius: 16px; padding: 10px 0 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; font: 700 14px var(--font); color: var(--muted); cursor: pointer; }
+.week button b { font-size: 22px; color: var(--fg); }
+.week button.on { background: var(--accent); color: #fff; }
+.week button.on b { color: #fff; }
+.dots { display: flex; gap: 3px; min-height: 7px; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--pc); }
+.leg { display: flex; flex-wrap: wrap; gap: 14px; font-weight: 700; font-size: 14px; color: var(--muted); }
+.leg span { display: inline-flex; align-items: center; gap: 6px; }
+.leg i { width: 12px; height: 12px; border-radius: 4px; background: var(--pc); }
+.day { scroll-margin-top: 20px; }
+.day h2 { margin: 6px 0 8px; font: 800 18px var(--font-display); }
+.day h2 span { color: var(--muted); font-weight: 700; }
+.ev { display: flex; align-items: center; gap: 12px; background: var(--surface); border-radius: 16px; padding: 12px 16px; margin-top: 8px; min-width: 0; }
+.ev .bar { width: 5px; align-self: stretch; border-radius: 4px; background: var(--pc); flex: none; }
+.ev .tm { flex: none; min-width: 64px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ev .tx { flex: 1; min-width: 0; font-weight: 700; }
+.ev .tx small { display: block; font-weight: 600; color: var(--muted); font-size: 14px; }
+.ev .who { flex: none; font-weight: 700; font-size: 14px; color: var(--muted); }
+.ev.past { opacity: .5; }
+.none { color: var(--muted); font-weight: 600; margin: 4px 0 0; }
+.note { color: var(--muted); font-size: 14px; font-weight: 600; }
+@media (max-width: 560px) { .head h1 { font-size: 30px; } .week button { padding: 8px 0 6px; font-size: 12px; } .week button b { font-size: 18px; } .ev { padding: 10px 12px; gap: 10px; } .ev .tm { min-width: 50px; } .ev .who { display: none; } }
+</style>
+</head>
+<body>
+<div class="app" id="main"></div>
+<script src="../core.js"></script>
+<script>(function () {
+  "use strict";
+  const $ = (s) => document.querySelector(s);
+  const { esc, iso, parse, addDays, pad } = FZ;
+  const WT = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"], WL = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+  const MON = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+  // Personenfarbe: Name im Titel oder im Kalendernamen, sonst Familie
+  const wer = (t) => { const s = (t.titel || "") + " " + (t.kalender || ""); return /lisa/i.test(s) ? "lisa" : /christian|chris\b/i.test(s) ? "chris" : /ruby|elli|kita|schwimm|turn/i.test(s) ? "kind" : "fam"; };
+  const FARBE = { chris: "var(--chris)", lisa: "var(--lisa)", kind: "var(--ruby)", fam: "var(--fam)" };
+  const NAME = { chris: "Christian", lisa: "Lisa", kind: "Kinder", fam: "Familie" };
+  function kw(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - n); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y) / 864e5 + 1) / 7); }
+  function render() {
+    if (FZ.gate($("#main"))) return;
+    const now = new Date(), heute = iso(now), hm = pad(now.getHours()) + ":" + pad(now.getMinutes());
+    const tage = FZ.wand ? 7 : 28;
+    const evs = FZ.termine.slice().sort((a, b) => (a.datum + (a.zeit || "00:00")).localeCompare(b.datum + (b.zeit || "00:00")));
+    const amTag = (d) => evs.filter((t) => t.datum <= d && (t.bis || t.datum) >= d);
+    const d0 = parse(heute), mo = addDays(heute, -((d0.getDay() + 6) % 7));
+    let h = '<div class="head"><div><small>KW ' + kw(d0) + "</small><h1>" + MON[d0.getMonth()] + '</h1></div><span id="fz-status"></span></div>';
+    h += '<div class="week">' + Array.from({ length: 7 }, (_, i) => { const d = addDays(mo, i); return '<button type="button" data-day="' + d + '" class="' + (d === heute ? "on" : "") + '">' + WT[parse(d).getDay()] + "<b>" + parse(d).getDate() + '</b><span class="dots">' + amTag(d).slice(0, 4).map((t) => '<i style="--pc:' + FARBE[wer(t)] + '"></i>').join("") + "</span></button>"; }).join("") + "</div>";
+    h += '<div class="leg">' + Object.keys(NAME).map((k) => '<span><i style="--pc:' + FARBE[k] + '"></i>' + NAME[k] + "</span>").join("") + "</div>";
+    for (let i = 0; i < tage; i++) {
+      const d = addDays(heute, i), list = amTag(d);
+      if (!list.length && i > 1) continue;
+      const p = parse(d);
+      h += '<section class="day" id="d-' + d + '"><h2>' + (i === 0 ? "Heute" : i === 1 ? "Morgen" : WL[p.getDay()]) + " <span>" + p.getDate() + ". " + MON[p.getMonth()] + "</span></h2>" +
+        (list.length ? list.map((t) => { const w = wer(t), vorbei = d === heute && t.zeit && (t.ende || t.zeit) < hm; return '<div class="ev' + (vorbei ? " past" : "") + '"><span class="bar" style="--pc:' + FARBE[w] + '"></span><span class="tm">' + esc(t.zeit || "ganzt.") + '</span><span class="tx">' + esc(t.titel) + (t.ort ? "<small>" + esc(t.ort) + "</small>" : "") + '</span><span class="who">' + NAME[w] + "</span></div>"; }).join("") : '<p class="none">Keine Termine</p>') + "</section>";
+    }
+    h += '<p class="note">Termine legt ihr im Google Kalender an. Sie erscheinen hier automatisch, sobald die App neu lädt.</p>';
+    $("#main").innerHTML = h;
+    FZ.status();
+  }
+  document.addEventListener("click", (ev) => { const b = ev.target.closest("[data-day]"); if (!b) return; const el = document.getElementById("d-" + b.dataset.day); if (el) el.scrollIntoView({ behavior: "smooth" }); });
+  FZ.on(render);
+  FZ.nav("kalender");
+  FZ.start();
+  render();
+  setInterval(render, 60000);
+})();
+</script>
+</body>
+</html>

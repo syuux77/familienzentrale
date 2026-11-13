@@ -303,6 +303,7 @@ button.card { cursor: pointer; touch-action: manipulation; }
 </div>
 <div class="fx" id="fx" aria-hidden="true"></div>
 <script src="../core.js"></script>
+<script src="effekte.js"></script>
 <script>(function () {
   "use strict";
   const $ = (s) => document.querySelector(s);
@@ -338,7 +339,7 @@ button.card { cursor: pointer; touch-action: manipulation; }
     const w = WD[parse(s).getDay()];
     return aufgaben().filter((k) => {
       if (k.aktiv !== "ja") return false;
-      if (!list(k.phasen).includes(phase.id)) return false;
+      if (!FZ.phaseMatch(list(k.phasen), phase.id)) return false;
       const tage = list(k.wochentage);
       if (tage.length && !tage.includes(w)) return false;
       if (k.wann === "kita") return today.kita;
@@ -372,6 +373,12 @@ button.card { cursor: pointer; touch-action: manipulation; }
     return h + "</div>";
   }
   // Infokarte Abendessen: steht hinter den Aufgaben und sieht anders aus (runder Teller, kein Haken)
+  // Kita-Zeit: wie lange noch bis zum Abholen, als Stundenbalken
+  function kitaCard(phase, min) {
+    const a = toMin(phase.start), b = toMin(phase.ende), n = Math.max(1, Math.round((b - a) / 60)), done = Math.max(0, Math.min(n, Math.floor((min - a) / 60)));
+    return { id: "kita", html: '<article class="icard meal kita"><span class="plate"><span class="emo" aria-hidden="true">🎒</span></span><span class="itxt"><small class="lbl">Abholen um ' + fmtTime(b) + ' Uhr</small><b class="ttl">Du bist in der Kita</b>' +
+      '<span class="hours" aria-label="' + done + " von " + n + ' Stunden vorbei">' + Array.from({ length: n }, (_, i) => '<i class="' + (i < done ? "on" : "") + '"></i>').join("") + "</span></span></article>" };
+  }
   function mealCard(date) {
     const m = FZ.meal(date), m2 = FZ.meal(addDays(date, 1));
     if (!m && !m2) return null;
@@ -478,7 +485,7 @@ button.card { cursor: pointer; touch-action: manipulation; }
 
     // Offene Aufgaben (erledigte von heute fallen weg), davon höchstens MAX
     const check = ABHAKEN.includes(phase.id) && !peek;
-    const open = check ? items.filter((k) => k.erledigt !== date) : items;
+    const open = (check ? items.filter((k) => k.erledigt !== date) : items).filter((k) => !(phase.id === "kita" && k.wann === "kita"));
     const cards = [];
     open.slice(0, MAX).forEach((k) => cards.push(taskCard(k, check)));
     if (check && items.length && !open.length) {
@@ -487,6 +494,7 @@ button.card { cursor: pointer; touch-action: manipulation; }
     // Infokarten hinter den Aufgaben: morgens Anziehen nach Wetter, immer das Abendessen
     const infos = [];
     if (phase.id === "morgen" && !peek) { const cc = clothesCard(date); if (cc) infos.push(cc); }
+    if (phase.id === "kita") infos.unshift(kitaCard(phase, min));
     if (phase.modus !== "nacht") { const mc = mealCard(date); if (mc) infos.push(mc); }
 
     // Nur neue Karten einblenden (Tageszeit-Wechsel: alle)
@@ -538,6 +546,7 @@ button.card { cursor: pointer; touch-action: manipulation; }
   }
   // Sterne sprühen aus der abgehakten Karte
   function burst(el) {
+    if (FZ.kinderEffekt) return FZ.kinderEffekt(el);
     const fx = $("#fx");
     if (!fx || !el || reduced.matches) return;
     const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height * 0.42;
@@ -553,6 +562,7 @@ button.card { cursor: pointer; touch-action: manipulation; }
   }
   // Konfetti, wenn die letzte Aufgabe der Tageszeit geschafft ist
   function celebrate() {
+    if (FZ.kinderBonus) return setTimeout(FZ.kinderBonus, 900);
     const fx = $("#fx");
     if (!fx || reduced.matches) return;
     const E = ["🎉", "⭐", "🎈", "✨", "🌟", "💛", "🎊"];
@@ -590,6 +600,7 @@ button.card { cursor: pointer; touch-action: manipulation; }
   });
 
   FZ.on(render);
+  document.body.classList.add("kids");
   FZ.nav("kinder");
   FZ.start();
   render();

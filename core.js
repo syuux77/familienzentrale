@@ -18,6 +18,17 @@
   const hp = new URLSearchParams((location.hash || "").slice(1));
   if (hp.get("key")) LS.set("fz.key", hp.get("key").trim());
   if (hp.get("geraet")) LS.set("fz.geraet", hp.get("geraet").trim());
+  if (hp.get("person")) LS.set("fz.person", hp.get("person").trim());
+
+  // Gemeinsames Design und Schrift (Manrope). Nach den Seiten-Styles geladen, damit es gewinnt.
+  (function () {
+    const v = "2";
+    const f = document.createElement("link"); f.rel = "stylesheet";
+    f.href = "https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap";
+    const c = document.createElement("link"); c.rel = "stylesheet"; c.href = ROOT + "design/fz.css?v=" + v;
+    const add = () => { document.head.appendChild(f); document.head.appendChild(c); };
+    if (document.head) add(); else document.addEventListener("DOMContentLoaded", add);
+  })();
 
   /* ---------- Hilfen ---------- */
   const pad = (n) => String(n).padStart(2, "0");
@@ -41,6 +52,9 @@
     setKey(k) { if (k) LS.set("fz.key", k.trim()); else LS.del("fz.key"); },
     get geraet() { return LS.get("fz.geraet") || "handy"; },
     get wand() { return FZ.geraet === "wand"; },
+    // Wem gehört dieses Handy? chris, lisa oder leer (Wand-iPad und unbekannt)
+    get person() { const p = LS.get("fz.person") || ""; return p === "chris" || p === "lisa" ? p : ""; },
+    setPerson(p) { if (p) LS.set("fz.person", p); else LS.del("fz.person"); },
     get data() { return data; },
     get daten() { return (data && data.daten) || {}; },
     get termine() { return (data && data.termine) || []; },
@@ -112,6 +126,7 @@
     FZ.reiter("Einstellungen").forEach((r) => { o[r["Schlüssel"]] = r.Wert; });
     return o;
   };
+  FZ.toene = () => String(FZ.einst().kinder_toene || "aus").trim().toLowerCase();
   FZ.setEinst = function (k, v) {
     const row = (FZ.daten.Einstellungen || []).find((r) => r["Schlüssel"] === k);
     if (row) row.Wert = v;
@@ -128,27 +143,60 @@
   };
 
   /* ---------- Tagesphasen ---------- */
-  const DEFAULT_PHASEN = [
-    { id: "morgen", name: "Morgen", start: "06:00", ende: "08:30", symbol: "🌅", modus: "hell" },
-    { id: "tag", name: "Tagsüber", start: "08:30", ende: "12:00", symbol: "☀️", modus: "hell" },
-    { id: "leisezeit", name: "Leisezeit", start: "12:00", ende: "14:30", symbol: "🤫", modus: "leise" },
-    { id: "tag", name: "Tagsüber", start: "14:30", ende: "17:00", symbol: "☀️", modus: "hell" },
-    { id: "abend", name: "Abend", start: "17:00", ende: "21:00", symbol: "🌙", modus: "abend" },
-    { id: "nacht", name: "Nacht", start: "21:00", ende: "06:00", symbol: "✨", modus: "nacht" }
+  // Zuhause-Tag: Morgen, Vormittag, Leisezeit, Nachmittag, Abend, Nacht.
+  // Kita-Tag: Morgen, Kita (08–15 Uhr), Nachmittag, Abend, Nacht.
+  // Reiter „Tagesphasen“ mit Spalte „Tagesart“ (kita, zuhause, beide) überschreibt die Zeiten.
+  // Ohne Spalte „Tagesart“ gelten diese Vorgaben (die alte Einteilung mit zweimal „Tagsüber“ wird nicht mehr genutzt).
+  const P = (id, name, start, ende, symbol, modus, farbe) => ({ id, name, start, ende, symbol, modus, farbe });
+  const PH_ZUHAUSE = [
+    P("morgen", "Morgen", "06:00", "08:30", "🌅", "hell", "#C8662A"),
+    P("vormittag", "Vormittag", "08:30", "12:00", "☀️", "hell", "#2A6FB0"),
+    P("leisezeit", "Leisezeit", "12:00", "14:30", "🤫", "leise", "#6D669C"),
+    P("nachmittag", "Nachmittag", "14:30", "17:00", "🛝", "hell", "#B7791F"),
+    P("abend", "Abend", "17:00", "21:00", "🌙", "abend", "#B0652A"),
+    P("nacht", "Nacht", "21:00", "06:00", "✨", "nacht", "#4A5578")
   ];
-  FZ.phasen = function () {
-    const rows = FZ.reiter("Tagesphasen").filter((r) => r.ID && /^\d{1,2}:\d{2}$/.test(r.Start || "") && /^\d{1,2}:\d{2}$/.test(r.Ende || ""));
-    if (!rows.length) return DEFAULT_PHASEN;
-    return rows.map((r) => ({ id: r.ID, name: r.Name, start: r.Start.padStart(5, "0"), ende: r.Ende.padStart(5, "0"), symbol: r.Symbol, modus: r.Modus || "hell" }))
+  const PH_KITA = [
+    P("morgen", "Morgen", "06:00", "08:00", "🌅", "hell", "#C8662A"),
+    P("kita", "Kita", "08:00", "15:00", "🎒", "hell", "#2E8B57"),
+    P("nachmittag", "Nachmittag", "15:00", "17:00", "🛝", "hell", "#B7791F"),
+    P("abend", "Abend", "17:00", "21:00", "🌙", "abend", "#B0652A"),
+    P("nacht", "Nacht", "21:00", "06:00", "✨", "nacht", "#4A5578")
+  ];
+  const FARBE = {}; PH_ZUHAUSE.concat(PH_KITA).forEach((p) => { FARBE[p.id] = p.farbe; });
+  // Alte Phasen-IDs der Kinderaufgaben: „tag“ passt auf Vormittag, Nachmittag und Kita.
+  FZ.phaseMatch = (liste, id) => liste.includes(id) || (liste.includes("tag") && (id === "vormittag" || id === "nachmittag" || id === "kita"));
+  FZ.phasen = function (datum) {
+    const kita = FZ.dayInfo(datum || iso(new Date())).kita;
+    const rows = FZ.reiter("Tagesphasen").filter((r) => r.ID && r.Tagesart && /^\d{1,2}:\d{2}$/.test(r.Start || "") && /^\d{1,2}:\d{2}$/.test(r.Ende || ""));
+    const passend = rows.filter((r) => { const t = String(r.Tagesart).trim().toLowerCase(); return t === "beide" || t === (kita ? "kita" : "zuhause"); });
+    if (!passend.length) return kita ? PH_KITA : PH_ZUHAUSE;
+    return passend.map((r) => P(r.ID, r.Name, r.Start.padStart(5, "0"), r.Ende.padStart(5, "0"), r.Symbol, r.Modus || "hell", r.Farbe || FARBE[r.ID] || "#5B6470"))
       .sort((a, b) => (a.id === "nacht") - (b.id === "nacht") || a.start.localeCompare(b.start));
   };
   const toMin = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; };
   FZ.toMin = toMin;
-  FZ.phaseAt = function (min, P) {
-    P = P || FZ.phasen();
-    for (const p of P) { const a = toMin(p.start), b = toMin(p.ende); if (a < b ? min >= a && min < b : min >= a || min < b) return p; }
-    return P[0];
+  FZ.phaseAt = function (min, Pl) {
+    Pl = Pl || FZ.phasen();
+    for (const p of Pl) { const a = toMin(p.start), b = toMin(p.ende); if (a < b ? min >= a && min < b : min >= a || min < b) return p; }
+    return Pl[Pl.length - 1];
   };
+  FZ.nextPhase = function (p, Pl) { Pl = Pl || FZ.phasen(); const tag = Pl.filter((x) => x.id !== "nacht"); const i = tag.findIndex((x) => x.id === p.id); return i >= 0 && i < tag.length - 1 ? tag[i + 1] : Pl.find((x) => x.id === "nacht"); };
+  // Zeitstrahl als Baustein: Startseite groß, Handy schmal ("klein")
+  FZ.zeitstrahl = function (klein) {
+    const now = new Date(), min = now.getHours() * 60 + now.getMinutes();
+    const Pl = FZ.phasen(), cur = FZ.phaseAt(min, Pl), tag = Pl.filter((p) => p.id !== "nacht");
+    const lo = toMin(tag[0].start) - 60, hi = toMin(tag[tag.length - 1].ende) + 60, W = hi - lo;
+    const segs = [{ id: "nacht", start: tag[0].start, a: lo, b: toMin(tag[0].start), farbe: FARBE.nacht, name: "" }]
+      .concat(tag.map((p) => ({ id: p.id, a: toMin(p.start), b: toMin(p.ende), farbe: p.farbe, name: p.name })))
+      .concat([{ id: "nacht2", a: toMin(tag[tag.length - 1].ende), b: hi, farbe: FARBE.nacht, name: "" }]);
+    const isNow = (s) => (s.id === "nacht" ? cur.id === "nacht" && min < s.b : s.id === "nacht2" ? cur.id === "nacht" && min >= s.a : s.id === cur.id);
+    const bar = segs.map((s) => '<div class="seg' + (isNow(s) ? " on" : "") + '" style="left:' + ((s.a - lo) / W * 100).toFixed(2) + "%;width:" + ((s.b - s.a) / W * 100).toFixed(2) + "%;--c:" + s.farbe + '"><span>' + esc(s.name) + "</span></div>").join("");
+    const x = Math.max(0, Math.min(100, (min - lo) / W * 100));
+    const ticks = tag.map((p) => p.start).concat([tag[tag.length - 1].ende]).map((t) => '<span style="left:' + ((toMin(t) - lo) / W * 100).toFixed(2) + '%">' + t + "</span>").join("");
+    return '<div class="fz-tl' + (klein ? " klein" : "") + '" aria-label="Tagesphasen, jetzt ' + esc(cur.name) + '"><div class="bar">' + bar + '<i class="now" style="left:' + x.toFixed(2) + '%"></i></div><div class="ticks">' + ticks + "</div></div>";
+  };
+  FZ.phaseFarbe = (id) => FARBE[id] || "#5B6470";
 
   // Arbeitsseiten (Haushalt, Essen): Farben wie Start- und Kinderseite nach Tageszeit.
   // Nachts gilt der Abendmodus, damit die Seiten bedienbar bleiben.
@@ -245,14 +293,69 @@
     return st ? { status: e.Status, name: st.label, kid: st.kid, emoji: st.emoji, bild: "" } : null;
   };
 
+  /* ---------- Haushalt: heute fällige Aufgaben, Tagesmaximum, Erledigen ---------- */
+  // Spalte „Max pro Tag“ (leer = 1). Alte Spalte „Mehrfach: ja“ zählt als 3.
+  const jaW = (v) => String(v || "").trim().toLowerCase() === "ja";
+  FZ.maxProTag = (h) => { const n = parseInt(h["Max pro Tag"], 10); return n > 0 ? n : jaW(h.Mehrfach) ? 3 : 1; };
+  const WDC = ["so", "mo", "di", "mi", "do", "fr", "sa"];
+  function naechste(h, heute) {
+    const art = String(h["Rhythmus-Art"] || "").trim(), base = (h["Nächste Fälligkeit"] || heute) > heute ? h["Nächste Fälligkeit"] : heute;
+    if (art === "taeglich") return addDays(base, 1);
+    if (art === "wochentage") { const tage = list(h.Wochentage).map((x) => WDC.indexOf(x)).filter((n) => n >= 0); let d = addDays(base, 1); for (let i = 0; i < 8; i++) { if (tage.includes(parse(d).getDay())) return d; d = addDays(d, 1); } return addDays(base, 7); }
+    if (art === "monatlich") { const b = parse(base), tag = parseInt(h["Tag im Monat"], 10) || 1, len = new Date(b.getFullYear(), b.getMonth() + 2, 0).getDate(); return iso(new Date(b.getFullYear(), b.getMonth() + 1, Math.min(tag, len))); }
+    if (art === "intervall") return addDays(heute, Math.max(1, parseInt(h["Intervall in Tagen"], 10) || 7));
+    return addDays(heute, 1);
+  }
+  FZ.hhHeute = function (date) {
+    date = date || iso(new Date());
+    const done = FZ.reiter("Erledigt").filter((e) => String(e.Zeitpunkt || "").slice(0, 10) === date && e.Art !== "ausgesetzt");
+    const out = [];
+    FZ.reiter("Haushalt").forEach((h) => {
+      if (!h.ID) return;
+      const max = FZ.maxProTag(h), n = done.filter((e) => e["Aufgaben-ID"] === h.ID).length;
+      const aktiv = jaW(h.Aktiv), faellig = h["Nächste Fälligkeit"] || date;
+      const due = aktiv && (max > 1 ? String(h["Rhythmus-Art"] || "") === "taeglich" || faellig <= date : faellig <= date);
+      if (!due && !n) return;
+      const z = h["Zuständig"] === "chris" || h["Zuständig"] === "lisa" ? h["Zuständig"] : "offen";
+      out.push({ id: h.ID, titel: h.Titel || "(ohne Titel)", zust: z, punkte: Number(String(h.Punkte || "0").replace(",", ".")) || 0, max, n, fertig: n >= max || (!due && n > 0), spaet: due && faellig < date && !n ? Math.round((parse(date) - parse(faellig)) / 864e5) : 0 });
+    });
+    return out.sort((a, b) => a.fertig - b.fertig || b.spaet - a.spaet);
+  };
+  const stempel = () => { const d = new Date(), off = -d.getTimezoneOffset(), a = Math.abs(off); return iso(d) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":00" + (off >= 0 ? "+" : "-") + pad(Math.floor(a / 60)) + ":" + pad(a % 60); };
+  FZ.hhErledigen = function (id, von) {
+    const h = FZ.reiter("Haushalt").find((x) => x.ID === id); if (!h) return;
+    const heute = iso(new Date()), max = FZ.maxProTag(h);
+    const werte = { "Aufgaben-ID": id, "Titel": h.Titel, "Erledigt von": von, "Zeitpunkt": stempel(), "Punkte": String(h.Punkte || "0"), "Art": "erledigt" };
+    (FZ.daten.Erledigt || (FZ.daten.Erledigt = [])).push(Object.assign({ ID: "neu" + Date.now() }, werte));
+    const ops = [{ art: "anfuegen", reiter: "Erledigt", werte }];
+    if (max === 1) { h["Nächste Fälligkeit"] = h.Typ === "einmalig" ? heute : naechste(h, heute); if (h.Typ === "einmalig") h.Aktiv = "nein"; ops.push({ art: "setzen", reiter: "Haushalt", wo: { ID: id }, werte: h.Typ === "einmalig" ? { Aktiv: "nein" } : { "Nächste Fälligkeit": h["Nächste Fälligkeit"] } }); }
+    FZ.send(ops);
+    emit();
+  };
+
+  /* ---------- Tagesstimmung (Reiter „Stimmung“) ---------- */
+  FZ.stimmung = (date, p) => { const r = FZ.reiter("Stimmung").find((x) => x.Datum === date && x.Person === p); return r ? Number(r.Wert) : 0; };
+  FZ.stimmungSetzen = function (date, p, v) {
+    const rows = FZ.daten.Stimmung || (FZ.daten.Stimmung = []);
+    const i = rows.findIndex((x) => x.Datum === date && x.Person === p);
+    if (i >= 0 && Number(rows[i].Wert) === v) { rows.splice(i, 1); FZ.send([{ art: "loeschen", reiter: "Stimmung", wo: { Datum: date, Person: p } }]); }
+    else { if (i >= 0) rows[i].Wert = String(v); else rows.push({ Datum: date, Person: p, Wert: String(v), Notiz: "" }); FZ.send([{ art: "setzen", reiter: "Stimmung", wo: { Datum: date, Person: p }, werte: { Wert: String(v) } }]); }
+    emit();
+  };
+  FZ.MOOD = { 1: "😣", 2: "😕", 3: "😐", 4: "🙂", 5: "😄" };
+  FZ.MOOD_TXT = { 1: "mies", 2: "mäh", 3: "okay", 4: "gut", 5: "super" };
+  FZ.NAMEN = { chris: "Christian", lisa: "Lisa", ruby: "Ruby", elli: "Elli", offen: "offen" };
+
   /* ---------- Leiste unten ---------- */
   const IC = {
     start: '<path d="M3.5 10.5 12 3.5l8.5 7"/><path d="M5.5 9v11h13V9"/><path d="M10 20v-6h4v6"/>',
     kinder: '<circle cx="12" cy="12" r="8.5"/><path d="M8.5 14.2c.9 1.3 2.1 2 3.5 2s2.6-.7 3.5-2"/><circle cx="9.2" cy="10" r=".6" fill="currentColor"/><circle cx="14.8" cy="10" r=".6" fill="currentColor"/>',
     haushalt: '<rect x="4" y="3.5" width="16" height="17" rx="3"/><path d="m8 9 1.6 1.6L12.5 7.7"/><path d="M14.5 9.5H17"/><path d="m8 15 1.6 1.6 2.9-2.9"/><path d="M14.5 15.5H17"/>',
-    essen: '<path d="M7 3.5v7.5"/><path d="M4.5 3.5v4.5a2.5 2.5 0 0 0 5 0V3.5"/><path d="M7 11v9.5"/><path d="M17 20.5V3.5c-2 1-3.5 3.6-3.5 7v2.5H17"/>'
+    essen: '<path d="M7 3.5v7.5"/><path d="M4.5 3.5v4.5a2.5 2.5 0 0 0 5 0V3.5"/><path d="M7 11v9.5"/><path d="M17 20.5V3.5c-2 1-3.5 3.6-3.5 7v2.5H17"/>',
+    kalender: '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+    statistik: '<path d="M5 20V11M10 20V5M15 20v-7M20 20V8"/>'
   };
-  const NAV = [["start", "Start", ""], ["kinder", "Kinder", "kinder/"], ["haushalt", "Haushalt", "haushalt/"], ["essen", "Essen", "essen/"]];
+  const NAV = [["start", "Start", ""], ["kinder", "Kinder", "kinder/"], ["haushalt", "Haushalt", "haushalt/"], ["essen", "Essen", "essen/"], ["kalender", "Kalender", "kalender/"], ["statistik", "Statistik", "statistik/"]];
   FZ.page = "";
   FZ.nav = function (active) {
     FZ.page = active;
@@ -292,6 +395,47 @@
     nav.innerHTML = '<div class="fz-in">' + NAV.map(([id, label, path]) =>
       '<a href="' + ROOT + path + '"' + (id === active ? ' aria-current="page"' : "") + '><svg viewBox="0 0 24 24" aria-hidden="true">' + IC[id] + "</svg>" + label + "</a>").join("") + "</div>";
     document.body.appendChild(nav);
+    if (active !== "kinder") FZ.himmel();
+    if (!FZ.wand && !FZ.person && FZ.key) setTimeout(FZ.werBistDu, 400);
+  };
+
+  /* ---------- Himmel nach Uhrzeit (nur angedeutet) ---------- */
+  const SKY = [[300, "#1E2A4A", "#3B4A7A"], [390, "#F0866A", "#F7C4A2"], [480, "#FFD39E", "#FFF0D8"], [600, "#9ECFF5", "#DCEEFC"], [900, "#A7D5F2", "#E3F1FB"], [1050, "#F5B068", "#FBDFBE"], [1140, "#E06E88", "#F3B5A7"], [1230, "#4B3F7A", "#8A79B5"], [1320, "#18213D", "#2C3A63"]];
+  const hx = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const mix = (a, b, t) => "rgb(" + hx(a).map((v, i) => Math.round(v + (hx(b)[i] - v) * t)).join(",") + ")";
+  function skyAt(m) {
+    if (m <= SKY[0][0]) return [SKY[0][1], SKY[0][2]];
+    for (let i = 1; i < SKY.length; i++) if (m <= SKY[i][0]) { const a = SKY[i - 1], b = SKY[i], t = (m - a[0]) / (b[0] - a[0]); return [mix(a[1], b[1], t), mix(a[2], b[2], t)]; }
+    const l = SKY[SKY.length - 1]; return [l[1], l[2]];
+  }
+  const veilAt = (m) => (m < 330 || m > 1290 ? 0.2 : m < 420 ? 0.2 * (420 - m) / 90 : m > 1170 ? 0.2 * (m - 1170) / 120 : 0);
+  let skyEl = null, veilEl = null;
+  FZ.himmel = function () {
+    if (!skyEl) {
+      skyEl = document.createElement("div"); skyEl.className = "fz-sky"; skyEl.setAttribute("aria-hidden", "true");
+      veilEl = document.createElement("div"); veilEl.className = "fz-veil"; veilEl.setAttribute("aria-hidden", "true");
+      document.body.prepend(skyEl); document.body.appendChild(veilEl);
+      setInterval(FZ.himmel, 60000);
+    }
+    const now = new Date(), m = now.getHours() * 60 + now.getMinutes(), c = skyAt(m);
+    skyEl.style.background = "linear-gradient(180deg," + c[0] + " 0%," + c[1] + " 42%,rgba(255,255,255,0) 100%)";
+    veilEl.style.opacity = veilAt(m).toFixed(3);
+  };
+
+  /* ---------- Wer bist du? (einmal pro Handy) ---------- */
+  FZ.werBistDu = function (nachher) {
+    if (document.querySelector(".fz-sheet.wer")) return;
+    const box = document.createElement("div");
+    box.className = "fz-sheet wer"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "Wer bist du?");
+    box.innerHTML = '<div class="in"><h2>Wer bist du?</h2><p>Dann landen erledigte Aufgaben und deine Tagesstimmung automatisch bei dir. Einmal pro Handy, änderbar auf der Eltern-Seite.</p>' +
+      '<div class="pick"><button type="button" data-wer="chris" style="background:var(--chris)">Christian</button><button type="button" data-wer="lisa" style="background:var(--lisa)">Lisa</button></div>' +
+      '<button type="button" class="x" data-wer="">Später</button></div>';
+    box.addEventListener("click", (ev) => {
+      const b = ev.target.closest("[data-wer]"); if (!b) return;
+      if (b.dataset.wer) FZ.setPerson(b.dataset.wer);
+      box.remove(); emit(); if (nachher) nachher();
+    });
+    document.body.appendChild(box);
   };
 
   /* ---------- Eltern-PIN am Wand-iPad (Haushalt, Essen, Eltern-Seite) ---------- */

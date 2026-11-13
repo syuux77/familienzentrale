@@ -10,575 +10,244 @@
 <title>Familienzentrale</title>
 <style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0}img{max-width:100%}[hidden]{display:none!important}*{-webkit-touch-callout:none}</style>
 <style>
-:root {
-  /* Layout: Kopf (große Uhr + Datum + Phase links, Wetter rechts) · drei Karten Heute: Essen | Haushalt | Termine · Leiste unten (Start, Kinder, Haushalt, Essen) · Vorschau (nur Entwurf) */
-  --bg: #F3F4F1;
-  --surface: #FFFFFF;
-  --line: #DEE1DB;
-  --fg: #1B1F1C;
-  --muted: #5F6761;
-  --ink: #1B1F1C;
-  --on-ink: #FFFFFF;
-  --a-morgen: #C8662A;  --s-morgen: #FBE8D9;
-  --a-tag: #2A6FB0;     --s-tag: #E0ECF8;
-  --a-leise: #6D669C;   --s-leise: #E6E3F2;
-  --a-abend: #C98B3E;   --s-abend: #F6E9D6;
-  --p-chris: #2F6DB5; --p-lisa: #2E8B57; --p-offen: #8A918B;
- 
-  --accent: var(--a-tag);
-  --soft: var(--s-tag);
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "SF Pro Display", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-emoji: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
-  --r: 26px;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #121513; --surface: #1B1F1C; --line: #323833; --fg: #E7EBE6; --muted: #9AA39C; --ink: #E7EBE6; --on-ink: #141715;
-    --a-morgen: #F0A06A; --s-morgen: #3A2717;
-    --a-tag: #86B4E8;    --s-tag: #1B2A3B;
-    --a-leise: #ABA4D8;  --s-leise: #26233A;
-    --a-abend: #E2B06C;  --s-abend: #33271A;
-    --p-chris: #7FB0EA; --p-lisa: #6FC495; --p-offen: #8E968F;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #121513; --surface: #1B1F1C; --line: #323833; --fg: #E7EBE6; --muted: #9AA39C; --ink: #E7EBE6; --on-ink: #141715;
-  --a-morgen: #F0A06A; --s-morgen: #3A2717;
-  --a-tag: #86B4E8;    --s-tag: #1B2A3B;
-  --a-leise: #ABA4D8;  --s-leise: #26233A;
-  --a-abend: #E2B06C;  --s-abend: #33271A;
-  --p-chris: #7FB0EA; --p-lisa: #6FC495; --p-offen: #8E968F;
-  color-scheme: dark;
-}
-:root[data-phase="morgen"] { --accent: var(--a-morgen); --soft: var(--s-morgen); }
-:root[data-phase="tag"] { --accent: var(--a-tag); --soft: var(--s-tag); }
-:root[data-phase="leisezeit"] { --accent: var(--a-leise); --soft: var(--s-leise); }
-:root[data-phase="abend"], :root[data-phase="nacht"] { --accent: var(--a-abend); --soft: var(--s-abend); }
-
-/* Leisezeit: ruhig, weich, leicht gedimmt */
-:root[data-mode="leise"] {
-  --bg: #E7E6EC; --surface: #F1F0F5; --line: #D6D4DF; --fg: #34323F; --muted: #6C6A7A; --ink: #34323F; --on-ink: #F1F0F5;
-  --accent: #6D669C; --soft: #E0DDEC;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"])[data-mode="leise"] {
-    --bg: #141319; --surface: #1C1B23; --line: #2C2A36; --fg: #C9C5D6; --muted: #8A8699; --ink: #C9C5D6; --on-ink: #141319;
-    --accent: #9E97C9; --soft: #25233A;
-  }
-}
-:root[data-theme="dark"][data-mode="leise"] {
-  --bg: #141319; --surface: #1C1B23; --line: #2C2A36; --fg: #C9C5D6; --muted: #8A8699; --ink: #C9C5D6; --on-ink: #141319;
-  --accent: #9E97C9; --soft: #25233A;
-}
-/* Abend: warm, stark abgedunkelt */
-:root[data-mode="abend"] {
-  --bg: #17120D; --surface: #211A13; --line: #33281D; --fg: #E6D5BF; --muted: #A28D74; --ink: #E6D5BF; --on-ink: #17120D;
-  --accent: #D9A15A; --soft: #2E2318;
-  --p-chris: #8FA9C9; --p-lisa: #8DB89A; --p-offen: #8A7C6B;
-  color-scheme: dark;
-}
-/* Nacht: fast schwarz */
-:root[data-mode="nacht"] {
-  --bg: #050505; --surface: #0E0D0C; --line: #1B1916; --fg: #6E665D; --muted: #4E4943; --ink: #6E665D; --on-ink: #050505;
-  --accent: #7A6A55; --soft: #141210;
-  --p-chris: #4F5A66; --p-lisa: #4F6155; --p-offen: #4E4943;
-  color-scheme: dark;
-}
-
-* { box-sizing: border-box; }
-html, body { min-height: 100%; }
-body { background: var(--bg); color: var(--fg); font: 17px/1.4 var(--font); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; transition: background-color .6s ease, color .6s ease; }
-button, input { font: inherit; color: inherit; }
-button { cursor: pointer; }
-a { color: inherit; }
-:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 12px; }
-h1, h2, h3 { margin: 0; text-wrap: balance; }
-p, ul { margin: 0; }
-ul { padding: 0; list-style: none; }
-.emo { font-family: var(--font-emoji); line-height: 1; }
-svg.ic { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
-
-.app {
-  max-width: 1180px; margin: 0 auto;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 20px 28px;
-  display: grid; gap: 22px;
-}
-
-/* Kopf */
-.head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 28px; align-items: end; }
-.timebox { display: grid; gap: 6px; min-width: 0; }
-.bigclock { font: 700 116px/0.92 var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.035em; }
-.dateline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: 26px; color: var(--muted); }
-.dateline b { color: var(--fg); font-weight: 650; }
-.phase { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px 6px 12px; border-radius: 999px; background: var(--soft); color: var(--fg); font-size: 19px; font-weight: 650; }
-.phase .emo { font-size: 22px; }
-.phase small { font-weight: 500; color: var(--muted); font-size: 16px; }
-
-.weather { display: grid; grid-template-columns: auto auto; align-items: center; gap: 4px 18px; padding: 16px 22px; border-radius: var(--r); background: var(--surface); box-shadow: 0 1px 0 var(--line); }
-.weather .wicon { grid-row: span 2; color: var(--accent); }
-.weather .wicon svg { width: 64px; height: 64px; stroke-width: 1.6; }
-.weather .temp { font: 700 52px/1 var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
-.weather .wtxt { font-size: 17px; color: var(--muted); }
-.weather .wrow { grid-column: 1 / -1; display: flex; gap: 14px; font-size: 16px; color: var(--muted); font-variant-numeric: tabular-nums; border-top: 1px solid var(--line); padding-top: 8px; margin-top: 4px; }
-.weather .wrow b { color: var(--fg); font-weight: 650; }
-
-@media (max-width: 760px) {
-  .head { grid-template-columns: 1fr; }
-  .bigclock { font-size: 76px; }
-  .dateline { font-size: 20px; }
-  .weather { justify-self: stretch; }
-}
-
-/* Karten */
-.grid { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 20px; align-items: start; }
-@media (max-width: 960px) { .grid { grid-template-columns: 1fr 1fr; } .grid .meal { grid-column: 1 / -1; } }
-@media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
-.card { background: var(--surface); border-radius: var(--r); padding: 18px 20px 20px; display: grid; gap: 14px; box-shadow: 0 1px 0 var(--line); min-width: 0; border: 0; text-align: left; width: 100%; }
-button.card { cursor: pointer; }
-.card-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.card-h h2 { display: flex; align-items: center; gap: 10px; font: 700 15px/1.2 var(--font); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.card-h h2 svg { width: 22px; height: 22px; color: var(--accent); }
-.count { font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-:root[data-mode="leise"] .card, :root[data-mode="abend"] .card { box-shadow: none; }
-
-/* Essen */
-.dish { display: grid; gap: 14px; }
-.dish .img { aspect-ratio: 16 / 9; max-width: 100%; border-radius: 18px; background: var(--soft); display: grid; place-items: center; }
-.dish .img .emo { font-size: 84px; }
-.dish h3 { font: 700 34px/1.1 var(--font-display); letter-spacing: -.01em; overflow-wrap: anywhere; }
-.dish .meta { font-size: 17px; color: var(--muted); }
-.next { display: flex; gap: 8px; flex-wrap: wrap; font-size: 16px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; }
-.next b { color: var(--fg); font-weight: 600; }
-
-/* Haushalt */
-.tasks { display: grid; gap: 10px; }
-.task { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 52px; padding: 8px 12px; border-radius: 16px; background: var(--bg); }
-.task .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--pc); }
-.task .t { font-size: 20px; font-weight: 600; overflow-wrap: anywhere; }
-.task .who { font-size: 15px; color: var(--muted); white-space: nowrap; }
-.task.done .t { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1.5px; font-weight: 500; }
-.task.done .dot { background: transparent; box-shadow: inset 0 0 0 2px var(--pc); }
-.empty { font-size: 19px; color: var(--muted); padding: 8px 2px; }
-
-/* Termine */
-.events { display: grid; gap: 4px; }
-.dayhead { font-size: 14px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 8px 2px 2px; }
-.dayhead:first-child { padding-top: 0; }
-.ev { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 8px 2px; border-bottom: 1px solid var(--line); }
-.ev:last-child { border-bottom: 0; }
-.ev .when { font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--accent); }
-.ev .what { font-size: 19px; font-weight: 600; overflow-wrap: anywhere; }
-.ev.today .what { font-size: 21px; }
-.ev .where { display: block; font-size: 15px; font-weight: 400; color: var(--muted); }
-
-/* Leiste unten */
-.nav {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 10px calc(12px + env(safe-area-inset-bottom, 0px));
-  background: var(--bg); border-top: 1px solid var(--line);
-  transition: background-color .6s ease;
-}
-.nav .in { max-width: 1180px; margin: 0 auto; display: flex; gap: 10px; align-items: stretch; }
-.nav .tabs { flex: 1 1 auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.tab { display: grid; justify-items: center; align-content: center; gap: 4px; min-height: 76px; padding: 6px 4px; border: 0; border-radius: 18px; background: transparent; color: var(--muted); font-size: 16px; font-weight: 600; text-decoration: none; position: relative; }
-.tab svg { width: 30px; height: 30px; }
-.tab[aria-current="page"] { background: var(--soft); color: var(--fg); }
-.tab[aria-current="page"] svg { color: var(--accent); }
-.tab .lock { position: absolute; top: 8px; right: calc(50% - 30px); width: 16px; height: 16px; stroke-width: 2; opacity: .7; }
-@media (max-width: 560px) {
-  .tab { min-height: 62px; font-size: 13px; } .tab svg { width: 26px; height: 26px; }
-  .nav .tabs { gap: 2px; } .nav .in { gap: 6px; }
-  .tab .lock { right: calc(50% - 24px); }
-}
-
-/* Nacht */
-.night { min-height: 70vh; display: grid; place-items: center; text-align: center; border: 0; background: transparent; width: 100%; padding: 40px 0; color: var(--fg); }
-.night .inner { display: grid; gap: 14px; justify-items: center; }
-.night .bigclock { font-size: 120px; }
-.night p { color: var(--muted); font-size: 18px; }
-:root[data-mode="nacht"] .nav { opacity: .5; }
-
-/* Hinweis */
-.toast { position: fixed; left: 50%; bottom: calc(108px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 6; max-width: min(560px, calc(100% - 32px)); padding: 12px 18px; border-radius: 14px; background: var(--ink); color: var(--on-ink); font-size: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
-
-/* Vorschau (nur Entwurf) */
-.preview { border: 1px dashed var(--line); border-radius: 18px; padding: 14px 16px; display: grid; gap: 12px; }
-.pv-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
-.pv-head b { font-size: 15px; letter-spacing: .06em; text-transform: uppercase; }
-.pv-head span { color: var(--muted); font-size: 15px; }
-.pv-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-.pv-row .lbl { width: 72px; color: var(--muted); font-size: 15px; font-weight: 600; }
+/* Startseite: oben das Jetzt (Uhr, Wetter, Zeitstrahl), darunter Karten in voller Breite.
+   Wand-iPad im Hochformat: alles auf einem Bildschirm. Handy: normal scrollen. */
+*, *::before, *::after { box-sizing: border-box; }
+body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
+.app { max-width: 880px; margin: 0 auto; padding: 10px max(18px, env(safe-area-inset-left, 0px)) 18px max(18px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 16px; }
+.emo { font-family: var(--font-emoji); }
+.topbar { display: flex; justify-content: flex-end; align-items: center; gap: 12px; min-height: 30px; }
+.gear { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; color: var(--muted); }
+.gear svg, .ic { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.date { font-weight: 700; font-size: 20px; color: var(--muted); }
+.clock { font: 800 clamp(64px, 16vw, 132px)/.9 var(--font-display); letter-spacing: -.045em; font-variant-numeric: tabular-nums; margin-top: 6px; }
+.wx { display: flex; align-items: center; gap: 12px; text-align: right; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; padding: 8px; border-radius: 20px; }
+.wx:hover { background: rgba(127,127,127,.08); }
+.wx svg { width: clamp(52px, 12vw, 96px); height: clamp(52px, 12vw, 96px); flex: none; }
+.wx .t { font: 800 clamp(36px, 9vw, 72px)/1 var(--font-display); letter-spacing: -.03em; }
+.wx .s { color: var(--muted); font-weight: 600; font-size: clamp(13px, 2.4vw, 18px); }
+.wx .tap { display: block; font-size: 13px; font-weight: 800; color: var(--accent); margin-top: 4px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chips button { border: 1px solid var(--line); background: var(--surface); min-height: 44px; padding: 0 14px; border-radius: 999px; font-weight: 600; font-size: 15.5px; color: var(--fg); display: inline-flex; align-items: center; gap: 6px; }
-.chips button[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
-.chips .emo { font-size: 18px; }
-#pv-date { min-height: 44px; border: 1px solid var(--line); border-radius: 12px; padding: 0 12px; background: var(--surface); }
-.foot { color: var(--muted); font-size: 13.5px; text-align: center; text-wrap: balance; }
-:root[data-mode="nacht"] .preview, :root[data-mode="nacht"] .foot { --fg: #A39A8F; --muted: #7A7369; --line: #2A2723; --surface: #12110F; --ink: #A39A8F; --on-ink: #050505; color: var(--fg); }
-
-:root[data-mode="hell"] .grid.fresh .card { animation: rise .45s ease both; }
-:root[data-mode="hell"] .grid.fresh .card:nth-child(2) { animation-delay: .06s; }
-:root[data-mode="hell"] .grid.fresh .card:nth-child(3) { animation-delay: .12s; }
-@keyframes rise { from { transform: translateY(10px); opacity: .4; } to { transform: none; opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
-</style>
-<style>
-a.card { color: inherit; text-decoration: none; }
-.topbar { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-bottom: -10px; min-height: 52px; }
-.gear { width: 56px; height: 52px; display: grid; place-items: center; border-radius: 16px; color: var(--muted); }
-.gear svg { width: 30px; height: 30px; }
-.gear:active { background: var(--soft); }
-:root[data-mode="nacht"] .topbar { opacity: .35; }
-.dish .img { overflow: hidden; }
-.dish .img img { width: 100%; height: 100%; object-fit: cover; }
-.extras { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 20px; margin-bottom: 20px; align-items: start; }
-.rate .ratehead { display: flex; align-items: center; gap: 14px; font-size: 22px; min-width: 0; }
-.rate .rtxt { display: grid; gap: 2px; min-width: 0; }
-.rate .rtxt small { font: 700 14px/1.2 var(--font); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.rate .rtxt b { overflow-wrap: anywhere; line-height: 1.15; }
-.rate .rt { width: 64px; height: 64px; border-radius: 16px; background: var(--soft); display: grid; place-items: center; overflow: hidden; flex: none; }
-.rate .rt .emo { font-size: 38px; }
-.rate .rt img { width: 100%; height: 100%; object-fit: cover; }
-.rrows { display: grid; gap: 10px; }
-.rrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-@media (min-width: 1000px) {
-  .rate { grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 28px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--soft); border-radius: 99px; padding: 7px 14px; font-weight: 700; font-size: 16px; white-space: nowrap; }
+.chip.ph { color: #fff; }
+.chip.warn { background: transparent; border: 1.5px solid var(--warn); color: var(--warn); white-space: normal; }
+.card { background: var(--surface); border-radius: var(--r); padding: 18px 20px; min-width: 0; color: inherit; text-decoration: none; display: block; }
+.card.t1 { background: var(--t-essen); } .card.t2 { background: var(--t-haus); } .card.t3 { background: var(--t-termin); }
+.lbl { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: rgba(15,19,23,.66); margin-bottom: 10px; }
+.lbl em { font-style: normal; letter-spacing: 0; text-transform: none; font-weight: 700; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.meal { display: flex; align-items: center; gap: 14px; }
+.meal .e { font-family: var(--font-emoji); font-size: 58px; line-height: 1; flex: none; }
+.meal .img { width: 76px; height: 76px; border-radius: 16px; overflow: hidden; flex: none; }
+.meal .img img { width: 100%; height: 100%; object-fit: cover; }
+.meal h3 { margin: 0; font: 800 24px/1.12 var(--font-display); overflow-wrap: anywhere; }
+.meal p { margin: 4px 0 0; font-size: 14px; color: rgba(15,19,23,.66); font-weight: 600; }
+.next { margin: 10px 0 0; font-size: 14px; font-weight: 600; color: rgba(15,19,23,.7); }
+.li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid rgba(15,19,23,.1); min-width: 0; }
+.lbl + .li, .li:first-child { border-top: 0; }
+.li .tx { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.li .tm { flex: none; font-weight: 800; font-variant-numeric: tabular-nums; min-width: 52px; }
+.pbar { flex: none; width: 5px; align-self: stretch; border-radius: 4px; background: var(--pc, var(--fam)); }
+.empty { margin: 0; color: rgba(15,19,23,.6); font-weight: 600; }
+.hh { display: flex; flex-direction: column; min-height: 0; }
+.task { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid rgba(15,19,23,.1); min-width: 0; }
+.lbl + .task, #hhl .task:first-child { border-top: 0; }
+.task .t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.task .t b { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.task .m { font-size: 13px; font-weight: 700; color: rgba(15,19,23,.62); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.task .m .late { color: var(--warn); }
+.task.fin .t b { text-decoration: line-through; color: rgba(15,19,23,.55); }
+.task .ok { flex: none; font-weight: 800; color: #0d6b4b; font-size: 14px; }
+.who { flex: none; display: flex; gap: 8px; }
+.who button { border: 0; width: 52px; height: 52px; border-radius: 50%; color: #fff; font: 800 18px var(--font); cursor: pointer; }
+.chk { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 2.5px solid rgba(15,19,23,.45); background: transparent; cursor: pointer; }
+.more { font-size: 14px; font-weight: 700; color: rgba(15,19,23,.6); padding-top: 6px; }
+.rate .rr { display: flex; align-items: center; gap: 10px; padding: 5px 0; }
+.rate .nm { flex: 1; font-weight: 800; }
+.faces { display: flex; gap: 6px; }
+.faces button { border: 2px solid var(--line); background: var(--bg); border-radius: 14px; font-family: var(--font-emoji); font-size: 28px; width: 56px; height: 50px; cursor: pointer; padding: 0; line-height: 1; }
+.faces button[aria-pressed="true"] { border-color: var(--accent); background: var(--soft); }
+.faces button.dim { opacity: .35; filter: grayscale(1); }
+.hint { display: flex; align-items: center; gap: 12px; background: var(--soft); }
+.hint b { display: block; }
+.hint small { color: var(--muted); font-weight: 600; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: var(--t-stat); }
+.stats div { display: flex; flex-direction: column; gap: 2px; }
+.stats b { font: 800 28px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.stats span { font-size: 13px; font-weight: 700; color: rgba(15,19,23,.62); }
+#fz-status { font-size: 13px; color: var(--muted); }
+/* Wand-iPad hoch: ein Bildschirm, Haushalt nimmt den Rest */
+@media (min-width: 700px) and (orientation: portrait) {
+  body.wand .app { height: calc(100dvh - 96px - env(safe-area-inset-bottom, 0px)); overflow: hidden; padding-top: 18px; gap: 18px; }
+  body.wand .hh { flex: 1; overflow: hidden; }
+  .card { padding: 20px 22px; }
+  .rate .rows { display: flex; gap: 14px; }
+  .rate .rr { flex: 1; flex-direction: column; align-items: flex-start; gap: 8px; padding: 0; }
 }
-@media (min-width: 761px) {
-  .rrows { grid-template-columns: repeat(3, auto); gap: 24px; justify-content: start; }
-  .rrow { flex-direction: column; align-items: flex-start; gap: 6px; }
-  .rname { font-size: 17px; color: var(--muted); }
-  .smile { width: 58px; height: 58px; font-size: 30px; }
-}
-.rname { font-size: 20px; font-weight: 650; }
-.smiles { display: flex; gap: 10px; }
-.smile { width: 64px; height: 64px; border-radius: 18px; border: 2px solid var(--line); background: var(--bg); font-size: 34px; font-family: var(--font-emoji); display: grid; place-items: center; padding: 0; line-height: 1; }
-.smile[aria-pressed="true"] { border-color: var(--accent); background: var(--soft); }
-.smile.dim { opacity: .35; }
-a.hint { display: flex; align-items: center; gap: 16px; }
-a.hint svg { width: 36px; height: 36px; color: var(--accent); }
-a.hint b { display: block; font-size: 22px; }
-a.hint small { font-size: 16px; color: var(--muted); }
-.more { font-size: 15px; color: var(--muted); padding: 2px 4px; }
-
-/* Tablet quer (Wand): alles auf einen Bildschirm, ohne Scrollen */
-@media (orientation: landscape) and (min-width: 900px) and (min-height: 560px) {
-  .app {
-    height: calc(100vh - 96px - env(safe-area-inset-top, 0px) - 2 * env(safe-area-inset-bottom, 0px));
-    height: calc(100dvh - 96px - env(safe-area-inset-top, 0px) - 2 * env(safe-area-inset-bottom, 0px));
-    grid-template-rows: auto minmax(0, 1fr);
-    gap: 16px; padding-block: 14px 14px;
-  }
-  .top { position: relative; min-height: 60px; }
-  .topbar { position: absolute; top: 0; right: 0; height: 100%; min-height: 0; margin: 0; flex-direction: column-reverse; justify-content: center; align-items: flex-end; gap: 2px; }
-  .head { padding-right: 76px; align-items: center; }
-  .timebox { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 22px; }
-  .bigclock { font-size: 88px; }
-  .dateline { flex-direction: column; align-items: flex-start; gap: 6px; font-size: 24px; }
-  .weather { grid-template-columns: auto auto auto; padding: 10px 20px; column-gap: 16px; row-gap: 2px; }
-  .weather .wicon, .weather .temp { grid-row: 1 / span 2; }
-  .weather .wicon svg { width: 48px; height: 48px; }
-  .weather .temp { font-size: 44px; }
-  .weather .wtxt { grid-column: 3; align-self: end; }
-  .weather .wrow { grid-column: 3; align-self: start; border-top: 0; padding-top: 0; margin-top: 0; gap: 12px; font-size: 15px; }
-
-  #main { min-height: 0; display: flex; flex-direction: column; gap: 16px; }
-  .extras { margin: 0; flex: none; gap: 12px; grid-template-columns: 1fr; }
-  .grid { flex: 1 1 0; min-height: 0; align-items: stretch; grid-template-rows: minmax(0, 1fr); }
-  .card { min-height: 0; grid-template-rows: auto minmax(0, 1fr); grid-auto-rows: auto; align-content: stretch; padding: 16px 18px 18px; gap: 12px; }
-
-  .rate { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto; align-items: center; padding: 10px 18px; column-gap: 24px; }
-  .rate .rt { width: 52px; height: 52px; border-radius: 14px; }
-  .rate .rt .emo { font-size: 30px; }
-  .rate .ratehead { font-size: 20px; }
-  .rrows { grid-template-columns: repeat(3, auto); gap: 22px; }
-  .rrow { flex-direction: row; align-items: center; flex-wrap: nowrap; gap: 10px; }
-  .rname { font-size: 16px; color: var(--muted); font-weight: 600; }
-  .smiles { gap: 6px; }
-  .smile { width: 48px; height: 48px; font-size: 26px; border-radius: 14px; }
-  a.hint { grid-template-rows: auto; padding: 12px 18px; }
-  a.hint b { font-size: 20px; }
-
-  .dish { min-height: 0; grid-template-rows: minmax(0, 1fr) auto auto; gap: 10px; }
-  .dish .img { aspect-ratio: auto; height: 100%; min-height: 70px; }
-  .dish .img .emo { font-size: clamp(48px, 9vh, 84px); }
-  .dish h3 { font-size: 30px; }
-  .dish .meta:empty { display: none; }
-  .next { padding-top: 8px; }
-  .tasks, .events { min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
-  .tasks > *, .events > * { flex: none; }
-  .task { min-height: 48px; padding: 6px 12px; }
-  .task .t { font-size: 19px; line-height: 1.2; }
-  .ev { padding: 6px 2px; }
-  .ev .what { font-size: 18px; } .ev.today .what { font-size: 19px; }
-
-  .night { min-height: 0; height: 100%; padding: 0; }
+@media (max-width: 560px) {
+  .grid2 { grid-template-columns: 1fr; gap: 12px; }
+  .app { gap: 12px; }
+  .chip { font-size: 13px; padding: 5px 10px; }
+  .faces button { width: 44px; height: 42px; font-size: 22px; border-radius: 12px; }
+  .meal .e { font-size: 46px; }
+  .meal h3 { font-size: 21px; }
 }
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="top">
-  <div class="topbar"><span id="fz-status"></span><a class="gear" href="eltern/" aria-label="Eltern-Seite"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></a></div>
+  <div class="topbar"><span id="fz-status"></span><a class="gear" href="eltern/" aria-label="Eltern-Seite"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></a></div>
   <header class="head" id="head"></header>
-  </div>
-  <main id="main" aria-live="polite"></main>
+  <div id="main" aria-live="polite" style="display:contents"></div>
 </div>
 <script src="core.js"></script>
+<script src="wetter.js"></script>
 <script>(function () {
   "use strict";
   const $ = (s) => document.querySelector(s);
-  const { esc, pad, iso, parse, addDays, list } = FZ;
+  const { esc, pad, iso, parse, addDays } = FZ;
   const WD = FZ.WD;
   const WD_LONG = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
-  const PERSONEN = { chris: "Christian", lisa: "Lisa", offen: "Wer es macht" };
-  const RATERS = [["chris", "Christian"], ["lisa", "Lisa"], ["ruby", "Ruby"]];
+  const N = FZ.NAMEN;
+  const RATERS = ["chris", "lisa", "ruby"];
   const SMILE = { 3: "😋", 2: "🙂", 1: "😕" }, SMILE_TXT = { 3: "lecker", 2: "okay", 1: "nicht so" };
-  const fmtTime = (min) => Math.floor(min / 60) + ":" + pad(min % 60);
+  const PC = { chris: "var(--chris)", lisa: "var(--lisa)", offen: "var(--p-offen)" };
+  const fmt = (min) => pad(Math.floor(min / 60)) + ":" + pad(min % 60);
+  if (FZ.wand) document.body.classList.add("wand");
 
-  /* ---------- Icons ---------- */
-  const W_ICON = {
-    "sonne": '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>',
-    "sonne-wolke": '<svg class="ic" viewBox="0 0 24 24"><circle cx="8.5" cy="8.5" r="3"/><path d="M8.5 2.5v1.5M2.5 8.5H4M4.3 4.3l1 1M12.7 4.3l-1 1"/><path d="M8 19.5h9a3.5 3.5 0 0 0 0-7 5 5 0 0 0-9.3 1.8A2.6 2.6 0 0 0 8 19.5z"/></svg>',
-    "wolke": '<svg class="ic" viewBox="0 0 24 24"><path d="M7 18.5h10a4 4 0 0 0 .4-8 6 6 0 0 0-11.4 2A3 3 0 0 0 7 18.5z"/></svg>',
-    "regen": '<svg class="ic" viewBox="0 0 24 24"><path d="M7 14.5h10a4 4 0 0 0 .4-8 6 6 0 0 0-11.4 2A3 3 0 0 0 7 14.5z"/><path d="M8.5 17.5l-1 3M12.5 17.5l-1 3M16.5 17.5l-1 3"/></svg>',
-    "schnee": '<svg class="ic" viewBox="0 0 24 24"><path d="M7 14.5h10a4 4 0 0 0 .4-8 6 6 0 0 0-11.4 2A3 3 0 0 0 7 14.5z"/><path d="M8 18.5h.01M12 20h.01M16 18.5h.01M10 21.5h.01M14 21.5h.01" stroke-width="2.6"/></svg>',
-    "gewitter": '<svg class="ic" viewBox="0 0 24 24"><path d="M7 14.5h10a4 4 0 0 0 .4-8 6 6 0 0 0-11.4 2A3 3 0 0 0 7 14.5z"/><path d="M12.5 15.5l-2 3.5h3l-2 3.5"/></svg>',
-    "nebel": '<svg class="ic" viewBox="0 0 24 24"><path d="M7 12.5h10a3.8 3.8 0 0 0 .4-7.6 5.8 5.8 0 0 0-11 1.9A2.9 2.9 0 0 0 7 12.5z"/><path d="M4 16h16M6 19.5h12"/></svg>',
-    "mond": '<svg class="ic" viewBox="0 0 24 24"><path d="M19.5 14.5A8 8 0 1 1 9.5 4.5a6.5 6.5 0 0 0 10 10z"/></svg>'
-  };
-  const IC = {
-    essen: '<svg class="ic" viewBox="0 0 24 24"><path d="M7 3.5v7.5"/><path d="M4.5 3.5v4.5a2.5 2.5 0 0 0 5 0V3.5"/><path d="M7 11v9.5"/><path d="M17 20.5V3.5c-2 1-3.5 3.6-3.5 7v2.5H17"/></svg>',
-    haushalt: '<svg class="ic" viewBox="0 0 24 24"><rect x="4" y="3.5" width="16" height="17" rx="3"/><path d="m8 9 1.6 1.6L12.5 7.7"/><path d="M14.5 9.5H17"/><path d="m8 15 1.6 1.6 2.9-2.9"/><path d="M14.5 15.5H17"/></svg>',
-    termine: '<svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
-    gear: '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
-    spark: '<svg class="ic" viewBox="0 0 24 24"><path d="M12 3l1.8 4.9L19 9.7l-5.2 1.8L12 16.4l-1.8-4.9L5 9.7l5.2-1.8z"/></svg>'
-  };
-
-  /* ---------- Wetter (Open-Meteo, Chemnitz) ---------- */
-  let wetter = null;
-  try { wetter = JSON.parse(localStorage.getItem("fz.wetter") || "null"); } catch (e) { wetter = null; }
-  function wmo(code, tag) {
-    if (code === 0) return tag ? ["sonne", "Sonnig"] : ["mond", "Klar"];
-    if (code <= 2) return tag ? ["sonne-wolke", "Heiter bis wolkig"] : ["mond", "Leicht bewölkt"];
-    if (code === 3) return ["wolke", "Bewölkt"];
-    if (code === 45 || code === 48) return ["nebel", "Nebel"];
-    if (code >= 51 && code <= 57) return ["regen", "Nieselregen"];
-    if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return ["regen", code >= 80 ? "Regenschauer" : "Regen"];
-    if ((code >= 71 && code <= 77) || code === 85 || code === 86) return ["schnee", "Schnee"];
-    if (code >= 95) return ["gewitter", "Gewitter"];
-    return ["wolke", "Bewölkt"];
-  }
-  async function loadWetter() {
-    try {
-      const u = "https://api.open-meteo.com/v1/forecast?latitude=50.83&longitude=12.92&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Europe%2FBerlin&forecast_days=1";
-      const j = await (await fetch(u, { cache: "no-store" })).json();
-      const [art, txt] = wmo(j.current.weather_code, j.current.is_day === 1);
-      wetter = { t: Math.round(j.current.temperature_2m), art, txt, max: Math.round(j.daily.temperature_2m_max[0]), min: Math.round(j.daily.temperature_2m_min[0]), regen: j.daily.precipitation_probability_max[0], zeit: Date.now() };
-      try { localStorage.setItem("fz.wetter", JSON.stringify(wetter)); } catch (e) { /* ignorieren */ }
-      render();
-    } catch (e) { /* letzte Werte behalten, an der Wand keine Fehlermeldung */ }
-  }
-
-  /* ---------- Daten aus der Tabelle ---------- */
-  const ja = (v) => String(v || "").trim().toLowerCase() === "ja";
-  function tasksFor(date) {
-    const done = FZ.reiter("Erledigt").filter((e) => String(e.Zeitpunkt || "").slice(0, 10) === date && e.Art !== "ausgesetzt");
-    const out = [];
-    FZ.reiter("Haushalt").forEach((h) => {
-      if (!h.ID || !ja(h.Aktiv) && !done.some((e) => e["Aufgaben-ID"] === h.ID)) return;
-      const mehr = ja(h.Mehrfach);
-      const n = done.filter((e) => e["Aufgaben-ID"] === h.ID).length;
-      const due = ja(h.Aktiv) && (h["Nächste Fälligkeit"] || date) <= date;
-      if (mehr) { if (ja(h.Aktiv)) out.push({ titel: h.Titel, zust: h["Zuständig"], done: false, mehr: true, n }); return; }
-      if (n) out.push({ titel: h.Titel, zust: h["Zuständig"], done: true });
-      else if (due) out.push({ titel: h.Titel, zust: h["Zuständig"], done: false });
-    });
-    return out.sort((a, b) => a.done - b.done);
-  }
+  // Termine: Personenfarbe aus Name im Titel, sonst Familie
+  const farbe = (t) => { const s = (t.titel || "") + " " + (t.kalender || ""); return /lisa/i.test(s) ? "var(--lisa)" : /christian|chris\b/i.test(s) ? "var(--chris)" : /ruby|elli|kita|schwimm|turn/i.test(s) ? "var(--ruby)" : "var(--fam)"; };
   function eventsFrom(date, days) {
     const end = addDays(date, days);
     return FZ.termine.filter((t) => t.datum < end && (t.bis || t.datum) >= date)
       .map((t) => Object.assign({}, t, { datum: t.datum < date ? date : t.datum }))
       .sort((a, b) => (a.datum + (a.zeit || "00:00")).localeCompare(b.datum + (b.zeit || "00:00")));
   }
-  function dayLabel(d, today) {
-    if (d === today) return "Heute";
-    if (d === addDays(today, 1)) return "Morgen";
-    const x = parse(d);
-    return WD_LONG[x.getDay()] + ", " + x.getDate() + "." + (x.getMonth() + 1) + ".";
-  }
   const rating = (d, p) => { const b = FZ.reiter("Bewertungen").find((x) => x.Datum === d && x.Person === p); return b ? Number(b.Wert) : null; };
+  const vis = (m) => (m.bild ? '<span class="img"><img src="' + esc(m.bild) + '" alt=""></span>' : '<span class="e" aria-hidden="true">' + esc(m.emoji) + "</span>");
+  const kat = (g) => String(g || "").split(",").map((x) => x.trim()).filter(Boolean).slice(0, 2).join(" · ");
 
-  /* ---------- Rendern ---------- */
-  const FIT = window.matchMedia("(orientation: landscape) and (min-width: 900px) and (min-height: 560px)");
-  let peekUntil = 0, peekTimer = null, lastKey = "";
   function render() {
     const now = new Date(), date = iso(now), min = now.getHours() * 60 + now.getMinutes();
-    const phase = FZ.phaseAt(min);
-    const peek = phase.modus === "nacht" && Date.now() < peekUntil;
-    const root = document.documentElement;
-    root.dataset.phase = phase.id;
-    root.dataset.mode = peek ? "abend" : phase.modus;
+    const Pl = FZ.phasen(date), ph = FZ.phaseAt(min, Pl);
+    document.documentElement.dataset.phase = ph.id;
     if (FZ.gate($("#main"))) { $("#head").hidden = true; return; }
-
-    const d = parse(date);
-    const dateTxt = WD_LONG[d.getDay()] + ", " + d.getDate() + ". " + d.toLocaleDateString("de-DE", { month: "long" });
-    const tomorrowEv = eventsFrom(addDays(date, 1), 1)[0];
-
-    if (phase.modus === "nacht" && !peek) {
-      $("#head").hidden = true;
-      $("#main").innerHTML = '<button type="button" class="night" id="night" aria-label="Kurz die Startseite zeigen"><span class="inner">' +
-        '<span class="bigclock">' + fmtTime(min) + "</span>" +
-        "<p>" + (tomorrowEv ? "Morgen: " + esc((tomorrowEv.zeit ? tomorrowEv.zeit + " " : "") + tomorrowEv.titel) : "Morgen keine Termine") + "</p>" +
-        "<p>Antippen zeigt kurz die Seite</p></span></button>";
-      lastKey = "nacht";
-      return;
-    }
+    const d = parse(date), info = FZ.dayInfo(date), E = FZ.einst();
+    const W = FZ.wetter && FZ.wetter.daten;
 
     // Kopf
-    const w = wetter;
     $("#head").hidden = false;
-    $("#head").innerHTML =
-      '<div class="timebox"><div class="bigclock">' + fmtTime(min) + "</div>" +
-      '<div class="dateline"><b>' + esc(dateTxt) + "</b>" +
-      '<span class="phase"><span class="emo">' + esc(phase.symbol) + "</span>" + esc(phase.name) + " <small>bis " + fmtTime(FZ.toMin(phase.ende)) + "</small></span></div></div>" +
-      (w ? '<div class="weather" aria-label="Wetter in Chemnitz"><span class="wicon">' + (W_ICON[w.art] || W_ICON.wolke) + "</span>" +
-        '<span class="temp">' + w.t + "°</span>" + '<span class="wtxt">' + esc(w.txt) + "</span>" +
-        '<span class="wrow"><span>Max <b>' + w.max + "°</b></span><span>Min <b>" + w.min + "°</b></span><span>Regen <b>" + (w.regen == null ? "–" : w.regen) + " %</b></span></span></div>"
-        : '<div class="weather"><span class="wtxt">Wetter lädt …</span></div>');
+    $("#head").innerHTML = '<div><div class="date">' + WD_LONG[d.getDay()] + ", " + d.getDate() + ". " + d.toLocaleDateString("de-DE", { month: "long" }) + '</div><div class="clock">' + fmt(min) + "</div></div>" +
+      (W ? '<button type="button" class="wx" id="wx" aria-label="Wetter und Regenradar öffnen"><div><div class="t">' + FZ.wetter.zahl(W.jetzt.t) + '°</div><div class="s">' + FZ.wetter.zahl(W.tage[0].max) + "° / " + FZ.wetter.zahl(W.tage[0].min) + "°<br>" + esc(W.regen) + '</div><span class="tap">Radar und Details ›</span></div>' + FZ.wetter.icon(W.jetzt.art) + "</button>"
+        : '<div class="wx"><div class="s">Wetter lädt …</div></div>');
 
-    const E = FZ.einst();
-    let extra = "";
-    // Wie war's gestern? (bis essen_bewertung_bis)
+    // Chips: Phase, Kita, Warnung, Kinder
+    const kids = FZ.reiter("Kinderaufgaben").filter((k) => k.ID && String(k.Aktiv).toLowerCase() === "ja" && FZ.phaseMatch(FZ.list(k.Tagesphasen), ph.id) && (k.Wann === "kita" ? info.kita : k.Wann === "zuhause" ? !info.kita : true));
+    const kidsDone = kids.filter((k) => k["Erledigt am"] === date).length;
+    const warn = W && W.warnungen && W.warnungen[0];
+    let h = '<div class="chips"><span class="chip ph" style="background:' + ph.farbe + '"><span class="emo">' + esc(ph.symbol) + "</span>" + esc(ph.name) + (ph.id !== "nacht" ? " bis " + ph.ende : "") + "</span>" +
+      '<span class="chip">' + (info.kita ? "🎒 Kita-Tag" : "🏠 " + esc(info.grund ? "Zuhause · " + info.grund : "Zuhause-Tag")) + "</span>" +
+      (kids.length && ph.id !== "kita" ? '<span class="chip">⭐ Kinder ' + kidsDone + "/" + kids.length + "</span>" : "") +
+      (warn ? '<span class="chip warn">⚠ ' + esc(warn.titel.replace(/^Amtliche WARNUNG vor /i, "Warnung: ")) + "</span>" : "") + "</div>";
+    h += FZ.zeitstrahl(!FZ.wand && innerWidth < 560);
+
+    // Wie war's gestern?
     const bis = /^\d{1,2}:\d{2}$/.test(E.essen_bewertung_bis || "") ? FZ.toMin(E.essen_bewertung_bis) : 17 * 60;
     const y = addDays(date, -1), gm = FZ.meal(y);
-    if (min < bis && gm && gm.status === "gericht" && !RATERS.every(([p]) => rating(y, p))) {
-      extra += '<section class="card rate">' +
-        '<div class="ratehead">' + visual(gm, "rt") + '<span class="rtxt"><small>Wie war\'s gestern?</small><b>' + esc(gm.name) + "</b></span></div>" +
-        '<div class="rrows">' + RATERS.map(([p, name]) => {
-          const cur = rating(y, p);
-          return '<div class="rrow"><span class="rname">' + name + '</span><span class="smiles">' + [3, 2, 1].map((v) =>
-            '<button type="button" class="smile' + (cur && cur !== v ? " dim" : "") + '" data-rate="' + v + '" data-p="' + p + '" data-d="' + y + '" data-g="' + esc(gm.id) + '" aria-pressed="' + (cur === v) + '" aria-label="' + name + ": " + SMILE_TXT[v] + '">' + SMILE[v] + "</button>").join("") + "</span></div>";
-        }).join("") + "</div></section>";
+    if (min < bis && gm && gm.status === "gericht" && !RATERS.every((p) => rating(y, p))) {
+      h += '<section class="card rate"><div class="lbl">Gestern: ' + esc(gm.name) + "<em>Wie war's?</em></div><div class='rows'>" + RATERS.map((p) => {
+        const cur = rating(y, p);
+        return '<div class="rr"><span class="nm">' + N[p] + '</span><span class="faces">' + [3, 2, 1].map((v) => '<button type="button" class="' + (cur && cur !== v ? "dim" : "") + '" data-rate="' + v + '" data-p="' + p + '" data-d="' + y + '" data-g="' + esc(gm.id) + '" aria-pressed="' + (cur === v) + '" aria-label="' + N[p] + ": " + SMILE_TXT[v] + '">' + SMILE[v] + "</button>").join("") + "</span></div>";
+      }).join("") + "</div></section>";
     }
-    // Hinweis: nächste Essens-Woche planen (Mittwoch ab essen_hinweis)
+    // Essen planen (Mittwoch ab essen_hinweis)
     const hw = String(E.essen_hinweis || "mi 17:00").trim().split(/\s+/);
     const hTag = WD.indexOf((hw[0] || "mi").toLowerCase()), hMin = /^\d{1,2}:\d{2}$/.test(hw[1] || "") ? FZ.toMin(hw[1]) : 17 * 60;
-    if (d.getDay() === hTag && min >= hMin) {
-      let open = 0; for (let i = 1; i <= 7; i++) if (!FZ.meal(addDays(date, i))) open++;
-      if (open) extra += '<a class="card hint" href="' + FZ.root + 'essen/">' + IC.spark + "<span><b>Essen für nächste Woche planen</b><small>" + open + (open === 1 ? " Abend ist" : " Abende sind") + " ab morgen noch offen</small></span></a>";
+    if (d.getDay() === hTag && min >= hMin) { let open = 0; for (let i = 1; i <= 7; i++) if (!FZ.meal(addDays(date, i))) open++; if (open) h += '<a class="card hint" href="essen/"><span class="emo" style="font-size:28px">🗓️</span><span><b>Essen für nächste Woche planen</b><small>' + open + (open === 1 ? " Abend ist" : " Abende sind") + " ab morgen noch offen</small></span></a>"; }
+
+    // Essen und Termine
+    const meal = FZ.meal(date), tm = FZ.meal(addDays(date, 1));
+    const mealCard = '<a class="card t1" href="essen/"><div class="lbl">Heute Abend</div>' + (meal ? '<div class="meal">' + vis(meal) + "<div><h3>" + esc(meal.status === "gericht" ? meal.name : meal.kid) + "</h3>" + (meal.kategorie ? "<p>" + esc(kat(meal.kategorie)) + "</p>" : "") + "</div></div>" : '<p class="empty">Noch nichts geplant</p>') + (tm ? '<p class="next">Morgen: <b>' + esc(tm.name) + "</b></p>" : "") + "</a>";
+    const nowHM = fmt(min);
+    const evs = eventsFrom(date, 2).filter((t) => !(t.datum === date && t.zeit && (t.ende || t.zeit) < nowHM));
+    const heute = evs.filter((t) => t.datum === date), morgen = evs.filter((t) => t.datum !== date).slice(0, 2);
+    const evCard = '<a class="card t3" href="kalender/"><div class="lbl">Termine heute<em>' + heute.length + "</em></div>" +
+      (heute.length ? heute.slice(0, 4).map((t) => '<div class="li"><span class="pbar" style="--pc:' + farbe(t) + '"></span><span class="tm">' + esc(t.zeit || "ganzt.") + '</span><span class="tx">' + esc(t.titel) + "</span></div>").join("") : '<p class="empty">Heute keine Termine</p>') +
+      morgen.map((t) => '<div class="li"><span class="pbar" style="--pc:' + farbe(t) + '"></span><span class="tm">Morgen</span><span class="tx">' + esc((t.zeit ? t.zeit + " " : "") + t.titel) + "</span></div>").join("") + "</a>";
+    h += '<div class="grid2">' + mealCard + evCard + "</div>";
+
+    // Tagesstimmung ab Beginn der Abendphase
+    if (ph.id === "abend" || (ph.id === "nacht" && min >= 12 * 60)) {
+      const leute = FZ.wand ? ["chris", "lisa"] : FZ.person ? [FZ.person] : ["chris", "lisa"];
+      h += '<section class="card rate"><div class="lbl">Wie war ' + (leute.length === 1 ? "dein" : "euer") + " Tag?<em>Tagesstimmung</em></div><div class='rows'>" + leute.map((p) => {
+        const cur = FZ.stimmung(date, p);
+        return '<div class="rr"><span class="nm">' + N[p] + '</span><span class="faces">' + [1, 2, 3, 4, 5].map((v) => '<button type="button" class="' + (cur && cur !== v ? "dim" : "") + '" data-mood="' + v + '" data-p="' + p + '" aria-pressed="' + (cur === v) + '" aria-label="' + N[p] + ": " + FZ.MOOD_TXT[v] + '">' + FZ.MOOD[v] + "</button>").join("") + "</span></div>";
+      }).join("") + "</div></section>";
     }
 
-    // Essen
-    const meal = FZ.meal(date), tomorrowMeal = FZ.meal(addDays(date, 1));
-    const mealCard =
-      '<a class="card meal" href="' + FZ.root + 'essen/"><div class="card-h"><h2>' + IC.essen + "Heute Abend</h2></div>" +
-      (meal
-        ? '<div class="dish"><div class="img">' + (meal.bild ? '<img src="' + esc(meal.bild) + '" alt="">' : '<span class="emo" aria-hidden="true">' + esc(meal.emoji) + "</span>") + "</div>" +
-          "<h3>" + esc(meal.status === "gericht" ? meal.name : meal.kid) + '</h3><p class="meta">' + esc(meal.kategorie || "") + "</p></div>"
-        : '<p class="empty">Noch nichts geplant</p>') +
-      (tomorrowMeal ? '<p class="next">Morgen: <b>' + esc(tomorrowMeal.name) + "</b></p>" : "") +
-      "</a>";
+    // Haushalt heute
+    let tasks = FZ.hhHeute(date);
+    const mine = !FZ.wand && FZ.person;
+    if (mine) tasks = tasks.filter((t) => t.zust === FZ.person || t.zust === "offen");
+    const offen = tasks.filter((t) => !t.fertig);
+    const fertig = tasks.length - offen.length;
+    h += '<section class="card t2 hh"><div class="lbl">' + (mine ? "Deine Aufgaben" : "Haushalt heute") + "<em>" + (offen.length ? offen.length + " offen" : "alles erledigt") + (fertig ? " · " + fertig + " fertig" : "") + '</em></div><div id="hhl">' +
+      (offen.length ? offen.map((t) => {
+        const meta = (t.zust === "offen" ? "für alle" : N[t.zust]) + " · " + t.punkte + (t.punkte === 1 ? " Punkt" : " Punkte") + (t.spaet ? ' · <span class="late">seit ' + t.spaet + (t.spaet === 1 ? " Tag" : " Tagen") + " fällig</span>" : "") + (t.max > 1 ? " · höchstens " + t.max + "× am Tag" : "");
+        const dots = t.max > 1 ? '<span class="fz-dots" aria-label="' + t.n + " von " + t.max + '">' + Array.from({ length: t.max }, (_, i) => '<i class="' + (i < t.n ? "on" : "") + '"></i>').join("") + "<em>" + t.n + "/" + t.max + "</em></span>" : "";
+        const act = FZ.wand || !FZ.person
+          ? '<span class="who">' + ["chris", "lisa"].filter((p) => t.zust === "offen" || t.zust === p).map((p) => '<button type="button" data-hh="' + esc(t.id) + '" data-p="' + p + '" style="background:' + PC[p] + '" aria-label="' + esc(t.titel) + " erledigt von " + N[p] + '">' + N[p][0] + "</button>").join("") + "</span>"
+          : '<button type="button" class="chk" data-hh="' + esc(t.id) + '" data-p="' + FZ.person + '" aria-label="' + esc(t.titel) + ' erledigt"></button>';
+        return '<div class="task"><div class="t"><b>' + esc(t.titel) + '</b><span class="m">' + meta + "</span></div>" + dots + act + "</div>";
+      }).join("") : '<p class="empty">Heute ist alles geschafft. 🎉</p>') + "</div></section>";
 
-    // Haushalt
-    const tasks = tasksFor(date);
-    const open = tasks.filter((t) => !t.done && !t.mehr).length;
-    const taskCard =
-      '<a class="card" href="' + FZ.root + 'haushalt/"><div class="card-h"><h2>' + IC.haushalt + 'Haushalt heute</h2><span class="count">' +
-      (open ? open + " offen" : "alles erledigt") + "</span></div>" +
-      (tasks.length
-        ? '<ul class="tasks">' + tasks.map((t) => {
-            const z = PERSONEN[t.zust] ? t.zust : "offen";
-            return '<li class="task' + (t.done ? " done" : "") + '" style="--pc:var(--p-' + z + ')"><span class="dot"></span><span class="t">' + esc(t.titel) +
-              '</span><span class="who">' + esc(t.done ? "erledigt" : t.mehr ? (t.n ? t.n + "× heute" : "heute noch nicht") : PERSONEN[z]) + "</span></li>";
-          }).join("") + "</ul>"
-        : '<p class="empty">Heute steht nichts an</p>') +
-      "</a>";
+    // Diese Woche (tagsüber auf dem Handy und nachmittags an der Wand)
+    if (!FZ.wand || (min >= bis && ph.id !== "abend" && ph.id !== "nacht")) h += wocheKarte(date);
 
-    // Termine
-    const tage = Math.max(1, parseInt(E.termine_tage, 10) || 7);
-    // Termine von heute, die schon vorbei sind, ausblenden (ganztägige bleiben)
-    const nowHM = pad(now.getHours()) + ":" + pad(now.getMinutes());
-    const endOf = (t) => t.ende || (() => { const m = FZ.toMin(t.zeit) + 60; return m >= 1440 ? "24:00" : pad(Math.floor(m / 60)) + ":" + pad(m % 60); })();
-    const evs = eventsFrom(date, tage).filter((t) => !(t.zeit && /^\d{2}:\d{2}$/.test(t.zeit) && (t.bis || t.datum) === date && endOf(t) <= nowHM));
-    let evHtml = "", lastDay = "";
-    evs.slice(0, FIT.matches ? 14 : 6).forEach((e) => {
-      if (e.datum !== lastDay) { evHtml += '<p class="dayhead">' + esc(dayLabel(e.datum, date)) + "</p>"; lastDay = e.datum; }
-      evHtml += '<div class="ev' + (e.datum === date ? " today" : "") + '"><span class="when">' + esc(e.zeit || "ganzt.") + '</span><span class="what">' + esc(e.titel) +
-        (e.ort ? '<span class="where">' + esc(e.ort) + "</span>" : "") + "</span></div>";
-    });
-    const evCard =
-      '<section class="card"><div class="card-h"><h2>' + IC.termine + 'Termine</h2><span class="count">' + tage + " Tage</span></div>" +
-      (evHtml ? '<div class="events">' + evHtml + "</div>" : '<p class="empty">Keine Termine in den nächsten ' + tage + " Tagen</p>") +
-      "</section>";
-
-    const key = phase.id + date;
-    const fresh = key !== lastKey;
-    lastKey = key;
-    $("#main").innerHTML = (extra ? '<div class="extras">' + extra + "</div>" : "") + '<div class="grid' + (fresh ? " fresh" : "") + '">' + mealCard + taskCard + evCard + "</div>";
-    fit($("#main .tasks"), ".task");
-    fit($("#main .events"), ".ev");
+    $("#main").innerHTML = h;
+    fit();
+    if (FZ.wetter && FZ.wetter.daten) FZ.wetter.hintergrund();
   }
-  // Tablet quer: Listen so kürzen, dass alles auf einen Bildschirm passt ("+ n weitere")
-  function fit(box, sel) {
-    if (!box || !FIT.matches) return;
-    let n = 0, more = null;
-    const last = () => (more ? more.previousElementSibling : box.lastElementChild);
-    while (box.scrollHeight > box.clientHeight + 1 && box.querySelectorAll(sel).length > 1) {
-      let el = last();
-      if (el && !el.matches(sel)) { el.remove(); el = last(); }
-      if (!el) break;
-      el.remove(); n++;
-      const tail = last();
-      if (tail && !tail.matches(sel)) tail.remove();
-      if (!more) { more = document.createElement(box.tagName === "UL" ? "li" : "p"); more.className = "more"; box.appendChild(more); }
-      more.textContent = "+ " + n + (n === 1 ? " weiterer" : " weitere");
+  function wocheKarte(date) {
+    const ab = addDays(date, -6);
+    const er = FZ.reiter("Erledigt").filter((e) => { const t = String(e.Zeitpunkt || "").slice(0, 10); return t >= ab && t <= date && e.Art !== "ausgesetzt"; }).length;
+    const bw = FZ.reiter("Bewertungen").filter((b) => b.Datum >= addDays(date, -27)).map((b) => Number(b.Wert)).filter(Boolean);
+    const st = FZ.reiter("Stimmung").filter((b) => b.Datum >= addDays(date, -27)).map((b) => Number(b.Wert)).filter(Boolean);
+    const avg = (a) => (a.length ? (a.reduce((x, y) => x + y, 0) / a.length).toFixed(1).replace(".", ",") : "–");
+    return '<a class="card stats" href="statistik/"><div><b>' + er + "</b><span>Aufgaben in 7 Tagen</span></div><div><b>" + avg(bw) + "</b><span>Essen Ø von 3</span></div><div><b>" + avg(st) + "</b><span>Stimmung Ø von 5</span></div></a>";
+  }
+  // Wand: Haushaltsliste kürzen, damit alles auf einen Bildschirm passt
+  function fit() {
+    if (!FZ.wand) return;
+    const box = $("#hhl"), card = box && box.parentElement; if (!box) return;
+    let n = 0;
+    while (card.scrollHeight > card.clientHeight + 1 && box.querySelectorAll(".task").length > 1) {
+      const all = box.querySelectorAll(".task"); all[all.length - 1].remove(); n++;
     }
-  }
-  function visual(m, cls) {
-    return '<span class="' + cls + '">' + (m.bild ? '<img src="' + esc(m.bild) + '" alt="">' : '<span class="emo" aria-hidden="true">' + esc(m.emoji) + "</span>") + "</span>";
+    if (n) { const m = document.createElement("div"); m.className = "more"; m.textContent = "+ " + n + (n === 1 ? " weitere Aufgabe" : " weitere Aufgaben") + " im Haushalt"; box.appendChild(m); while (card.scrollHeight > card.clientHeight + 1 && box.querySelectorAll(".task").length > 1) { const all = box.querySelectorAll(".task"); all[all.length - 1].remove(); n++; m.textContent = "+ " + n + " weitere Aufgaben im Haushalt"; } }
   }
 
-  /* ---------- Bewerten ---------- */
   function rate(d, p, v, g) {
     const rows = FZ.daten.Bewertungen || (FZ.daten.Bewertungen = []);
     const i = rows.findIndex((b) => b.Datum === d && b.Person === p);
-    if (i >= 0 && Number(rows[i].Wert) === v) {
-      rows.splice(i, 1);
-      FZ.send([{ art: "loeschen", reiter: "Bewertungen", wo: { Datum: d, Person: p } }]);
-    } else {
-      if (i >= 0) { rows[i].Wert = String(v); rows[i]["Gericht-ID"] = g; } else rows.push({ Datum: d, "Gericht-ID": g, Person: p, Wert: String(v) });
-      FZ.send([{ art: "setzen", reiter: "Bewertungen", wo: { Datum: d, Person: p }, werte: { "Gericht-ID": g, Wert: String(v) } }]);
-    }
+    if (i >= 0 && Number(rows[i].Wert) === v) { rows.splice(i, 1); FZ.send([{ art: "loeschen", reiter: "Bewertungen", wo: { Datum: d, Person: p } }]); }
+    else { if (i >= 0) { rows[i].Wert = String(v); rows[i]["Gericht-ID"] = g; } else rows.push({ Datum: d, "Gericht-ID": g, Person: p, Wert: String(v) }); FZ.send([{ art: "setzen", reiter: "Bewertungen", wo: { Datum: d, Person: p }, werte: { "Gericht-ID": g, Wert: String(v) } }]); }
     render();
   }
-
   document.addEventListener("click", (ev) => {
-    const r = ev.target.closest("[data-rate]");
-    if (r) { rate(r.dataset.d, r.dataset.p, Number(r.dataset.rate), r.dataset.g); return; }
-    if (ev.target.closest("#night")) {
-      peekUntil = Date.now() + 15000;
-      render();
-      clearTimeout(peekTimer);
-      peekTimer = setTimeout(render, 15100);
-    }
+    const r = ev.target.closest("[data-rate]"); if (r) return rate(r.dataset.d, r.dataset.p, Number(r.dataset.rate), r.dataset.g);
+    const m = ev.target.closest("[data-mood]"); if (m) return FZ.stimmungSetzen(iso(new Date()), m.dataset.p, Number(m.dataset.mood));
+    const t = ev.target.closest("[data-hh]"); if (t) return FZ.hhErledigen(t.dataset.hh, t.dataset.p);
+    if (ev.target.closest("#wx") && FZ.wetter) FZ.wetter.ansicht();
   });
 
   FZ.on(render);
-  if (FIT.addEventListener) FIT.addEventListener("change", render);
+  FZ.wetter.on(render);
   window.addEventListener("resize", render);
   FZ.nav("start");
   FZ.start();
   render();
-  loadWetter();
-  setInterval(loadWetter, 30 * 60000);
   setInterval(render, 20000);
 })();
 </script>

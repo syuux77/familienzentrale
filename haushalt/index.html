@@ -495,7 +495,7 @@ p { margin: 0; }
       return {
         id: r.ID, titel: r.Titel || "(ohne Titel)", zustaendig: z === "chris" || z === "lisa" ? z : "offen", typ, rhythmus,
         naechste: /^\d{4}-\d{2}-\d{2}$/.test(r["Nächste Fälligkeit"] || "") ? r["Nächste Fälligkeit"] : todayIso(),
-        punkte: num(r.Punkte), aktiv: ja(r.Aktiv), mehrfach: ja(r.Mehrfach)
+        punkte: num(r.Punkte), aktiv: ja(r.Aktiv), max: FZ.maxProTag(r), mehrfach: FZ.maxProTag(r) > 1
       };
     });
     const log = (daten.Erledigt || []).filter((r) => r.ID && r.Zeitpunkt && (r["Erledigt von"] === "chris" || r["Erledigt von"] === "lisa")).map((r) => ({
@@ -509,7 +509,7 @@ p { margin: 0; }
       "Titel": t.titel, "Zuständig": t.zustaendig, "Typ": t.typ, "Rhythmus-Art": t.typ === "einmalig" ? "" : r.art,
       "Wochentage": r.art === "wochentage" ? WEEK_ORDER.filter((d) => r.tage.includes(d)).map((d) => WD_CODE[d]).join(",") : "",
       "Tag im Monat": r.art === "monatlich" ? String(r.tag) : "", "Intervall in Tagen": r.art === "intervall" ? String(r.n) : "",
-      "Nächste Fälligkeit": t.naechste, "Punkte": String(t.punkte), "Mehrfach": t.mehrfach ? "ja" : "nein", "Aktiv": t.aktiv ? "ja" : "nein"
+      "Nächste Fälligkeit": t.naechste, "Punkte": String(t.punkte), "Max pro Tag": String(t.max || 1), "Mehrfach": t.mehrfach ? "ja" : "nein", "Aktiv": t.aktiv ? "ja" : "nein"
     };
   }
   function stamp(zeit) {
@@ -599,6 +599,8 @@ p { margin: 0; }
     const meta = [];
     if (t.mehrfach) {
       const tl = S.log.filter((e) => e.art === "erledigt" && e.aufgabeId === t.id && e.zeit.slice(0, 10) === today);
+      const mx = t.max || 3;
+      meta.push('<span class="fz-dots" aria-label="' + tl.length + " von " + mx + '">' + Array.from({ length: mx }, (_, i) => '<i class="' + (i < tl.length ? "on" : "") + '"></i>').join("") + "<em>" + tl.length + "/" + mx + "</em></span>");
       if (!tl.length) meta.push("<span>heute noch nicht</span>");
       else {
         const c = tl.filter((e) => e.von === "chris").length, l = tl.length - c;
@@ -622,7 +624,9 @@ p { margin: 0; }
   }
   function renderHeute() {
     const t = todayIso();
-    const due = S.tasks.filter((x) => x.aktiv && x.naechste <= t);
+    // Tagesmaximum: wiederholbare Aufgaben verschwinden, sobald sie heute oft genug erledigt sind
+    const heuteN = (x) => S.log.filter((e) => e.art === "erledigt" && e.aufgabeId === x.id && e.zeit.slice(0, 10) === t).length;
+    const due = S.tasks.filter((x) => x.aktiv && x.naechste <= t && !(x.mehrfach && heuteN(x) >= (x.max || 3)));
     const sortDue = (a, b) => (a.naechste < b.naechste ? -1 : a.naechste > b.naechste ? 1 : a.titel.localeCompare(b.titel, "de"));
     const shared = due.filter((x) => x.zustaendig === "offen").sort(sortDue);
     const todayLog = S.log.filter((e) => e.art === "erledigt" && e.zeit.slice(0, 10) === t);
@@ -931,7 +935,7 @@ p { margin: 0; }
     show("h-woche", draft.art === "wochentage");
     show("w-monat", draft.art === "monatlich");
     show("w-intervall", draft.art === "intervall");
-    show("w-mehrfach", draft.wer === "offen" && draft.art === "taeglich");
+    show("w-mehrfach", draft.art === "taeglich");
     show("h-offen", draft.wer === "offen");
     const ld = sh.querySelector("#l-datum"); if (ld) ld.textContent = draft.art === "einmalig" ? "Fällig am" : "Erstes Mal";
   }
@@ -958,7 +962,9 @@ p { margin: 0; }
       '<p class="hint">Richtwert: etwa 1 Punkt pro 10 Minuten Aufwand.' + (isNew ? "" : " Neue Punkte gelten ab jetzt, die Statistik behält die alten Werte.") + "</p></div>" +
       rhythmFields(true) +
       '<div class="field"><label for="f-datum" id="l-datum">Fällig am</label><input id="f-datum" type="date" value="' + (task ? (task.naechste < t ? t : task.naechste) : t) + '"></div>' +
-      '<label class="checkline" id="w-mehrfach"><input type="checkbox" id="f-mehrfach"' + (task && task.mehrfach ? " checked" : "") + "> Mehrmals am Tag möglich (wie der Geschirrspüler)</label>" +
+      '<div class="field" id="w-mehrfach"><label for="f-max">Höchstens pro Tag</label><div class="stepper"><button type="button" data-act="stepmax" data-d="-1" aria-label="Seltener">−</button>' +
+      '<input id="f-max" type="number" inputmode="numeric" min="1" max="9" value="' + (task ? task.max || 1 : 1) + '"><button type="button" data-act="stepmax" data-d="1" aria-label="Öfter">+</button></div>' +
+      '<p class="hint">1 = einmal am Tag. Bei 3 (wie die Trude-Runde) bleibt die Aufgabe stehen, bis sie dreimal erledigt ist, und verschwindet dann für heute.</p></div>' +
       '<p class="err" id="f-err" hidden></p>' +
       '<div class="actions">' + (isNew ? "" : '<button type="button" class="btn ghost left" data-act="del-ask">Löschen</button>') +
       '<button type="button" class="btn" data-act="close">Abbrechen</button><button type="button" class="btn primary" data-act="save">Speichern</button></div>' +
@@ -978,8 +984,8 @@ p { margin: 0; }
     if (!(punkte >= 0 && punkte <= 99)) return err("Bitte Punkte zwischen 0 und 99 eintragen.");
     const r = readRhythm(err); if (r === false) return;
     const datum = $("#f-datum").value || todayIso();
-    const mehrfach = draft.wer === "offen" && draft.art === "taeglich" && $("#f-mehrfach").checked;
-    const data = { titel, zustaendig: draft.wer, typ: r ? "wiederkehrend" : "einmalig", rhythmus: r, punkte, aktiv: true, mehrfach, naechste: firstDue(r, datum) };
+    const max = draft.art === "taeglich" ? Math.max(1, Math.min(9, parseInt($("#f-max").value, 10) || 1)) : 1;
+    const data = { titel, zustaendig: draft.wer, typ: r ? "wiederkehrend" : "einmalig", rhythmus: r, punkte, aktiv: true, max, mehrfach: max > 1, naechste: firstDue(r, datum) };
     if (draft.id) {
       const task = S.tasks.find((x) => x.id === real(draft.id)); Object.assign(task, data);
       send(() => [opTask(task)]);
@@ -1027,7 +1033,8 @@ p { margin: 0; }
       case "key-save": { const v = ($("#f-key").value || "").trim(); if (!v) break; SETUP.key = v; try { localStorage.setItem("fz.key", v); } catch (e) { /* ignorieren */ } render(); refresh(true); break; }
       case "key-reset": SETUP.key = ""; try { localStorage.removeItem("fz.key"); } catch (e) { /* ignorieren */ } render(); break;
       case "new": openForm(null); break;
-      case "check": if (!task) break; if (task.zustaendig === "offen") openPicker(task); else complete(id, task.zustaendig); break;
+      case "check": if (!task) break; if (task.zustaendig !== "offen") complete(id, task.zustaendig); else if (!FZ.wand && FZ.person) complete(id, FZ.person); else openPicker(task); break;
+      case "stepmax": { const f = $("#f-max"); f.value = Math.max(1, Math.min(9, (parseInt(f.value, 10) || 1) + Number(el.dataset.d))); break; }
       case "pickdone": complete(id, el.dataset.von); break;
       case "menu": if (task) openMenu(task); break;
       case "postpone": postpone(id); break;

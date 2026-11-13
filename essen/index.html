@@ -405,10 +405,13 @@ p { margin: 0; }
   function fromSheet() {
     const L = FZ.reiter("Essen-Listen").filter((r) => r.Name);
     const sortL = (a, b) => (Number(a.Reihenfolge) || 99) - (Number(b.Reihenfolge) || 99);
-    const kategorien = L.filter((r) => r.Art === "kategorie").sort(sortL).map((r) => ({ name: r.Name, aktiv: ja(r.Aktiv) }));
-    const merkmale = L.filter((r) => r.Art === "merkmal").sort(sortL).map((r) => ({ name: r.Name, aktiv: ja(r.Aktiv) }));
+    // Gruppen: ernaehrung (genau eine), gericht (1–2), fleischsorte (optional), zeit (genau eine), merkmal (Zusatz).
+    // Alte Listen mit Art „kategorie“ funktionieren weiter als Gerichtart.
+    const art = (r) => { const a = String(r.Art || "").trim().toLowerCase(); return a === "kategorie" ? "gericht" : a; };
+    const kategorien = L.filter((r) => ["gericht", "ernaehrung", "fleischsorte"].includes(art(r))).sort(sortL).map((r) => ({ name: r.Name, aktiv: ja(r.Aktiv), gruppe: art(r) }));
+    const merkmale = L.filter((r) => ["merkmal", "zeit"].includes(art(r))).sort(sortL).map((r) => ({ name: r.Name, aktiv: ja(r.Aktiv), gruppe: art(r) }));
     const gerichte = FZ.reiter("Gerichte").filter((r) => r.ID && r.Name).map((r) => ({
-      id: r.ID, name: r.Name, emoji: r.Emoji || "🍽️", bildLink: r["Bild-Link"] || "", bild: FZ.bildUrl(r["Bild-Link"]), kategorie: r.Kategorie || "",
+      id: r.ID, name: r.Name, emoji: r.Emoji || "🍽️", bildLink: r["Bild-Link"] || "", bild: FZ.bildUrl(r["Bild-Link"]), kategorie: r.Kategorie || "", kats: String(r.Kategorie || "").split(",").map((x) => x.trim()).filter(Boolean),
       merkmale: String(r.Merkmale || "").split(",").map((x) => x.trim()).filter(Boolean), notiz: r["Notiz / Rezept-Link"] || "", aktiv: ja(r.Aktiv)
     }));
     const plan = {};
@@ -453,6 +456,9 @@ p { margin: 0; }
     return Object.keys(S.plan).filter((d) => d < t && S.plan[d].status === "gericht" && S.plan[d].gerichtId === id).sort();
   }
   const optNames = (art) => (art === "kat" ? S.kategorien : S.merkmale).filter((o) => o.aktiv).map((o) => o.name);
+  const grp = (g) => S.kategorien.concat(S.merkmale).filter((o) => o.aktiv && o.gruppe === g).map((o) => o.name);
+  const gruppeVon = (name) => { const o = S.kategorien.concat(S.merkmale).find((x) => x.name === name); return o ? o.gruppe : ""; };
+  const katText = (g) => (g.kats && g.kats.length ? g.kats.join(" · ") : g.kategorie || "ohne Kategorie");
 
   function thumb(g, cls) {
     const c = "th" + (cls ? " " + cls : "");
@@ -601,16 +607,16 @@ p { margin: 0; }
     stat.push("<span><b>" + days.length + "×</b> gegessen</span>");
     if (last) stat.push("<span>zuletzt " + ago(diffDays(last, todayIso())) + "</span>");
     return '<button class="gcard' + (g.aktiv ? "" : " paused") + '" data-act="editdish" data-id="' + g.id + '">' + thumb(g, "lg") +
-      '<span style="min-width:0;display:block"><span class="gname" style="display:block">' + esc(g.name) + '</span><span class="gkat" style="display:block">' + esc(g.kategorie || "ohne Kategorie") + (g.aktiv ? "" : " · pausiert") + "</span>" +
-      ((g.merkmale || []).length ? '<span class="gtags">' + g.merkmale.map((m) => '<span class="tag">' + esc(m) + "</span>").join("") + "</span>" : "") +
+      '<span style="min-width:0;display:block"><span class="gname" style="display:block">' + esc(g.name) + '</span><span class="gkat" style="display:block">' + esc(katText(g)) + (g.aktiv ? "" : " · pausiert") + "</span>" +
+      ((g.merkmale || []).length ? '<span class="gtags">' + g.merkmale.map((m) => '<span class="tag">' + (gruppeVon(m) === "zeit" ? "⏱ " : "") + esc(m) + "</span>").join("") + "</span>" : "") +
       '<span class="gstat">' + stat.join("") + "</span></span></button>";
   }
   function renderGerichte() {
-    const kats = optNames("kat");
+    const kats = grp("gericht").length ? grp("ernaehrung").concat(grp("gericht")) : optNames("kat");
     let h = '<div class="gbar"><div class="chips small" role="group" aria-label="Nach Kategorie filtern">' +
       ["alle"].concat(kats).map((k) => '<button data-act="filter" data-val="' + esc(k) + '" aria-pressed="' + (ui.filter === k) + '">' + (k === "alle" ? "Alle" : esc(k)) + "</button>").join("") +
       '</div><button class="btn" data-act="lists">Kategorien &amp; Merkmale</button></div>';
-    const list = S.gerichte.filter((g) => ui.filter === "alle" || g.kategorie === ui.filter).sort((a, b) => a.name.localeCompare(b.name, "de"));
+    const list = S.gerichte.filter((g) => ui.filter === "alle" || g.kats.includes(ui.filter) || g.kategorie === ui.filter).sort((a, b) => a.name.localeCompare(b.name, "de"));
     const act = list.filter((g) => g.aktiv), paused = list.filter((g) => !g.aktiv);
     h += '<p class="hint">' + act.length + (act.length === 1 ? " Gericht" : " Gerichte") + " im Vorschlags-Topf. Tippe auf ein Gericht, um es zu bearbeiten.</p>";
     h += act.length ? '<div class="cards">' + act.map(dishCard).join("") + "</div>" : '<p class="empty">In dieser Kategorie gibt es noch keine Gerichte.</p>';
@@ -654,7 +660,7 @@ p { margin: 0; }
       if (e.status === "gericht") {
         home++; dishMeals++; cnt[e.gerichtId] = (cnt[e.gerichtId] || 0) + 1;
         const g = G(e.gerichtId);
-        if (g) { const k = g.kategorie || "ohne Kategorie"; katCnt[k] = (katCnt[k] || 0) + 1; (g.merkmale || []).forEach((m) => { mkCnt[m] = (mkCnt[m] || 0) + 1; }); }
+        if (g) { (g.kats.length ? g.kats : ["ohne Kategorie"]).forEach((k) => { katCnt[k] = (katCnt[k] || 0) + 1; }); (g.merkmale || []).forEach((m) => { mkCnt[m] = (mkCnt[m] || 0) + 1; }); }
       } else if (e.status === "reste") { home++; reste++; }
       else if (e.status === "auswaerts") aus++;
       else if (e.status === "eingeladen") ein++;
@@ -706,15 +712,17 @@ p { margin: 0; }
       }).join("") + "</div></section>";
 
     // Kategorien und Merkmale
-    const kats = Object.keys(katCnt).map((k) => ({ k, n: katCnt[k] })).sort((x, y) => y.n - x.n);
-    const mks = optNames("mk").map((m) => ({ k: m, n: mkCnt[m] || 0 })).sort((x, y) => y.n - x.n);
     const pct = (n) => (dishMeals ? Math.round((n / dishMeals) * 100) : 0);
-    h += '<div class="grid2"><section class="panel"><div class="chead"><h2>Kategorien</h2><p>Anteil der gekochten Abende ' + esc(R.name) + "</p></div>" +
-      (kats.length ? '<div class="blist plain">' + kats.map((x) => '<div class="brow"><span class="bl">' + esc(x.k) + '</span><span class="bt"><i style="width:' + Math.max(3, pct(x.n)) + '%"></i></span><span class="bv">' + pct(x.n) + " % · " + x.n + "×</span></div>").join("") + "</div>" : '<p class="empty">Noch keine Gerichte.</p>') +
-      "</section>" +
-      '<section class="panel"><div class="chead"><h2>Merkmale</h2><p>So oft war es …</p></div>' +
-      (mks.length ? '<div class="blist plain">' + mks.map((x) => '<div class="brow"><span class="bl">' + esc(x.k) + '</span><span class="bt"><i style="width:' + Math.max(3, pct(x.n)) + '%"></i></span><span class="bv">' + pct(x.n) + " %</span></div>").join("") + "</div>" : '<p class="empty">Noch keine Merkmale angelegt.</p>') +
-      "</section></div>";
+    const bars = (rows) => rows.length ? '<div class="blist plain">' + rows.map((x) => '<div class="brow"><span class="bl">' + esc(x.k) + '</span><span class="bt"><i style="width:' + Math.max(3, pct(x.n)) + '%"></i></span><span class="bv">' + pct(x.n) + " % · " + x.n + "×</span></div>").join("") + "</div>" : '<p class="empty">Noch keine Daten.</p>';
+    const inGrp = (g) => Object.keys(katCnt).concat(Object.keys(mkCnt)).filter((k, i, a) => a.indexOf(k) === i && gruppeVon(k) === g).map((k) => ({ k, n: (katCnt[k] || 0) + (mkCnt[k] || 0) })).sort((x, y) => y.n - x.n);
+    const gerichtart = grp("gericht").length ? inGrp("gericht") : Object.keys(katCnt).map((k) => ({ k, n: katCnt[k] })).sort((x, y) => y.n - x.n);
+    const zeit = grp("zeit").map((k) => ({ k, n: mkCnt[k] || 0 }));
+    const ern = grp("ernaehrung").map((k) => ({ k, n: katCnt[k] || 0 }));
+    const zusatz = (grp("zeit").length ? grp("merkmal") : optNames("mk")).map((m) => ({ k: m, n: mkCnt[m] || 0 })).sort((x, y) => y.n - x.n);
+    h += '<div class="grid2"><section class="panel"><div class="chead"><h2>Gerichtart</h2><p>Anteil der gekochten Abende ' + esc(R.name) + "</p></div>" + bars(gerichtart) + "</section>" +
+      (zeit.length ? '<section class="panel"><div class="chead"><h2>Zeitaufwand</h2><p>Wie viel Arbeit war das Abendessen?</p></div>' + bars(zeit) + "</section>" : "") +
+      (ern.length ? '<section class="panel"><div class="chead"><h2>Fleisch, Fisch oder vegetarisch</h2><p>Anteil der gekochten Abende</p></div>' + bars(ern) + "</section>" : "") +
+      '<section class="panel"><div class="chead"><h2>Merkmale</h2><p>So oft war es …</p></div>' + bars(zusatz) + "</section></div>";
 
     // Mal wieder, Uneinig, Flops, Neu
     const again = S.gerichte.filter((g) => g.aktiv).map((g) => { const d = eatenDays(g.id); const a = dishAvg(g.id); return { g, a, last: d[d.length - 1] }; })
@@ -831,7 +839,9 @@ p { margin: 0; }
 
   function openDishForm(g) {
     const isNew = !g;
-    draft = { mode: "dish", id: g ? g.id : null, kat: g ? g.kategorie : (optNames("kat")[0] || ""), mk: new Set(g ? g.merkmale : []), bild: g ? g.bild : "" };
+    draft = { mode: "dish", id: g ? g.id : null, kat: new Set(g ? g.kats : []), mk: new Set(g ? g.merkmale : []), bild: g ? g.bild : "" };
+    const neu = grp("gericht").length > 0;
+    const chipRow = (gruppe, label, hint) => grp(gruppe).length ? '<div class="field"><span class="lbl">' + label + '</span><div class="chips" data-gruppe="' + gruppe + '">' + grp(gruppe).map((k) => '<button type="button" data-act="' + (gruppe === "zeit" || gruppe === "merkmal" ? "fmk" : "fkat") + '" data-val="' + esc(k) + '" data-g="' + gruppe + '">' + (gruppe === "zeit" ? "⏱ " : "") + esc(k) + "</button>").join("") + "</div>" + (hint ? '<p class="hint">' + hint + "</p>" : "") + "</div>" : "";
     const used = g ? eatenDays(g.id).length : 0;
     let h = "<h2>" + (isNew ? "Neues Gericht" : "Gericht bearbeiten") + "</h2>" +
       '<div class="field"><label for="f-name">Name</label><input id="f-name" type="text" maxlength="50" autocomplete="off" placeholder="z. B. Gemüselasagne" value="' + esc(g ? g.name : "") + '"></div>' +
@@ -839,9 +849,11 @@ p { margin: 0; }
       '<div class="field"><label for="f-emoji" class="hint">Emoji, solange es kein Foto gibt</label><input id="f-emoji" class="emoji" type="text" maxlength="8" value="' + esc(g ? g.emoji : "🍽️") + '"></div>' +
       '<span class="btn filelbl">Foto wählen<input id="f-foto" type="file" accept="image/*" aria-label="Foto wählen"></span>' +
       '<button type="button" class="btn ghost" data-act="rmfoto" id="b-rmfoto">Foto entfernen</button></div></div>' +
-      '<div class="field"><span class="lbl">Kategorie</span><div class="chips" id="c-kat">' + optNames("kat").map((k) => '<button type="button" data-act="fkat" data-val="' + esc(k) + '">' + esc(k) + "</button>").join("") + "</div></div>" +
-      '<div class="field"><span class="lbl">Merkmale</span><div class="chips" id="c-mk">' + optNames("mk").map((m) => '<button type="button" data-act="fmk" data-val="' + esc(m) + '">' + esc(m) + "</button>").join("") + "</div>" +
-      '<p class="hint">Kategorien und Merkmale pflegt ihr in der Tabelle (Reiter „Essen-Listen“) oder unter „Kategorien &amp; Merkmale“.</p></div>' +
+      (neu
+        ? chipRow("ernaehrung", "Fleisch, Fisch oder vegetarisch", "") + chipRow("gericht", "Gerichtart", "Eine oder zwei, z. B. Suppe &amp; Eintopf und Kartoffeln.") + chipRow("fleischsorte", "Fleischsorte (optional)", "") + chipRow("zeit", "Zeitaufwand", "schnell bis etwa 20 Minuten, normal 20 bis 45 Minuten, aufwendig darüber.") + chipRow("merkmal", "Zusatz (optional)", "")
+        : '<div class="field"><span class="lbl">Kategorie</span><div class="chips" id="c-kat">' + optNames("kat").map((k) => '<button type="button" data-act="fkat" data-val="' + esc(k) + '" data-g="gericht">' + esc(k) + "</button>").join("") + "</div></div>" +
+          '<div class="field"><span class="lbl">Merkmale</span><div class="chips" id="c-mk">' + optNames("mk").map((m) => '<button type="button" data-act="fmk" data-val="' + esc(m) + '" data-g="merkmal">' + esc(m) + "</button>").join("") + "</div></div>") +
+      '<p class="hint">Neue Kategorien und Merkmale legt ihr in der Tabelle im Reiter „Essen-Listen“ an.</p>' +
       '<div class="field"><label for="f-notiz">Notiz oder Rezept-Link (optional)</label><textarea id="f-notiz" maxlength="300">' + esc(g ? g.notiz : "") + "</textarea></div>" +
       '<label class="checkline"><input type="checkbox" id="f-aktiv"' + (!g || g.aktiv ? " checked" : "") + "> Wird für den Wochenplan vorgeschlagen</label>" +
       '<p class="err" id="f-err" hidden></p>' +
@@ -852,9 +864,19 @@ p { margin: 0; }
     openSheet(h);
     syncDishForm();
   }
+  // Auswahl je Gruppe: Ernährung, Fleischsorte und Zeit genau eine, Gerichtart höchstens zwei, Zusatz beliebig
+  function pickGrp(set, v, g) {
+    if (set.has(v)) { set.delete(v); if (v === "Fleisch") grp("fleischsorte").forEach((x) => set.delete(x)); return; }
+    const same = Array.from(set).filter((x) => gruppeVon(x) === g || (!gruppeVon(x) && g === "gericht"));
+    if (g === "ernaehrung" || g === "fleischsorte" || g === "zeit") same.forEach((x) => set.delete(x));
+    if (g === "gericht" && same.length >= 2) set.delete(same[0]);
+    if (g === "ernaehrung" && v !== "Fleisch") grp("fleischsorte").forEach((x) => set.delete(x));
+    set.add(v);
+  }
   function syncDishForm() {
     const sh = $("#sheet");
-    sh.querySelectorAll("[data-act=fkat]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.val === draft.kat)));
+    sh.querySelectorAll("[data-act=fkat]").forEach((b) => b.setAttribute("aria-pressed", String(draft.kat.has(b.dataset.val))));
+    const fs = sh.querySelector('[data-gruppe="fleischsorte"]'); if (fs) fs.parentElement.hidden = !draft.kat.has("Fleisch");
     sh.querySelectorAll("[data-act=fmk]").forEach((b) => b.setAttribute("aria-pressed", String(draft.mk.has(b.dataset.val))));
     const em = $("#f-emoji") ? $("#f-emoji").value : "🍽️";
     $("#f-prev").innerHTML = thumb({ bild: draft.bild, emoji: em || "🍽️" }, "lg");
@@ -866,7 +888,7 @@ p { margin: 0; }
     if (!name) { errEl.textContent = "Bitte einen Namen eintragen."; errEl.hidden = false; return; }
     const dup = S.gerichte.find((g) => g.id !== real(draft.id) && g.name.toLowerCase() === name.toLowerCase());
     if (dup) { errEl.textContent = "„" + dup.name + "“ gibt es schon."; errEl.hidden = false; return; }
-    const data = { name, emoji: $("#f-emoji").value.trim() || "🍽️", bild: draft.bild || "", kategorie: draft.kat, merkmale: optNames("mk").filter((m) => draft.mk.has(m)), notiz: $("#f-notiz").value.trim(), aktiv: $("#f-aktiv").checked };
+    const data = { name, emoji: $("#f-emoji").value.trim() || "🍽️", bild: draft.bild || "", kategorie: S.kategorien.map((o) => o.name).filter((k) => draft.kat.has(k)).join(","), kats: S.kategorien.map((o) => o.name).filter((k) => draft.kat.has(k)), merkmale: optNames("mk").filter((m) => draft.mk.has(m)), notiz: $("#f-notiz").value.trim(), aktiv: $("#f-aktiv").checked };
     const old = draft.id ? G(real(draft.id)) : null;
     data.bildLink = data.bild.indexOf("data:") === 0 ? data.bild : data.bild ? (old ? old.bildLink : "") : "";
     if (old) {
@@ -934,8 +956,8 @@ p { margin: 0; }
       case "filter": ui.filter = el.dataset.val; render(); break;
       case "newdish": openDishForm(null); break;
       case "editdish": openDishForm(G(el.dataset.id)); break;
-      case "fkat": draft.kat = el.dataset.val; syncDishForm(); break;
-      case "fmk": { const m = el.dataset.val; if (draft.mk.has(m)) draft.mk.delete(m); else draft.mk.add(m); syncDishForm(); break; }
+      case "fkat": pickGrp(draft.kat, el.dataset.val, el.dataset.g); syncDishForm(); break;
+      case "fmk": pickGrp(draft.mk, el.dataset.val, el.dataset.g); syncDishForm(); break;
       case "rmfoto": draft.bild = ""; syncDishForm(); break;
       case "savedish": saveDish(); break;
       case "del-ask": $("#del-box").hidden = false; break;
