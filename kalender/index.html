@@ -45,7 +45,7 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
 </head>
 <body>
 <div class="app" id="main"></div>
-<script src="../core.js?v=20261113e"></script>
+<script src="../core.js?v=20261113f"></script>
 <script>(function () {
   "use strict";
   const $ = (s) => document.querySelector(s);
@@ -72,7 +72,7 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
       h += '<section class="day" id="d-' + d + '"><h2>' + (i === 0 ? "Heute" : i === 1 ? "Morgen" : WL[p.getDay()]) + " <span>" + p.getDate() + ". " + MON[p.getMonth()] + "</span></h2>" +
         (list.length ? list.map((t) => { const w = wer(t), vorbei = d === heute && t.zeit && (t.ende || t.zeit) < hm; return '<div class="ev' + (vorbei ? " past" : "") + '"><span class="bar" style="--pc:' + FARBE[w] + '"></span><span class="tm">' + esc(t.zeit || "ganzt.") + '</span><span class="tx">' + esc(t.titel) + (t.ort ? "<small>" + esc(t.ort) + "</small>" : "") + '</span><span class="who">' + NAME[w] + "</span></div>"; }).join("") : '<p class="none">Keine Termine</p>') + "</section>";
     }
-    h += '<p class="note">Termine legt ihr im Google Kalender an. Sie erscheinen hier automatisch. Die Farbe kommt aus dem Titel: Lisa lila, Christian blau, Ruby oder Elli rot. Mehrere Namen oder keiner: Familie gelb.</p>';
+    h += '<p class="note">Termine legt ihr im Google Kalender an. Sie erscheinen hier automatisch. Die Farbe kommt aus dem Titel: Lisa oder Mama lila, Christian oder Papa blau, Ruby oder Elli rot. Mehrere Personen oder keine: Familie gelb.</p>';
     $("#main").innerHTML = h;
     FZ.status();
   }

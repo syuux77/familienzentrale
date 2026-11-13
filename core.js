@@ -341,13 +341,14 @@
   };
 
   /* ---------- Termine: Person und Farbe aus dem Titel ---------- */
-  // Genau ein Name im Titel: Lisa → Lisa, Christian → Christian, Ruby oder Elli → Kinder.
+  // Genau eine Person im Titel: Lisa/Mama → Lisa, Christian/Papa → Christian, Ruby oder Elli → Kinder.
   // Mehrere Namen oder keiner: Familie.
   FZ.PERS_FARBE = { chris: "var(--chris)", lisa: "var(--lisa)", kind: "var(--ruby)", fam: "var(--fam)" };
   FZ.PERS_NAME = { chris: "Christian", lisa: "Lisa", kind: "Kinder", fam: "Familie" };
   FZ.terminPerson = function (t) {
     const s = String(t.titel || "");
-    const n = [["lisa", /\blisa/i], ["chris", /\bchristian/i], ["kind", /\bruby/i], ["kind", /\belli/i]].filter((x) => x[1].test(s));
+    // Jede Person zählt einmal, auch wenn sie mit Spitznamen dasteht (Papa = Christian, Mama = Lisa).
+    const n = [["lisa", /\b(lisa|mama)/i], ["chris", /\b(christian|papa)/i], ["kind", /\bruby/i], ["kind", /\belli/i]].filter((x) => x[1].test(s));
     return n.length === 1 ? n[0][0] : "fam";
   };
   // Einstellungen schreiben (für einfache Schalter)
