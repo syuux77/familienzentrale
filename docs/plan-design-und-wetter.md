@@ -10,9 +10,11 @@ Stand: 12.11.2026 · Status: Entwurf, Version 2. Nichts davon ist live. Die Gesc
 - Kostenlos wie bisher: GitHub Pages, Google-Tabelle, Apps Script, kein eigener Server.
 - Weiterentwicklung nur mit Claude. Deshalb soll alles in kleinen, klar getrennten Dateien liegen und eine Musterseite haben, die man ansehen und fotografieren kann.
 - Wand-iPad: 11 Zoll, iPadOS 17 oder neuer, **im Hochformat** (820 × 1180 Punkte). Moderne CSS-Technik (Container Queries, `:has()`, `color-mix()`, Web Animations) ist erlaubt.
-- Zwei Handys: Chris und Lisa. Das Handy weiß, wem es gehört (Einrichtungs-Link mit `&person=chris` bzw. `lisa`).
+- Zwei Handys: Christian und Lisa. Das Handy weiß, wem es gehört: Beim ersten Öffnen nach dem Update fragt es einmal „Wer bist du?“ und speichert die Antwort auf dem Gerät (`fz.person`). Keine neuen Links nötig; umstellbar auf der Eltern-Seite.
+- Daten: Die Google-Tabelle bleibt die Datenbasis, alle bisherigen Einträge bleiben erhalten. Neu sind nur Spalten (`Max pro Tag`, `Tagesart`) und der Reiter `Stimmung`. Die Statistik rechnet rückwirkend mit den vorhandenen Einträgen aus „Erledigt“ und „Bewertungen“.
+- Bearbeiten bleibt: Haushaltsaufgaben und Gerichte (mit Kategorie und Merkmalen) lassen sich wie bisher am Handy anlegen und ändern, am Wand-iPad hinter der Eltern-PIN. Vor dem Umbau werden Kategorien und Merkmale in der Tabelle gemeinsam bereinigt.
 - Handy: Nachschauen, Abhaken, Planen und Pflegen. Das Handy ist das Werkzeug, die Wand ist der Überblick.
-- Kinderseite: zunächst für ein Kind (4 Jahre, liest noch nicht). Mehrere Kinder sollen später ohne Umbau möglich sein. Das Essen bewerten Chris, Lisa und Ruby schon heute am nächsten Morgen.
+- Kinderseite: zunächst für ein Kind (4 Jahre, liest noch nicht). Mehrere Kinder sollen später ohne Umbau möglich sein. Das Essen bewerten Christian, Lisa und Ruby schon heute am nächsten Morgen.
 - Inhalte: Wetter, Kalender (nur Anzeige), Haushalt, Essen, Kinderseite. Dahinter ein Statistik-Dashboard für Haushalt (ohne Uhrzeit-Auswertung) und Essen, dazu die neue Tagesstimmung.
 
 ## 2. Was die Recherche ergeben hat
@@ -65,7 +67,7 @@ Stand: 12.11.2026 · Status: Entwurf, Version 2. Nichts davon ist live. Die Gesc
 **Folgerungen**
 - Alle bauen auf Kalender, Aufgaben, Essen und Listen. Die Einkaufsliste bleibt ein spätes Update.
 - Statistik ist die Lücke der Wand-Geräte. Ein Dashboard für Haushalt, Essen und Stimmung ist das, was die Familienzentrale von den Kaufprodukten abhebt.
-- Feste Personenfarben überall (Kalender, Haushalt, Statistik), immer mit Namen daneben. Chris blau `#2a78d6`, Lisa grün `#1baf7a` (Text auf Hell `#14946a`), Kinder orange `#eb6834`, Familie violett `#6250d6`. Die Kombination ist mit dem Farbprüfer auf Farbsehschwächen getestet.
+- Feste Personenfarben überall (Kalender, Haushalt, Statistik), immer mit Namen daneben. Christian blau `#2a78d6`, Lisa grün `#1baf7a` (Text auf Hell `#14946a`), Kinder orange `#eb6834`, Familie violett `#6250d6`. Die Kombination ist mit dem Farbprüfer auf Farbsehschwächen getestet.
 - Abwechslung beim Feiern der Kinder bestätigt Charty. Gefühle als Schritt der Routine bestätigt Hearth.
 - Fast alle sperren die spannenden Funktionen hinter Abos. Kostenlos bleibt Pflicht.
 
@@ -104,7 +106,7 @@ Stand: 12.11.2026 · Status: Entwurf, Version 2. Nichts davon ist live. Die Gesc
 
 | Bereich | Kennzahlen |
 | --- | --- |
-| Haushalt | Punkte pro Woche gestapelt Chris/Lisa (12 Wochen), Verteilung in %, Serie (Tage mit allen Tagesaufgaben), „bleibt liegen“ (Ø Tage überfällig), häufigste Aufgaben, Wochentage. Keine Auswertung nach Uhrzeit. |
+| Haushalt | Punkte pro Woche gestapelt Christian/Lisa (12 Wochen), Verteilung in %, Serie (Tage mit allen Tagesaufgaben), „bleibt liegen“ (Ø Tage überfällig), häufigste Aufgaben, Wochentage. Keine Auswertung nach Uhrzeit. |
 | Essen | Hitliste (Ø 1–3 mit Anzahl), Flops, Ø je Person, Einigkeit der drei, Abwechslung, Verlauf pro Woche |
 | Stimmung | Jahr in Pixeln, Wochenschnitt je Person, Zusammenhänge ab 30 Tagen, beste Wochentage |
 
