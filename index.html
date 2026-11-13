@@ -101,8 +101,8 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
   <header class="head" id="head"></header>
   <div id="main" aria-live="polite" style="display:contents"></div>
 </div>
-<script src="core.js?v=20261113d"></script>
-<script src="wetter.js?v=20261113d"></script>
+<script src="core.js?v=20261113e"></script>
+<script src="wetter.js?v=20261113e"></script>
 <script>(function () {
   "use strict";
   const $ = (s) => document.querySelector(s);
@@ -212,7 +212,7 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
   function wocheKarte(date) {
     const ab = addDays(date, -6);
     const er = FZ.reiter("Erledigt").filter((e) => { const t = String(e.Zeitpunkt || "").slice(0, 10); return t >= ab && t <= date && e.Art !== "ausgesetzt"; }).length;
-    const bw = FZ.reiter("Bewertungen").filter((b) => b.Datum >= addDays(date, -27)).map((b) => Number(b.Wert)).filter(Boolean);
+    const bw = FZ.reiter("Bewertungen").filter((b) => !FZ.istStimmung(b) && b.Datum >= addDays(date, -27)).map((b) => Number(b.Wert)).filter(Boolean);
     const st = FZ.stimmungListe().filter((b) => b.Datum >= addDays(date, -27)).map((b) => Number(b.Wert)).filter(Boolean);
     const avg = (a) => (a.length ? (a.reduce((x, y) => x + y, 0) / a.length).toFixed(1).replace(".", ",") : "–");
     return '<a class="card stats" href="statistik/"><div><b>' + er + "</b><span>Aufgaben in 7 Tagen</span></div><div><b>" + avg(bw) + "</b><span>Essen Ø von 3</span></div><div><b>" + avg(st) + "</b><span>Stimmung Ø von 5</span></div></a>";

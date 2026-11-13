@@ -63,7 +63,7 @@ svg.ch .vt { fill: var(--fg); }
 </head>
 <body>
 <div class="app" id="main"></div>
-<script src="../core.js?v=20261113d"></script>
+<script src="../core.js?v=20261113e"></script>
 <script>(function () {
   "use strict";
   const $ = (s) => document.querySelector(s);
@@ -96,7 +96,7 @@ svg.ch .vt { fill: var(--fg); }
     const anteil = cur.chris + cur.lisa ? Math.round(cur.chris / (cur.chris + cur.lisa) * 100) : 50;
     // ---------- Essen ----------
     const G = {}; FZ.reiter("Gerichte").forEach((g) => { G[g.ID] = g; });
-    const bew = FZ.reiter("Bewertungen").filter((b) => Number(b.Wert)).map((b) => ({ tag: b.Datum, g: b["Gericht-ID"], p: b.Person, v: Number(b.Wert) }));
+    const bew = FZ.reiter("Bewertungen").filter((b) => Number(b.Wert) && !FZ.istStimmung(b)).map((b) => ({ tag: b.Datum, g: b["Gericht-ID"], p: b.Person, v: Number(b.Wert) }));
     const essenWoche = wochen.map((w) => avg(bew.filter((b) => b.tag >= w && b.tag <= addDays(w, 6)).map((b) => b.v)));
     const ab28 = addDays(heute, -27);
     const b28 = bew.filter((b) => b.tag >= ab28);

@@ -352,7 +352,7 @@ p { margin: 0; }
   <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
 </div>
 <div id="toast" class="toast" role="status" hidden></div>
-<script src="../core.js?v=20261113d"></script>
+<script src="../core.js?v=20261113e"></script>
 <script>
 (function () {
   "use strict";
@@ -421,7 +421,7 @@ p { margin: 0; }
       if (st === "gericht" && r["Gericht-ID"]) plan[r.Datum] = { status: "gericht", gerichtId: r["Gericht-ID"], vorschlag: ja(r.Vorschlag) };
       else if (STATUS[st]) plan[r.Datum] = { status: st };
     });
-    const bewertungen = FZ.reiter("Bewertungen").filter((r) => r.Datum && r.Person && Number(r.Wert))
+    const bewertungen = FZ.reiter("Bewertungen").filter((r) => r.Datum && r.Person && Number(r.Wert) && !(FZ.istStimmung && FZ.istStimmung(r)))
       .map((r) => ({ datum: r.Datum, gerichtId: r["Gericht-ID"], person: r.Person, wert: Math.max(1, Math.min(3, Number(r.Wert))) }));
     return { kategorien, merkmale, gerichte, plan, bewertungen };
   }
