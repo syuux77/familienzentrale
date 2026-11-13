@@ -302,8 +302,8 @@ button.card { cursor: pointer; touch-action: manipulation; }
   <main id="main" aria-live="polite"></main>
 </div>
 <div class="fx" id="fx" aria-hidden="true"></div>
-<script src="../core.js?v=20261113f"></script>
-<script src="effekte.js?v=20261113f"></script>
+<script src="../core.js?v=20261113g"></script>
+<script src="effekte.js?v=20261113g"></script>
 <script>(function () {
   "use strict";
   const $ = (s) => document.querySelector(s);
@@ -389,7 +389,7 @@ button.card { cursor: pointer; touch-action: manipulation; }
     if (!m && !m2) return null;
     const name = !m ? "Noch nicht geplant" : m.status === "gericht" ? m.name : m.kid;
     const vis = m && m.bild ? '<img src="' + esc(m.bild) + '" alt="">' : '<span class="emo' + emojiClass(m ? m.emoji : "❔") + '" aria-hidden="true">' + esc(m ? m.emoji : "❔") + "</span>";
-    return { id: "meal", html: '<article class="icard meal"><span class="plate">' + vis + '</span><span class="itxt"><small class="lbl">Heute Abend</small><b class="ttl">' + esc(name) + "</b>" +
+    return { id: "meal", html: '<article class="icard meal"><span class="plate">' + vis + '</span><span class="itxt"><small class="lbl">' + (m && m.status === "gericht" && FZ.abendessenFertig && FZ.abendessenFertig(date) ? "Heute gab es" : "Heute Abend") + '</small><b class="ttl">' + esc(name) + "</b>" +
       (m2 ? '<span class="mm">Morgen: <b>' + esc(m2.name) + "</b></span>" : "") + "</span></article>" };
   }
 
@@ -482,9 +482,9 @@ button.card { cursor: pointer; touch-action: manipulation; }
       '<h1><span class="emo">' + esc(phase.symbol) + "</span>" + esc(phase.name) + "</h1>" +
       '<p class="sub">bis ' + fmtTime(toMin(phase.ende)) + " Uhr · danach <b>" + esc(nxt.name) + "</b> " + '<span class="emo">' + esc(nxt.symbol) + "</span></p></div>" +
       '<div class="side"><div class="clock">' + fmtTime(min) + '</div><div class="date">' + esc(dateTxt) + "</div>" +
-      (info.kita
+      (info.kita && !(FZ.kitaVorbei && FZ.kitaVorbei(date, min))
         ? '<div class="daychip"><span class="emo">🏫</span>Kita-Tag</div>'
-        : '<div class="daychip"><span class="emo">🏠</span>' + esc(FZ.tagText ? FZ.tagText(info) : "Zuhause, heute keine Kita") + "</div>") +
+        : '<div class="daychip"><span class="emo">🏠</span>' + esc(FZ.tagText ? FZ.tagText(info, true) : "Zuhause, heute keine Kita") + "</div>") +
       "</div>";
     $("#daybar").innerHTML = renderDaybar(P, phase, min);
 

@@ -207,20 +207,8 @@
     root.dataset.mode = ph.modus === "nacht" ? "abend" : ph.modus;
     return ph;
   };
-  // Ruhezustand am Wand-iPad: morgens und abends (bis kinderseite_abends_bis, sonst 19:00) die Kinderseite, sonst die Startseite.
-  FZ.ruheSeite = function () {
-    const now = new Date(), min = now.getHours() * 60 + now.getMinutes();
-    const ph = FZ.phaseAt(min);
-    if (ph.id === "morgen") return "kinder";
-    if (ph.id === "abend") {
-      const v = String(FZ.einst().kinderseite_abends_bis || "").trim();
-      const bis = /^\d{1,2}:\d{2}$/.test(v) ? toMin(v) : 19 * 60;
-      const a = toMin(ph.start);
-      if (min >= a && min < bis) return "kinder";
-    }
-    return "start";
-  };
-  FZ.ruheUrl = () => ROOT + (FZ.ruheSeite() === "kinder" ? "kinder/" : "");
+  // Ruhezustand am Wand-iPad: Start- und Kinderseite bleiben stehen, alle anderen Seiten gehen zurück zur Startseite.
+  FZ.ruheUrl = () => ROOT;
   // Automatischer Seitenwechsel nur, wenn die Zielseite erreichbar ist.
   // Ohne WLAN bliebe sonst an der Wand eine Fehlerseite des Browsers stehen.
   let wechsel = false;
@@ -269,9 +257,37 @@
   };
 
   // Kurztext für Start- und Kinderseite: „Kita-Tag“, „Zuhause, heute keine Kita“ oder „Zuhause · Wochenende“
-  FZ.tagText = function (info) {
-    if (info.kita) return "Kita-Tag";
+  // vorbei=true: die Kita-Zeit ist für heute zu Ende, dann sind alle zu Hause.
+  FZ.tagText = function (info, vorbei) {
+    if (info.kita) return vorbei ? "Zuhause" : "Kita-Tag";
     return info.grund === "heute zu Hause" || info.grund === "kein Kita-Tag" || !info.grund ? "Zuhause, heute keine Kita" : "Zuhause · " + info.grund;
+  };
+
+  // Kita-Tag und die Kita-Phase ist schon vorbei (z. B. nach 15:00)?
+  FZ.kitaVorbei = function (date, min) {
+    if (!FZ.dayInfo(date).kita) return false;
+    const k = FZ.phasen(date).find((p) => p.id === "kita");
+    return !!k && min >= toMin(k.ende);
+  };
+  // Kinderaufgaben zum Abhaken: nur morgens und abends (wie auf der Kinderseite). Die Karten in den
+  // anderen Tageszeiten sind nur Hinweise und zählen nicht als Sterne.
+  FZ.KINDER_ABHAKEN = ["morgen", "abend"];
+  FZ.kinderAufgaben = function (date, phaseId) {
+    if (!FZ.KINDER_ABHAKEN.includes(phaseId)) return [];
+    const heute = FZ.dayInfo(date), morgen = FZ.dayInfo(addDays(date, 1)), w = WD[parse(date).getDay()];
+    return FZ.reiter("Kinderaufgaben").filter((k) => {
+      if (!k.ID || String(k.Aktiv).toLowerCase() !== "ja" || !FZ.phaseMatch(list(k.Tagesphasen), phaseId)) return false;
+      const tage = list(k.Wochentage); if (tage.length && !tage.includes(w)) return false;
+      if (k.Wann === "kita") return heute.kita;
+      if (k.Wann === "zuhause") return !heute.kita;
+      if (k.Wann === "vor_kita") return morgen.kita;
+      return true;
+    });
+  };
+  // Wurde heute schon „Abendessen zubereiten“ (oder eine andere Abendessen-Aufgabe) abgehakt?
+  FZ.abendessenFertig = function (date) {
+    const ids = FZ.reiter("Haushalt").filter((h) => /abendessen|abendbrot/i.test(h.Titel || "")).map((h) => h.ID);
+    return FZ.reiter("Erledigt").some((e) => String(e.Zeitpunkt || "").slice(0, 10) === date && e.Art !== "ausgesetzt" && (ids.includes(e["Aufgaben-ID"]) || /abendessen|abendbrot/i.test(e.Titel || "")));
   };
 
   /* ---------- Essen für heute/morgen (Start- und Kinderseite) ---------- */
@@ -602,8 +618,8 @@
     const startDay = FZ.today();
     setInterval(() => {
       const sek = Math.max(30, parseInt(FZ.einst().sperrzeit_sekunden, 10) || 150);
-      const ziel = FZ.ruheSeite();
-      if (FZ.page && FZ.page !== ziel && Date.now() - touched > sek * 1000 && !pending) { FZ.sperren(); FZ.geheZu(FZ.ruheUrl()); return; }
+      const bleibt = FZ.page === "start" || FZ.page === "kinder";
+      if (FZ.page && !bleibt && Date.now() - touched > sek * 1000 && !pending) { FZ.sperren(); FZ.geheZu(FZ.ruheUrl()); return; }
       if (FZ.today() !== startDay && FZ.page === "start" && Date.now() - touched > 60000) FZ.geheZu(location.pathname, true);
     }, 5000);
     void lock;

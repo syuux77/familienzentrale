@@ -22,7 +22,7 @@ Familien-Dashboard als Web-App für ein Wandtablet (iPad im Flur) und die Handys
 - `core.js`: gemeinsamer Kern – Schlüssel und Gerät, Daten aus der Google-Tabelle über das Apps Script, Leiste unten, Tagesphasen, Kita-/Zuhause-Tag, Verhalten am Wand-iPad.
 - Daten: Google-Tabelle „Familienzentrale – Daten“, angebunden über ein Google Apps Script (Web-App).
 - Zugriff nur mit dem Familien-Schlüssel. Der Schlüssel steht **nie** in diesem Repository; jedes Gerät bekommt ihn einmalig über einen Einrichtungs-Link (`…/#key=…`, Wand-iPad zusätzlich `&geraet=wand`).
-- Ruhezustand am Wand-iPad: ohne Berührung springt die App morgens (Phase „Morgen“) und abends (ab Beginn der Phase „Abend“ bis 19:00) zur Kinderseite, sonst zur Startseite. Die Abend-Grenze lässt sich in der Tabelle im Reiter Einstellungen mit dem optionalen Schlüssel `kinderseite_abends_bis` (z. B. `18:45`) ändern.
+- Ruhezustand am Wand-iPad: Start- und Kinderseite bleiben ohne Berührung offen. Alle anderen Seiten gehen nach der Sperrzeit zurück zur Startseite.
 - Startseite am Wand-iPad im Hochformat: alles auf einem Bildschirm; die Haushaltsliste wird mit „+ n weitere“ gekürzt.
 - Die Farbwelt bleibt den ganzen Tag gleich. Die Tageszeit zeigt nur ein leichter Himmel oben (Sonnenaufgang rötlich, tagsüber blau, nachts dunkel) und nachts ein Schleier.
 - Kinderseite: Aufgaben zuerst, dahinter Infokarten (morgens „Heute anziehen“ nach Wetter, immer das Abendessen). Ein Stern pro Aufgabe zeigt den Fortschritt; beim Abhaken kommt jedes Mal eine andere Animation, am Ende ein wechselnder Endbonus (Töne nur mit `kinder_toene`). Die Anzieh-Regeln (gefühlte Temperatur 7–17 Uhr, Regen, Schnee) stehen in `kinder/index.html` in der Funktion `anziehen`.

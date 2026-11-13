@@ -69,6 +69,7 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
 .faces button { border: 2px solid var(--line); background: var(--bg); border-radius: 14px; font-family: var(--font-emoji); font-size: 28px; width: 56px; height: 50px; cursor: pointer; padding: 0; line-height: 1; }
 .faces button[aria-pressed="true"] { border-color: var(--accent); background: var(--soft); }
 .faces button.dim { opacity: .35; filter: grayscale(1); }
+.faces button.nd { font: 800 11px/1.05 var(--font); color: var(--muted); width: auto; min-width: 46px; padding: 0 6px; }
 .hint { display: flex; align-items: center; gap: 12px; background: var(--soft); }
 .hint b { display: block; }
 .hint small { color: var(--muted); font-weight: 600; }
@@ -101,8 +102,8 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
   <header class="head" id="head"></header>
   <div id="main" aria-live="polite" style="display:contents"></div>
 </div>
-<script src="core.js?v=20261113f"></script>
-<script src="wetter.js?v=20261113f"></script>
+<script src="core.js?v=20261113g"></script>
+<script src="wetter.js?v=20261113g"></script>
 <script>(function () {
   "use strict";
   const $ = (s) => document.querySelector(s);
@@ -124,7 +125,9 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
       .map((t) => Object.assign({}, t, { datum: t.datum < date ? date : t.datum }))
       .sort((a, b) => (a.datum + (a.zeit || "00:00")).localeCompare(b.datum + (b.zeit || "00:00")));
   }
-  const rating = (d, p) => { const b = FZ.reiter("Bewertungen").find((x) => x.Datum === d && x.Person === p); return b ? Number(b.Wert) : null; };
+  // Wert 1–3 oder „nicht dabei“ (zählt als beantwortet, geht aber nicht in die Statistik ein)
+  const ND = "nicht dabei";
+  const rating = (d, p) => { const b = FZ.reiter("Bewertungen").find((x) => x.Datum === d && x.Person === p); return !b ? null : b.Wert === ND ? ND : Number(b.Wert) || null; };
   const vis = (m) => (m.bild ? '<span class="img"><img src="' + esc(m.bild) + '" alt=""></span>' : '<span class="e" aria-hidden="true">' + esc(m.emoji) + "</span>");
   const kat = (g) => String(g || "").split(",").map((x) => x.trim()).filter(Boolean).slice(0, 2).join(" · ");
 
@@ -143,12 +146,12 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
         : '<div class="wx"><div class="s">Wetter lädt …</div></div>');
 
     // Chips: Phase, Kita, Warnung, Kinder
-    const kids = FZ.reiter("Kinderaufgaben").filter((k) => k.ID && String(k.Aktiv).toLowerCase() === "ja" && FZ.phaseMatch(FZ.list(k.Tagesphasen), ph.id) && (k.Wann === "kita" ? info.kita : k.Wann === "zuhause" ? !info.kita : true));
+    const kids = FZ.kinderAufgaben(date, ph.id), kitaJetzt = info.kita && !FZ.kitaVorbei(date, min);
     const kidsDone = kids.filter((k) => k["Erledigt am"] === date).length;
     const warn = W && W.warnungen && W.warnungen[0];
     let h = '<div class="chips"><span class="chip ph" style="background:' + ph.farbe + '"><span class="emo">' + esc(ph.symbol) + "</span>" + esc(ph.name) + (ph.id !== "nacht" ? " bis " + ph.ende : "") + "</span>" +
-      '<span class="chip">' + (info.kita ? "🎒 " : "🏠 ") + esc(FZ.tagText(info)) + "</span>" +
-      (kids.length && ph.id !== "kita" ? '<span class="chip">⭐ Kinder ' + kidsDone + "/" + kids.length + "</span>" : "") +
+      '<span class="chip">' + (kitaJetzt ? "🎒 " : "🏠 ") + esc(FZ.tagText(info, !kitaJetzt)) + "</span>" +
+      (kids.length ? '<span class="chip">⭐ Kinder ' + kidsDone + "/" + kids.length + "</span>" : "") +
       (warn ? '<span class="chip warn">⚠ ' + esc(warn.titel.replace(/^Amtliche WARNUNG vor /i, "Warnung: ")) + "</span>" : "") + "</div>";
     h += FZ.zeitstrahl(!FZ.wand && innerWidth < 560);
 
@@ -158,7 +161,7 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
     if (min < bis && gm && gm.status === "gericht" && !RATERS.every((p) => rating(y, p))) {
       h += '<section class="card rate"><div class="lbl">Gestern: ' + esc(gm.name) + "<em>Wie war's?</em></div><div class='rows'>" + RATERS.map((p) => {
         const cur = rating(y, p);
-        return '<div class="rr"><span class="nm">' + N[p] + '</span><span class="faces">' + [3, 2, 1].map((v) => '<button type="button" class="' + (cur && cur !== v ? "dim" : "") + '" data-rate="' + v + '" data-p="' + p + '" data-d="' + y + '" data-g="' + esc(gm.id) + '" aria-pressed="' + (cur === v) + '" aria-label="' + N[p] + ": " + SMILE_TXT[v] + '">' + SMILE[v] + "</button>").join("") + "</span></div>";
+        return '<div class="rr"><span class="nm">' + N[p] + '</span><span class="faces">' + [3, 2, 1, ND].map((v) => '<button type="button" class="' + (v === ND ? "nd " : "") + (cur && cur !== v ? "dim" : "") + '" data-rate="' + v + '" data-p="' + p + '" data-d="' + y + '" data-g="' + esc(gm.id) + '" aria-pressed="' + (cur === v) + '" aria-label="' + N[p] + ": " + (v === ND ? "nicht mitgegessen" : SMILE_TXT[v]) + '">' + (v === ND ? "nicht<br>dabei" : SMILE[v]) + "</button>").join("") + "</span></div>";
       }).join("") + "</div></section>";
     }
     // Essen planen (Mittwoch ab essen_hinweis)
@@ -168,7 +171,8 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
 
     // Essen und Termine
     const meal = FZ.meal(date), tm = FZ.meal(addDays(date, 1));
-    const mealCard = '<a class="card t1" href="essen/"><div class="lbl">Heute Abend</div>' + (meal ? '<div class="meal">' + vis(meal) + "<div><h3>" + esc(meal.status === "gericht" ? meal.name : meal.kid) + "</h3>" + (meal.kategorie ? "<p>" + esc(kat(meal.kategorie)) + "</p>" : "") + "</div></div>" : '<p class="empty">Noch nichts geplant</p>') + (tm ? '<p class="next">Morgen: <b>' + esc(tm.name) + "</b></p>" : "") + "</a>";
+    const gegessen = meal && meal.status === "gericht" && FZ.abendessenFertig(date);
+    const mealCard = '<a class="card t1" href="essen/"><div class="lbl">' + (gegessen ? "Heute gab es" : "Heute Abend") + "</div>" + (meal ? '<div class="meal">' + vis(meal) + "<div><h3>" + esc(meal.status === "gericht" ? meal.name : meal.kid) + "</h3>" + (meal.kategorie ? "<p>" + esc(kat(meal.kategorie)) + "</p>" : "") + "</div></div>" : '<p class="empty">Noch nichts geplant</p>') + (tm ? '<p class="next">Morgen: <b>' + esc(tm.name) + "</b></p>" : "") + "</a>";
     const nowHM = fmt(min);
     const evs = eventsFrom(date, 2).filter((t) => !(t.datum === date && t.zeit && (t.ende || t.zeit) < nowHM));
     const heute = evs.filter((t) => t.datum === date), morgen = evs.filter((t) => t.datum !== date).slice(0, 2);
@@ -231,12 +235,12 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
   function rate(d, p, v, g) {
     const rows = FZ.daten.Bewertungen || (FZ.daten.Bewertungen = []);
     const i = rows.findIndex((b) => b.Datum === d && b.Person === p);
-    if (i >= 0 && Number(rows[i].Wert) === v) { rows.splice(i, 1); FZ.send([{ art: "loeschen", reiter: "Bewertungen", wo: { Datum: d, Person: p } }]); }
+    if (i >= 0 && rows[i].Wert === v) { rows.splice(i, 1); FZ.send([{ art: "loeschen", reiter: "Bewertungen", wo: { Datum: d, Person: p } }]); }
     else { if (i >= 0) { rows[i].Wert = String(v); rows[i]["Gericht-ID"] = g; } else rows.push({ Datum: d, "Gericht-ID": g, Person: p, Wert: String(v) }); FZ.send([{ art: "setzen", reiter: "Bewertungen", wo: { Datum: d, Person: p }, werte: { "Gericht-ID": g, Wert: String(v) } }]); }
     render();
   }
   document.addEventListener("click", (ev) => {
-    const r = ev.target.closest("[data-rate]"); if (r) return rate(r.dataset.d, r.dataset.p, Number(r.dataset.rate), r.dataset.g);
+    const r = ev.target.closest("[data-rate]"); if (r) return rate(r.dataset.d, r.dataset.p, r.dataset.rate, r.dataset.g);
     const m = ev.target.closest("[data-mood]"); if (m) return FZ.stimmungSetzen(iso(new Date()), m.dataset.p, Number(m.dataset.mood));
     const t = ev.target.closest("[data-hh]"); if (t) return FZ.hhErledigen(t.dataset.hh, t.dataset.p);
     if (ev.target.closest("#wx") && FZ.wetter) FZ.wetter.ansicht();
