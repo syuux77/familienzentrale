@@ -8,7 +8,7 @@ Version 2 liegt auf dem Branch `claude/familienzentrale-app-improvements-hrv6u2`
 | --- | --- | --- |
 | Haushalt | Neue Spalte **Max pro Tag**. Werte: Geschirrspüler aus- und einräumen 2, Trude Runde 3, Müll rausbringen 2, alle anderen 1. Spalte „Mehrfach“ bleibt vorerst stehen. | keine |
 | Stimmung (neu) | Spalten **Datum, Person, Wert, Notiz**. Wert 1 bis 5. | keine |
-| Einstellungen | Neue Zeilen **kinder_toene** = aus, **wetter_lat** = 50.83, **wetter_lon** = 12.92 | keine |
+| Einstellungen | Neue Zeilen **kinder_toene** = aus, **kita_kinder** = Ruby, **wetter_lat** = 50.83, **wetter_lon** = 12.92 | keine |
 | Gerichte | Spalte **Kategorie**: Ernährung, Gerichtart, optional Fleischsorte, mit Komma getrennt. Spalte **Merkmale**: genau eine Zeitstufe, dazu optional „Ruby hilft mit“ und „reicht für Reste“. Werte siehe unten. | Die alte App würde mehrere Kategorien als eine lesen. Deshalb erst beim Livegang. |
 | Essen-Listen | Spalte **Art** mit den Gruppen ernaehrung, gericht, fleischsorte, zeit, merkmal. „divers“ wird zu „Bestellt“, „moderat“ und „vegetarisch“ als Merkmal entfallen. | wie oben, erst beim Livegang |
 | Info | Regeln 9 und 11 auf die neuen Gruppen und „Max pro Tag“ angepasst, Regel für „Stimmung“ ergänzt. | keine |

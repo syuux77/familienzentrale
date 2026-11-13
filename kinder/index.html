@@ -357,7 +357,7 @@ button.card { cursor: pointer; touch-action: manipulation; }
     for (const p of segs) {
       const a = toMin(p.start), b = toMin(p.ende);
       const cls = p === phase ? " on" : min >= b ? " past" : "";
-      h += '<div class="seg' + cls + '" style="--w:' + (b - a) + '"><span class="emo">' + esc(p.symbol) + "</span></div>";
+      h += '<div class="seg' + cls + '" style="--w:' + (b - a) + ";--phc:" + (p.farbe || "#F2A93B") + '"><span class="emo">' + esc(p.symbol) + "</span></div>";
     }
     if (min >= DAY_START && min < DAY_END) {
       const idx = Math.max(0, segs.findIndex((p) => min >= toMin(p.start) && min < toMin(p.ende)));
@@ -374,9 +374,14 @@ button.card { cursor: pointer; touch-action: manipulation; }
   }
   // Infokarte Abendessen: steht hinter den Aufgaben und sieht anders aus (runder Teller, kein Haken)
   // Kita-Zeit: wie lange noch bis zum Abholen, als Stundenbalken
+  // Wer in den Kindergarten geht: Einstellung kita_kinder (z. B. „Ruby“ oder „Ruby, Elli“), sonst Ruby
+  function kitaText() {
+    const k = String(FZ.einst().kita_kinder || "Ruby").split(",").map((x) => x.trim()).filter(Boolean);
+    return (k.length > 1 ? k.slice(0, -1).join(", ") + " und " + k[k.length - 1] + " sind" : k[0] + " ist") + " im Kindergarten";
+  }
   function kitaCard(phase, min) {
     const a = toMin(phase.start), b = toMin(phase.ende), n = Math.max(1, Math.round((b - a) / 60)), done = Math.max(0, Math.min(n, Math.floor((min - a) / 60)));
-    return { id: "kita", html: '<article class="icard meal kita"><span class="plate"><span class="emo" aria-hidden="true">🎒</span></span><span class="itxt"><small class="lbl">Abholen um ' + fmtTime(b) + ' Uhr</small><b class="ttl">Du bist in der Kita</b>' +
+    return { id: "kita", html: '<article class="icard meal kita"><span class="plate"><span class="emo" aria-hidden="true">🎒</span></span><span class="itxt"><small class="lbl">Abholen um ' + fmtTime(b) + ' Uhr</small><b class="ttl">' + esc(kitaText()) + '</b>' +
       '<span class="hours" aria-label="' + done + " von " + n + ' Stunden vorbei">' + Array.from({ length: n }, (_, i) => '<i class="' + (i < done ? "on" : "") + '"></i>').join("") + "</span></span></article>" };
   }
   function mealCard(date) {
