@@ -292,9 +292,8 @@ svg.ic { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-wid
     const ton = FZ.toene();
     const geraet =
       '<section class="card"><div class="card-h"><h2>' + IC.home + "Dieses Gerät und Töne</h2></div>" +
-      (FZ.wand ? '<p class="hint">Das ist das Wand-iPad. Erledigte Aufgaben ordnet ihr hier mit den Knöpfen C und L zu.</p>'
-        : '<p class="hint">Wem gehört dieses Handy? Erledigte Aufgaben und die Tagesstimmung landen dann automatisch bei dieser Person.</p>' +
-          '<div class="days" role="group" aria-label="Handy von">' + [["chris", "Christian"], ["lisa", "Lisa"]].map((x) => '<button type="button" class="day" style="flex:1" data-person="' + x[0] + '" aria-pressed="' + (FZ.person === x[0]) + '">' + x[1] + "</button>").join("") + "</div>") +
+      '<p class="hint">Was ist dieses Gerät? Am Tablet für alle ordnet ihr erledigte Aufgaben mit den Knöpfen C und L zu. Am eigenen Handy landen Aufgaben und Tagesstimmung automatisch bei euch.</p>' +
+      '<div class="days" role="group" aria-label="Dieses Gerät">' + [["chris", "Handy Christian"], ["lisa", "Handy Lisa"], ["wand", "Tablet für alle"]].map((x) => '<button type="button" class="day" style="flex:1;min-width:0;padding-inline:6px" data-geraet="' + x[0] + '" aria-pressed="' + (x[0] === "wand" ? FZ.wand : !FZ.wand && FZ.person === x[0]) + '">' + x[1] + "</button>").join("") + "</div>" +
       '<p class="hint" style="margin-top:14px"><b>Töne auf der Kinderseite</b></p><div class="days" role="group" aria-label="Töne auf der Kinderseite">' +
       [["aus", "Aus"], ["bonus", "Nur Endbonus"], ["an", "An"]].map((x) => '<button type="button" class="day" style="flex:1" data-ton="' + x[0] + '" aria-pressed="' + (ton === x[0]) + '">' + x[1] + "</button>").join("") + "</div></section>";
     const all = kinder();
@@ -335,8 +334,13 @@ svg.ic { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-wid
 
   $("#view").addEventListener("click", (ev) => {
     const E = FZ.einst();
-    const per = ev.target.closest("[data-person]");
-    if (per) { FZ.setPerson(per.dataset.person); toast("Dieses Handy gehört jetzt " + (per.dataset.person === "chris" ? "Christian" : "Lisa") + "."); renderPage(); return; }
+    const ger = ev.target.closest("[data-geraet]");
+    if (ger) {
+      const g = ger.dataset.geraet;
+      try { localStorage.setItem("fz.geraet", g === "wand" ? "wand" : "handy"); localStorage.setItem("fz.person", g === "wand" ? "-" : g); } catch (e) { /* egal */ }
+      toast(g === "wand" ? "Dieses Gerät ist jetzt das Tablet für alle." : "Dieses Handy gehört jetzt " + (g === "chris" ? "Christian" : "Lisa") + ".");
+      setTimeout(() => location.reload(), 900); return;
+    }
     const tn = ev.target.closest("[data-ton]");
     if (tn) { setEinst("kinder_toene", tn.dataset.ton); renderPage(); return; }
     const key = ev.target.closest("[data-key]");

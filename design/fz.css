@@ -20,14 +20,14 @@
   --due: #B3380E;
   --warn: #B3380E;
   /* Personen: überall dieselben Farben */
-  --chris: #2a78d6; --chris-soft: #DCEAF9;
-  --lisa: #14946a;  --lisa-soft: #D3F0E3;
-  --ruby: #e2602c;  --ruby-soft: #FCE3D7;
+  --chris: #3b8fe8; --chris-soft: #DDEBFB;
+  --lisa: #8a35ad;  --lisa-soft: #F0E1F6;
+  --ruby: #d63a3a;  --ruby-soft: #FBE1E1;
   --shared: #5B6470; --shared-soft: #E9ECF0;
-  --p-chris: #2a78d6; --p-lisa: #14946a; --p-offen: #8A918B;
-  --fam: #6250d6;
+  --p-chris: #3b8fe8; --p-lisa: #8a35ad; --p-offen: #8A918B;
+  --fam: #e5a50a;
   /* Kacheln je Bereich */
-  --t-essen: #FFD45E; --t-haus: #B4E2C8; --t-termin: #CADCF8; --t-kinder: #FFD9C7; --t-stat: #E3DCFB;
+  --t-essen: #FFD45E; --t-haus: #B4E2C8; --t-termin: #CADCF8; --t-kinder: #FFD9C7; --t-stat: #E2F3E7;
   --food: #9A5A00; --food-soft: #FFF1C9;
   --font: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-display: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;

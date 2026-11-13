@@ -68,9 +68,10 @@ svg.ch .vt { fill: var(--fg); }
   "use strict";
   const $ = (s) => document.querySelector(s);
   const { esc, iso, parse, addDays } = FZ;
-  const C = { chris: "#2a78d6", lisa: "#14946a", ruby: "#e2602c" };
+  const C = { chris: "#3b8fe8", lisa: "#8a35ad", ruby: "#d63a3a" };
   const N = { chris: "Christian", lisa: "Lisa", ruby: "Ruby" };
-  const MOODC = { 1: "#d64545", 2: "#ef9a8f", 3: "#cfcdc7", 4: "#86b6ef", 5: "#2a78d6" };
+  // Stimmung: unzufrieden rot, zufrieden grün
+  const MOODC = { 1: "#d64545", 2: "#ef9a8f", 3: "#cfcdc7", 4: "#8fd19e", 5: "#2e9e5b" };
   const komma = (v, n) => (v == null || isNaN(v) ? "–" : v.toFixed(n == null ? 1 : n).replace(".", ","));
   const avg = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
   const montag = (s) => addDays(s, -((parse(s).getDay() + 6) % 7));
@@ -110,7 +111,7 @@ svg.ch .vt { fill: var(--fg); }
       '<div class="card kpi t-h"><div class="lbl">Aufgaben</div><div class="v">' + cur.n + '</div><div class="d">' + (cur.n - prev.n >= 0 ? "+" : "−") + Math.abs(cur.n - prev.n) + " ggü. Vorwoche</div>" + spark(proWoche.map((w) => w.n), "#0d6b4b") + "</div>" +
       '<div class="card kpi t-h"><div class="lbl">Verteilung</div><div class="v">' + anteil + "/" + (100 - anteil) + '</div><div class="d">Christian / Lisa, Punkte diese Woche</div><div style="display:flex;gap:2px;height:8px;margin-top:10px"><i style="flex:' + anteil + ";background:" + C.chris + ';border-radius:4px 0 0 4px"></i><i style="flex:' + (100 - anteil) + ";background:" + C.lisa + ';border-radius:0 4px 4px 0"></i></div></div>' +
       '<div class="card kpi t-e"><div class="lbl">Essen</div><div class="v">' + komma(avg(b28.map((b) => b.v))) + '</div><div class="d">Ø von 3 · ' + (lecker == null ? "–" : lecker + " % lecker") + " · 4 Wochen</div>" + spark(essenWoche, "#9A5A00") + "</div>" +
-      '<div class="card kpi t-s"><div class="lbl">Stimmung</div><div class="v">' + komma(avg(st28.map((s) => s.v))) + '</div><div class="d">Ø von 5 · 4 Wochen</div>' + spark(stWoche, "#6250d6") + "</div></div>";
+      '<div class="card kpi t-s"><div class="lbl">Stimmung</div><div class="v">' + komma(avg(st28.map((s) => s.v))) + '</div><div class="d">Ø von 5 · 4 Wochen</div>' + spark(stWoche, "#2e9e5b") + "</div></div>";
 
     // Haushaltspunkte pro Woche (gestapelt)
     h += '<h2 class="sec">Haushalt</h2>';

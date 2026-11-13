@@ -317,7 +317,7 @@
       const due = aktiv && (max > 1 ? String(h["Rhythmus-Art"] || "") === "taeglich" || faellig <= date : faellig <= date);
       if (!due && !n) return;
       const z = h["Zuständig"] === "chris" || h["Zuständig"] === "lisa" ? h["Zuständig"] : "offen";
-      out.push({ id: h.ID, titel: h.Titel || "(ohne Titel)", zust: z, punkte: Number(String(h.Punkte || "0").replace(",", ".")) || 0, max, n, fertig: n >= max || (!due && n > 0), spaet: due && faellig < date && !n ? Math.round((parse(date) - parse(faellig)) / 864e5) : 0 });
+      out.push({ id: h.ID, titel: h.Titel || "(ohne Titel)", zust: z, punkte: Number(String(h.Punkte || "0").replace(",", ".")) || 0, max, n, fertig: n >= max || (!due && n > 0), spaet: due && max === 1 && faellig < date && !n ? Math.round((parse(date) - parse(faellig)) / 864e5) : 0 });
     });
     return out.sort((a, b) => a.fertig - b.fertig || b.spaet - a.spaet);
   };
@@ -330,6 +330,30 @@
     const ops = [{ art: "anfuegen", reiter: "Erledigt", werte }];
     if (max === 1) { h["Nächste Fälligkeit"] = h.Typ === "einmalig" ? heute : naechste(h, heute); if (h.Typ === "einmalig") h.Aktiv = "nein"; ops.push({ art: "setzen", reiter: "Haushalt", wo: { ID: id }, werte: h.Typ === "einmalig" ? { Aktiv: "nein" } : { "Nächste Fälligkeit": h["Nächste Fälligkeit"] } }); }
     FZ.send(ops);
+    emit();
+  };
+
+  /* ---------- Termine: Person und Farbe ---------- */
+  // Reihenfolge: in der App zugeordnet (Reiter „Terminpersonen“, gilt für alle Termine mit gleichem Titel),
+  // dann Person aus dem Apps Script (falls es eine liefert), dann Stichwort im Titel, sonst Familie.
+  FZ.PERS_FARBE = { chris: "var(--chris)", lisa: "var(--lisa)", kind: "var(--ruby)", fam: "var(--fam)" };
+  FZ.PERS_NAME = { chris: "Christian", lisa: "Lisa", kind: "Kinder", fam: "Familie" };
+  const tkey = (t) => String(t || "").trim().toLowerCase();
+  FZ.terminPerson = function (t) {
+    const z = FZ.reiter("Terminpersonen").find((r) => tkey(r.Titel) === tkey(t.titel));
+    if (z && FZ.PERS_NAME[z.Person]) return z.Person;
+    if (t.person && FZ.PERS_NAME[t.person]) return t.person;
+    const s = (t.titel || "") + " " + (t.kalender || "");
+    if (/\blisa\b|\bmama\b/i.test(s)) return "lisa";
+    if (/christian|\bchris\b|\bpapa\b/i.test(s)) return "chris";
+    if (/ruby|elli|kinder|kita|schwimm|turnen/i.test(s)) return "kind";
+    return "fam";
+  };
+  FZ.terminPersonSetzen = function (titel, p) {
+    const rows = FZ.daten.Terminpersonen || (FZ.daten.Terminpersonen = []);
+    const i = rows.findIndex((r) => tkey(r.Titel) === tkey(titel));
+    if (i >= 0) rows[i].Person = p; else rows.push({ Titel: titel, Person: p });
+    FZ.send([{ art: "setzen", reiter: "Terminpersonen", wo: { Titel: titel }, werte: { Person: p } }]);
     emit();
   };
 
@@ -396,7 +420,7 @@
       '<a href="' + ROOT + path + '"' + (id === active ? ' aria-current="page"' : "") + '><svg viewBox="0 0 24 24" aria-hidden="true">' + IC[id] + "</svg>" + label + "</a>").join("") + "</div>";
     document.body.appendChild(nav);
     if (active !== "kinder") FZ.himmel();
-    if (!FZ.wand && !FZ.person && FZ.key) setTimeout(FZ.werBistDu, 400);
+    if (!FZ.wand && !LS.get("fz.person") && FZ.key) setTimeout(FZ.werBistDu, 400);
   };
 
   /* ---------- Himmel nach Uhrzeit (nur angedeutet) ---------- */
@@ -429,10 +453,14 @@
     box.className = "fz-sheet wer"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "Wer bist du?");
     box.innerHTML = '<div class="in"><h2>Wer bist du?</h2><p>Dann landen erledigte Aufgaben und deine Tagesstimmung automatisch bei dir. Einmal pro Handy, änderbar auf der Eltern-Seite.</p>' +
       '<div class="pick"><button type="button" data-wer="chris" style="background:var(--chris)">Christian</button><button type="button" data-wer="lisa" style="background:var(--lisa)">Lisa</button></div>' +
-      '<button type="button" class="x" data-wer="">Später</button></div>';
+      '<button type="button" data-wer="wand" style="min-height:64px;border:0;border-radius:20px;background:var(--surface);color:var(--fg);font:800 18px var(--font);cursor:pointer">Tablet für alle (Wand-iPad)</button>' +
+      '<p style="font-size:14px">Beim Tablet für alle wird jede erledigte Aufgabe über die Knöpfe C und L zugeordnet.</p>' +
+      '<button type="button" class="x" data-wer="-">Später</button></div>';
     box.addEventListener("click", (ev) => {
       const b = ev.target.closest("[data-wer]"); if (!b) return;
-      if (b.dataset.wer) FZ.setPerson(b.dataset.wer);
+      const w = b.dataset.wer;
+      if (w === "wand") { LS.set("fz.geraet", "wand"); LS.set("fz.person", "-"); location.reload(); return; }
+      if (w === "-") LS.set("fz.person", "-"); else if (w) FZ.setPerson(w);
       box.remove(); emit(); if (nachher) nachher();
     });
     document.body.appendChild(box);

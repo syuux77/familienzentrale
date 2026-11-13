@@ -77,6 +77,7 @@ function build(opts) {
   ].map((a) => ({ ID: a[0], Text: a[1], Emoji: a[2], Tagesphasen: a[3], Wochentage: "", Wann: a[4], Aktiv: "ja", Reihenfolge: a[5], "Erledigt am": "" }));
   const Einstellungen = [["pin", "0000"], ["sperrzeit_sekunden", "150"], ["neu_laden_minuten", "3"], ["woche_beginnt", "mo"], ["kita_tage", "mo,di,mi,do,fr"], ["zuhause_bis", ""], ["feiertage_sachsen", "ja"], ["essen_woche_beginnt", "do"], ["essen_hinweis", "mi 17:00"], ["essen_bewertung_bis", "17:00"], ["termine_tage", "7"], ["kinder_toene", "aus"]].map((a) => ({ "Schlüssel": a[0], Wert: a[1], Beschreibung: "" }));
   const Personen = [["chris", "Christian", "Elternteil"], ["lisa", "Lisa", "Elternteil"], ["ruby", "Ruby", "Kind"], ["elli", "Elli", "Kind"], ["trude", "Trude", "Haustier"]].map((a) => ({ ID: a[0], Name: a[1], Rolle: a[2], Aktiv: "ja" }));
+  const Terminpersonen = [{ Titel: "Oma und Opa zu Besuch", Person: "fam" }];
   const termine = [
     { datum: TODAY, zeit: "16:30", ende: "17:15", titel: "Schwimmkurs Ruby", ort: "Hallenbad" },
     { datum: TODAY, zeit: "19:30", ende: "21:00", titel: "Elternabend Kita (Lisa)", ort: "" },
@@ -86,7 +87,7 @@ function build(opts) {
     { datum: addDays(TODAY, 4), zeit: "07:30", ende: "08:00", titel: "Zahnarzt Christian", ort: "" },
     { datum: addDays(TODAY, 5), zeit: "20:00", ende: "21:00", titel: "Yoga Lisa", ort: "" }
   ];
-  const daten = { Personen, Haushalt, Erledigt, Gerichte, "Essen-Listen": EssenListen, Essensplan, Bewertungen, Kinderaufgaben, Einstellungen, Tagesphasen: [] };
+  const daten = { Personen, Terminpersonen, Haushalt, Erledigt, Gerichte, "Essen-Listen": EssenListen, Essensplan, Bewertungen, Kinderaufgaben, Einstellungen, Tagesphasen: [] };
   if (!opts.ohneStimmung) daten.Stimmung = Stimmung;
   return { ok: true, daten, termine };
 }

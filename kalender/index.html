@@ -31,7 +31,7 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
 .day { scroll-margin-top: 20px; }
 .day h2 { margin: 6px 0 8px; font: 800 18px var(--font-display); }
 .day h2 span { color: var(--muted); font-weight: 700; }
-.ev { display: flex; align-items: center; gap: 12px; background: var(--surface); border-radius: 16px; padding: 12px 16px; margin-top: 8px; min-width: 0; }
+.ev { display: flex; align-items: center; gap: 12px; background: var(--surface); border-radius: 16px; padding: 12px 16px; margin-top: 8px; min-width: 0; width: 100%; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
 .ev .bar { width: 5px; align-self: stretch; border-radius: 4px; background: var(--pc); flex: none; }
 .ev .tm { flex: none; min-width: 64px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .ev .tx { flex: 1; min-width: 0; font-weight: 700; }
@@ -52,10 +52,8 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
   const { esc, iso, parse, addDays, pad } = FZ;
   const WT = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"], WL = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
   const MON = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
-  // Personenfarbe: Name im Titel oder im Kalendernamen, sonst Familie
-  const wer = (t) => { const s = (t.titel || "") + " " + (t.kalender || ""); return /lisa/i.test(s) ? "lisa" : /christian|chris\b/i.test(s) ? "chris" : /ruby|elli|kita|schwimm|turn/i.test(s) ? "kind" : "fam"; };
-  const FARBE = { chris: "var(--chris)", lisa: "var(--lisa)", kind: "var(--ruby)", fam: "var(--fam)" };
-  const NAME = { chris: "Christian", lisa: "Lisa", kind: "Kinder", fam: "Familie" };
+  const wer = (t) => FZ.terminPerson(t);
+  const FARBE = FZ.PERS_FARBE, NAME = FZ.PERS_NAME;
   function kw(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const n = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - n); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y) / 864e5 + 1) / 7); }
   function render() {
     if (FZ.gate($("#main"))) return;
@@ -72,12 +70,22 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
       if (!list.length && i > 1) continue;
       const p = parse(d);
       h += '<section class="day" id="d-' + d + '"><h2>' + (i === 0 ? "Heute" : i === 1 ? "Morgen" : WL[p.getDay()]) + " <span>" + p.getDate() + ". " + MON[p.getMonth()] + "</span></h2>" +
-        (list.length ? list.map((t) => { const w = wer(t), vorbei = d === heute && t.zeit && (t.ende || t.zeit) < hm; return '<div class="ev' + (vorbei ? " past" : "") + '"><span class="bar" style="--pc:' + FARBE[w] + '"></span><span class="tm">' + esc(t.zeit || "ganzt.") + '</span><span class="tx">' + esc(t.titel) + (t.ort ? "<small>" + esc(t.ort) + "</small>" : "") + '</span><span class="who">' + NAME[w] + "</span></div>"; }).join("") : '<p class="none">Keine Termine</p>') + "</section>";
+        (list.length ? list.map((t) => { const w = wer(t), vorbei = d === heute && t.zeit && (t.ende || t.zeit) < hm; return '<button type="button" class="ev' + (vorbei ? " past" : "") + '" data-titel="' + esc(t.titel) + '" aria-label="' + esc(t.titel) + ': Person zuordnen"><span class="bar" style="--pc:' + FARBE[w] + '"></span><span class="tm">' + esc(t.zeit || "ganzt.") + '</span><span class="tx">' + esc(t.titel) + (t.ort ? "<small>" + esc(t.ort) + "</small>" : "") + '</span><span class="who">' + NAME[w] + " ›</span></button>"; }).join("") : '<p class="none">Keine Termine</p>') + "</section>";
     }
-    h += '<p class="note">Termine legt ihr im Google Kalender an. Sie erscheinen hier automatisch, sobald die App neu lädt.</p>';
+    h += '<p class="note">Termine legt ihr im Google Kalender an. Sie erscheinen hier automatisch. Tippt auf einen Termin, um ihn Christian, Lisa, den Kindern oder der Familie zuzuordnen. Das gilt dann für alle Termine mit demselben Titel.</p>';
     $("#main").innerHTML = h;
     FZ.status();
   }
+  // Termin antippen: Person zuordnen
+  function zuordnen(titel) {
+    const box = document.createElement("div");
+    box.className = "fz-sheet"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "Person zuordnen");
+    box.innerHTML = '<div class="in"><h2>' + esc(titel) + '</h2><p>Wem gehört dieser Termin? Gilt für alle Termine mit diesem Titel.</p><div class="pick" style="grid-template-columns:1fr 1fr">' +
+      Object.keys(NAME).map((k) => '<button type="button" data-p="' + k + '" style="background:' + FARBE[k] + (k === "fam" ? ";color:#0F1317" : "") + '">' + NAME[k] + "</button>").join("") + '</div><button type="button" class="x" data-p="">Abbrechen</button></div>';
+    box.addEventListener("click", (e) => { const b = e.target.closest("[data-p]"); if (e.target === box || b) { if (b && b.dataset.p) FZ.terminPersonSetzen(titel, b.dataset.p); box.remove(); } });
+    document.body.appendChild(box);
+  }
+  document.addEventListener("click", (ev) => { const t = ev.target.closest("[data-titel]"); if (t) return zuordnen(t.dataset.titel); });
   document.addEventListener("click", (ev) => { const b = ev.target.closest("[data-day]"); if (!b) return; const el = document.getElementById("d-" + b.dataset.day); if (el) el.scrollIntoView({ behavior: "smooth" }); });
   FZ.on(render);
   FZ.nav("kalender");

@@ -117,7 +117,7 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
   if (FZ.wand) document.body.classList.add("wand");
 
   // Termine: Personenfarbe aus Name im Titel, sonst Familie
-  const farbe = (t) => { const s = (t.titel || "") + " " + (t.kalender || ""); return /lisa/i.test(s) ? "var(--lisa)" : /christian|chris\b/i.test(s) ? "var(--chris)" : /ruby|elli|kita|schwimm|turn/i.test(s) ? "var(--ruby)" : "var(--fam)"; };
+  const farbe = (t) => FZ.PERS_FARBE[FZ.terminPerson(t)];
   function eventsFrom(date, days) {
     const end = addDays(date, days);
     return FZ.termine.filter((t) => t.datum < end && (t.bis || t.datum) >= date)
