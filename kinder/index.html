@@ -484,7 +484,7 @@ button.card { cursor: pointer; touch-action: manipulation; }
       '<div class="side"><div class="clock">' + fmtTime(min) + '</div><div class="date">' + esc(dateTxt) + "</div>" +
       (info.kita
         ? '<div class="daychip"><span class="emo">🏫</span>Kita-Tag</div>'
-        : '<div class="daychip"><span class="emo">🏠</span>Zuhause-Tag <small>' + esc(info.grund) + "</small></div>") +
+        : '<div class="daychip"><span class="emo">🏠</span>' + esc(FZ.tagText(info)) + "</div>") +
       "</div>";
     $("#daybar").innerHTML = renderDaybar(P, phase, min);
 

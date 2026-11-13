@@ -268,6 +268,12 @@
     return { kita: true, grund: "", fest: false };
   };
 
+  // Kurztext für Start- und Kinderseite: „Kita-Tag“, „Zuhause, heute keine Kita“ oder „Zuhause · Wochenende“
+  FZ.tagText = function (info) {
+    if (info.kita) return "Kita-Tag";
+    return info.grund === "heute zu Hause" || info.grund === "kein Kita-Tag" || !info.grund ? "Zuhause, heute keine Kita" : "Zuhause · " + info.grund;
+  };
+
   /* ---------- Essen für heute/morgen (Start- und Kinderseite) ---------- */
   FZ.STATUS = {
     auswaerts: { emoji: "🍽️", label: "Auswärts essen", kid: "Heute essen wir auswärts" },

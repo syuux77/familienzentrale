@@ -147,7 +147,7 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
     const kidsDone = kids.filter((k) => k["Erledigt am"] === date).length;
     const warn = W && W.warnungen && W.warnungen[0];
     let h = '<div class="chips"><span class="chip ph" style="background:' + ph.farbe + '"><span class="emo">' + esc(ph.symbol) + "</span>" + esc(ph.name) + (ph.id !== "nacht" ? " bis " + ph.ende : "") + "</span>" +
-      '<span class="chip">' + (info.kita ? "🎒 Kita-Tag" : "🏠 " + esc(info.grund ? "Zuhause · " + info.grund : "Zuhause-Tag")) + "</span>" +
+      '<span class="chip">' + (info.kita ? "🎒 " : "🏠 ") + esc(FZ.tagText(info)) + "</span>" +
       (kids.length && ph.id !== "kita" ? '<span class="chip">⭐ Kinder ' + kidsDone + "/" + kids.length + "</span>" : "") +
       (warn ? '<span class="chip warn">⚠ ' + esc(warn.titel.replace(/^Amtliche WARNUNG vor /i, "Warnung: ")) + "</span>" : "") + "</div>";
     h += FZ.zeitstrahl(!FZ.wand && innerWidth < 560);
