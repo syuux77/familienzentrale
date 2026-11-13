@@ -137,3 +137,24 @@ html body.kids .marker { top: auto; bottom: -9px; width: 18px; height: 18px; mar
 html body.kids .ticks { font-weight: 700; }
 html body.kids .daychip { background: rgba(255,255,255,.9); }
 @media (max-width: 560px) { html body.kids .head { padding: 14px 16px; border-radius: 24px; } html body.kids .daybar { border-radius: 24px; padding: 10px 10px 6px; } }
+
+/* Blätter (Wetter, Wer bist du?, Termine): Inhalt darf nie breiter als das Blatt werden */
+.fz-sheet .in { grid-template-columns: minmax(0, 1fr); }
+.fz-sheet .in > * { min-width: 0; }
+.fz-wx .head { position: sticky; top: -22px; z-index: 2; background: var(--bg); margin: -22px -22px 0; padding: 18px 22px 10px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.fz-wx .map .leaflet-container { width: 100%; height: 100%; }
+/* Handy: Wetter als Blatt von unten über die ganze Breite */
+@media (max-width: 560px) {
+  .fz-sheet { padding: 0; place-items: end stretch; }
+  .fz-sheet .in { width: 100%; max-height: 92vh; max-height: 92dvh; border-radius: 24px 24px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px)); gap: 12px; }
+  .fz-wx .head { top: -18px; margin: -18px -16px 0; padding: 16px 16px 8px; }
+  .fz-wx .now { gap: 12px; padding: 12px 14px; }
+  .fz-wx .now svg { width: 56px; height: 56px; }
+  .fz-wx .now b { font-size: 42px; }
+  .fz-wx .now small { font-size: 13px; }
+  .fz-wx .box { padding: 12px; }
+  .fz-wx .hours { grid-auto-columns: 46px; }
+  .fz-wx .map { height: 260px; }
+  .fz-wx .days > div:not(.lbl) { grid-template-columns: 40px 28px 1fr auto; gap: 8px; }
+  .fz-wx .warn { font-size: 15px; }
+}

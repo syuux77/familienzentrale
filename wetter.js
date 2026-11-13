@@ -119,7 +119,7 @@
       ? '<div class="box"><div class="lbl">Die nächsten 2 Stunden</div><div class="r15">' + d.minuten.map((m) => '<i class="' + (m.mm ? "" : "no") + '" style="height:' + (m.mm ? Math.min(100, 25 + m.mm * 120) : 8) + '%" title="' + m.zeit.slice(11, 16) + ": " + m.mm.toFixed(1).replace(".", ",") + ' mm"></i>').join("") + "</div></div>" : "";
     const uv = heute.uvMax >= 3 ? " · UV " + Math.round(heute.uvMax) + (heute.uvMax >= 6 ? " hoch, Sonnenschutz!" : " mittel") : "";
     box.innerHTML = '<div class="in">' +
-      '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2>Wetter</h2><button type="button" class="x" data-wx="zu">Schließen</button></div>' +
+      '<div class="head"><h2>Wetter</h2><button type="button" class="x" data-wx="zu">Schließen</button></div>' +
       '<div class="now">' + icon(j.art) + "<div><b>" + zahl(j.t) + "°</b> " + esc(j.text) + "<small>" + zahl(heute.max) + "° / " + zahl(heute.min) + "° · gefühlt " + zahl(j.gefuehlt) + "° · " + esc(d.regen) + "</small></div></div>" +
       d.warnungen.map((w) => '<div class="warn">⚠ ' + esc(w.titel) + (w.text ? '<div style="font-weight:500;margin-top:4px;color:var(--fg)">' + esc(w.text) + "</div>" : "") + "</div>").join("") +
       regen2h +
@@ -151,10 +151,12 @@
       if (!frames.length) throw new Error("keine Radarbilder");
       el.innerHTML = "";
       const [lat, lon] = ort();
-      const map = window.L.map(el, { zoomControl: false, attributionControl: false }).setView([lat, lon], 8);
-      window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 12 }).addTo(map);
+      const map = window.L.map(el, { zoomControl: false, attributionControl: false, minZoom: 5, maxZoom: 10 }).setView([lat, lon], 7);
+      window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 10 }).addTo(map);
       window.L.circleMarker([lat, lon], { radius: 7, color: "#fff", weight: 3, fillColor: "#e2602c", fillOpacity: 1 }).addTo(map);
-      const layers = frames.map((f) => window.L.tileLayer(info.host + f.path + "/256/{z}/{x}/{y}/2/1_1.png", { opacity: 0, zIndex: 5 }));
+      // RainViewer hat Radarbilder nur bis Zoomstufe 7. Darüber vergrößert Leaflet die Kacheln,
+      // statt Kacheln mit „Zoom Level Not Supported“ zu laden.
+      const layers = frames.map((f) => window.L.tileLayer(info.host + f.path + "/256/{z}/{x}/{y}/2/1_1.png", { opacity: 0, zIndex: 5, maxNativeZoom: 7, maxZoom: 10 }));
       layers.forEach((l) => l.addTo(map));
       const slider = box.querySelector("#fz-mapt"), lab = box.querySelector("#fz-mapz");
       const past = (info.radar.past || []).length;
