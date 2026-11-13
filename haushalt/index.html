@@ -373,7 +373,7 @@ p { margin: 0; }
   <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
 </div>
 <div id="toast" class="toast" role="status" hidden></div>
-<script src="../core.js?v=20261113h"></script>
+<script src="../core.js?v=20261113i"></script>
 <script>
 (function () {
   "use strict";
@@ -565,7 +565,8 @@ p { margin: 0; }
     if (!force && !isIdle()) { clearTimeout(idleTimer); idleTimer = setTimeout(() => refresh(false), 15000); return; }
     try {
       const j = await apiGet();
-      if (pending) return;
+      // Während des Ladens wurde etwas abgehakt oder gespeichert: Antwort ist evtl. älter, gleich neu holen
+      if (pending || j.veraltet) { clearTimeout(idleTimer); idleTimer = setTimeout(() => refresh(false), pending ? 15000 : 3000); return; }
       S = fromSheet(j.daten);
       (j.daten.Einstellungen || []).forEach((r) => { if (r["Schlüssel"] === "neu_laden_minuten") reloadMin = Math.max(1, parseInt(r.Wert, 10) || 3); });
       loaded = true; lastSync = new Date(); syncErr = "";

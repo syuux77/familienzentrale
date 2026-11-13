@@ -43,6 +43,9 @@
   let data = null;
   try { data = JSON.parse(LS.get("fz.data") || "null"); } catch (e) { data = null; }
   const listeners = [];
+  // stand zählt jede lokale Änderung und jedes Speichern. Eine Antwort, während der sich stand geändert hat,
+  // ist womöglich älter als das, was das Gerät schon anzeigt, und wird verworfen.
+  let stand = 0;
   let pending = 0, queue = Promise.resolve(), lastSync = data && data.geladen ? new Date(data.geladen) : null, syncErr = "", idleTimer = null, auto = false;
 
   const FZ = window.FZ = {
@@ -69,10 +72,13 @@
   function emit() { listeners.forEach((fn) => { try { fn(data); } catch (e) { console.error(e); } }); }
 
   /* ---------- Schnittstelle ---------- */
+  // Liefert { veraltet: true }, wenn während des Ladens etwas geändert oder gespeichert wurde.
   FZ.fetchAll = async function () {
+    const s0 = stand;
     const r = await fetch(API + "?aktion=alles&key=" + encodeURIComponent(FZ.key), { cache: "no-store" });
     const j = await r.json();
     if (!j.ok) throw new Error(j.fehler || "Unbekannter Fehler");
+    if (s0 !== stand && data) return { ok: true, veraltet: true };
     data = { daten: j.daten, termine: j.termine || [], geladen: Date.now() };
     LS.set("fz.data", JSON.stringify(data));
     lastSync = new Date(); syncErr = "";
@@ -80,10 +86,13 @@
   };
   FZ.post = async function (aktionen) {
     // Body als Text, damit der Browser keine Vorab-Anfrage schickt
-    const r = await fetch(API, { method: "POST", body: JSON.stringify({ key: FZ.key, aktionen }) });
+    stand++;
+    const r = await fetch(API, { method: "POST", body: JSON.stringify({ key: FZ.key, aktionen }) }).finally(() => { stand++; });
     const j = await r.json();
     if (!j.ok) throw new Error(j.fehler || "Unbekannter Fehler");
-    if (j.daten && data && data.daten) { Object.assign(data.daten, j.daten); LS.set("fz.data", JSON.stringify(data)); }
+    // Die Antwort zeigt die Tabelle nach DIESER Änderung. Warten noch weitere (z. B. schnell hintereinander
+    // abgehakte Kinderaufgaben), wäre sie älter als die Anzeige: dann nicht übernehmen.
+    if (j.daten && data && data.daten && pending <= 1) { Object.assign(data.daten, j.daten); LS.set("fz.data", JSON.stringify(data)); }
     return j;
   };
 
@@ -96,7 +105,8 @@
     if (!FZ.key) return;
     if (!force && busy()) { clearTimeout(idleTimer); idleTimer = setTimeout(() => FZ.refresh(false), 15000); return; }
     try {
-      await FZ.fetchAll();
+      const j = await FZ.fetchAll();
+      if (j && j.veraltet) { clearTimeout(idleTimer); idleTimer = setTimeout(() => FZ.refresh(false), 3000); return; }
       if (!pending) emit();
     } catch (err) {
       syncErr = err.message || "Tabelle nicht erreichbar";
@@ -106,7 +116,7 @@
   };
   // Änderungen der Reihe nach schreiben. build() wird erst beim Senden aufgerufen.
   FZ.send = function (build, after, onError) {
-    pending++; FZ.status();
+    pending++; stand++; FZ.status();
     queue = queue.then(() => FZ.post(typeof build === "function" ? build() : build)).then((j) => {
       if (after) after(j);
       lastSync = new Date(); syncErr = "";
