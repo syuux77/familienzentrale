@@ -22,7 +22,7 @@
 
   // Gemeinsames Design und Schrift (Manrope). Nach den Seiten-Styles geladen, damit es gewinnt.
   (function () {
-    const v = "5";
+    const v = "6";
     const f = document.createElement("link"); f.rel = "stylesheet";
     f.href = "https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap";
     const c = document.createElement("link"); c.rel = "stylesheet"; c.href = ROOT + "design/fz.css?v=" + v;
@@ -349,6 +349,8 @@
   FZ.terminPerson = function (t) {
     const z = FZ.reiter("Terminpersonen").find((r) => tkey(r.Titel) === tkey(t.titel));
     if (z && FZ.PERS_NAME[z.Person]) return z.Person;
+    const e = FZ.einst()["termin:" + tkey(t.titel)];
+    if (e && FZ.PERS_NAME[e]) return e;
     if (t.person && FZ.PERS_NAME[t.person]) return t.person;
     const s = (t.titel || "") + " " + (t.kalender || "");
     if (/\blisa\b|\bmama\b/i.test(s)) return "lisa";
@@ -356,21 +358,32 @@
     if (/ruby|elli|kinder|kita|schwimm|turnen/i.test(s)) return "kind";
     return "fam";
   };
+  // Gespeichert im Reiter „Einstellungen“ (Schlüssel termin:<titel>). Diesen Reiter schreibt das Apps Script
+  // sicher; neue Reiter wie „Terminpersonen“ nimmt es derzeit nicht an.
+  function einstSetzen(k, v, beschr) {
+    const rows = FZ.daten.Einstellungen || (FZ.daten.Einstellungen = []);
+    const i = rows.findIndex((r) => r["Schlüssel"] === k);
+    if (v === "") { if (i >= 0) rows.splice(i, 1); FZ.send([{ art: "loeschen", reiter: "Einstellungen", wo: { "Schlüssel": k } }]); return; }
+    if (i >= 0) rows[i].Wert = v; else rows.push({ "Schlüssel": k, Wert: v, Beschreibung: beschr });
+    FZ.send([{ art: "setzen", reiter: "Einstellungen", wo: { "Schlüssel": k }, werte: { Wert: v, Beschreibung: beschr } }]);
+  }
   FZ.terminPersonSetzen = function (titel, p) {
-    const rows = FZ.daten.Terminpersonen || (FZ.daten.Terminpersonen = []);
-    const i = rows.findIndex((r) => tkey(r.Titel) === tkey(titel));
-    if (i >= 0) rows[i].Person = p; else rows.push({ Titel: titel, Person: p });
-    FZ.send([{ art: "setzen", reiter: "Terminpersonen", wo: { Titel: titel }, werte: { Person: p } }]);
+    einstSetzen("termin:" + tkey(titel), p, "Person für Termine mit diesem Titel (in der App im Kalender gewählt)");
     emit();
   };
 
-  /* ---------- Tagesstimmung (Reiter „Stimmung“) ---------- */
-  FZ.stimmung = (date, p) => { const r = FZ.reiter("Stimmung").find((x) => x.Datum === date && x.Person === p); return r ? Number(r.Wert) : 0; };
+  /* ---------- Tagesstimmung ---------- */
+  // Gespeichert im Reiter „Einstellungen“ als stimmung:JJJJ-MM-TT:person. Einträge im Reiter „Stimmung“
+  // werden mitgelesen, falls das Apps Script diesen Reiter später kennt.
+  FZ.stimmungListe = function () {
+    const out = {};
+    FZ.reiter("Einstellungen").forEach((r) => { const m = /^stimmung:(\d{4}-\d{2}-\d{2}):(\w+)$/.exec(r["Schlüssel"] || ""); if (m && Number(r.Wert)) out[m[1] + m[2]] = { Datum: m[1], Person: m[2], Wert: Number(r.Wert) }; });
+    FZ.reiter("Stimmung").forEach((r) => { if (r.Datum && r.Person && Number(r.Wert)) out[r.Datum + r.Person] = { Datum: r.Datum, Person: r.Person, Wert: Number(r.Wert) }; });
+    return Object.values(out);
+  };
+  FZ.stimmung = (date, p) => { const r = FZ.stimmungListe().find((x) => x.Datum === date && x.Person === p); return r ? r.Wert : 0; };
   FZ.stimmungSetzen = function (date, p, v) {
-    const rows = FZ.daten.Stimmung || (FZ.daten.Stimmung = []);
-    const i = rows.findIndex((x) => x.Datum === date && x.Person === p);
-    if (i >= 0 && Number(rows[i].Wert) === v) { rows.splice(i, 1); FZ.send([{ art: "loeschen", reiter: "Stimmung", wo: { Datum: date, Person: p } }]); }
-    else { if (i >= 0) rows[i].Wert = String(v); else rows.push({ Datum: date, Person: p, Wert: String(v), Notiz: "" }); FZ.send([{ art: "setzen", reiter: "Stimmung", wo: { Datum: date, Person: p }, werte: { Wert: String(v) } }]); }
+    einstSetzen("stimmung:" + date + ":" + p, FZ.stimmung(date, p) === v ? "" : String(v), "Tagesstimmung (1 mies bis 5 super)");
     emit();
   };
   FZ.MOOD = { 1: "😣", 2: "😕", 3: "😐", 4: "🙂", 5: "😄" };
@@ -565,7 +578,7 @@
       FZ.refresh(true);
       let last = Date.now();
       setInterval(() => {
-        const min = Math.max(1, parseInt(FZ.einst().neu_laden_minuten, 10) || 3);
+        const min = Math.max(1, parseInt(FZ.einst().neu_laden_minuten, 10) || 1);
         if (Date.now() - last >= min * 60000) { last = Date.now(); FZ.refresh(false); }
       }, 30000);
       document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") FZ.refresh(false); });

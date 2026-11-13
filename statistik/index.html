@@ -63,7 +63,7 @@ svg.ch .vt { fill: var(--fg); }
 </head>
 <body>
 <div class="app" id="main"></div>
-<script src="../core.js?v=20261113c"></script>
+<script src="../core.js?v=20261113d"></script>
 <script>(function () {
   "use strict";
   const $ = (s) => document.querySelector(s);
@@ -102,7 +102,7 @@ svg.ch .vt { fill: var(--fg); }
     const b28 = bew.filter((b) => b.tag >= ab28);
     const lecker = b28.length ? Math.round(b28.filter((b) => b.v === 3).length / b28.length * 100) : null;
     // ---------- Stimmung ----------
-    const st = FZ.reiter("Stimmung").filter((s) => Number(s.Wert)).map((s) => ({ tag: s.Datum, p: s.Person, v: Number(s.Wert) }));
+    const st = FZ.stimmungListe().filter((s) => Number(s.Wert)).map((s) => ({ tag: s.Datum, p: s.Person, v: Number(s.Wert) }));
     const stWoche = wochen.map((w) => avg(st.filter((s) => s.tag >= w && s.tag <= addDays(w, 6)).map((s) => s.v)));
     const st28 = st.filter((s) => s.tag >= ab28);
 
