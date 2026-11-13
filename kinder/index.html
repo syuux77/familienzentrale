@@ -302,8 +302,8 @@ button.card { cursor: pointer; touch-action: manipulation; }
   <main id="main" aria-live="polite"></main>
 </div>
 <div class="fx" id="fx" aria-hidden="true"></div>
-<script src="../core.js"></script>
-<script src="effekte.js"></script>
+<script src="../core.js?v=20261113c"></script>
+<script src="effekte.js?v=20261113c"></script>
 <script>(function () {
   "use strict";
   const $ = (s) => document.querySelector(s);
@@ -339,7 +339,7 @@ button.card { cursor: pointer; touch-action: manipulation; }
     const w = WD[parse(s).getDay()];
     return aufgaben().filter((k) => {
       if (k.aktiv !== "ja") return false;
-      if (!FZ.phaseMatch(list(k.phasen), phase.id)) return false;
+      if (!(FZ.phaseMatch ? FZ.phaseMatch(list(k.phasen), phase.id) : list(k.phasen).includes(phase.id))) return false;
       const tage = list(k.wochentage);
       if (tage.length && !tage.includes(w)) return false;
       if (k.wann === "kita") return today.kita;
@@ -484,7 +484,7 @@ button.card { cursor: pointer; touch-action: manipulation; }
       '<div class="side"><div class="clock">' + fmtTime(min) + '</div><div class="date">' + esc(dateTxt) + "</div>" +
       (info.kita
         ? '<div class="daychip"><span class="emo">🏫</span>Kita-Tag</div>'
-        : '<div class="daychip"><span class="emo">🏠</span>' + esc(FZ.tagText(info)) + "</div>") +
+        : '<div class="daychip"><span class="emo">🏠</span>' + esc(FZ.tagText ? FZ.tagText(info) : "Zuhause, heute keine Kita") + "</div>") +
       "</div>";
     $("#daybar").innerHTML = renderDaybar(P, phase, min);
 

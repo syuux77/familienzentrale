@@ -22,7 +22,7 @@
 
   // Gemeinsames Design und Schrift (Manrope). Nach den Seiten-Styles geladen, damit es gewinnt.
   (function () {
-    const v = "4";
+    const v = "5";
     const f = document.createElement("link"); f.rel = "stylesheet";
     f.href = "https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap";
     const c = document.createElement("link"); c.rel = "stylesheet"; c.href = ROOT + "design/fz.css?v=" + v;
