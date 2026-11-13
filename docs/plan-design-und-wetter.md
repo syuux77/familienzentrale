@@ -5,6 +5,17 @@ Stand: 12.11.2026 · Status: Entwurf, Version 2. Nichts davon ist live. Die Gesc
 - Entwürfe Version 2 mit klickbarem Prototyp (privat): https://claude.ai/artifact/EkmezUXkwRXoSKkeWsTGXw
 - Leitfaden zum Anklicken, Version 1 (privat): https://claude.ai/artifact/NjNWS4X2QHnQY7d2VwMNoh. Die Etappe „Startseite am Wand-iPad“ zeigt dort noch das Querformat.
 
+## 0. Entscheidungen (13.11.2026)
+
+- Look **Kräftig**, Schrift **Modern** (Manrope, selbst gehostet), Kinder-Animationen vorerst **ohne Ton**.
+- Alles aus Version 2 ist abgenommen (Hochformat, Tagesphasen mit Kita-Zeit, Tagesmaximum, Tagesstimmung, Kalender nur Anzeige, Statistik).
+- Tageszeit nur **angedeutet**: Himmelsverlauf oben auf dem Bildschirm (Sonnenaufgang rötlich, tagsüber hellblau, Sonnenuntergang rosa, nachts dunkelblau) plus leichter Nachtschleier. Die kräftige Farbwelt bleibt unverändert; die bisherige Umfärbung nach Tagesphase entfällt.
+- **Wetter im Hintergrund** der Startseite, ganz leicht: Sonnenschein, ziehende Wolken, Regen, Schnee, Nebel, seltenes Aufhellen bei Gewitter. Still bei „Bewegung reduzieren“.
+- **Wetter-Ansicht beim Antippen** von Symbol oder Temperatur: Stundenverlauf, Regenradar (RainViewer auf OpenStreetMap, frei für private Nutzung mit Quellenangabe; Ausweichlösung DWD-Radar als offener Kartendienst), nächste Tage, Wind, Sonne.
+- **Wetterdaten**: immer Jetzt, Höchst/Tiefst, Regen ob und ab wann, gefühlte Temperatur. Nur wenn wichtig: DWD-Warnung, Regen in den nächsten 2 Stunden, UV ab Stufe 3. Weg: Pollen, Luftqualität.
+- **Gerichte** (Vorschlag im Entwurf, wartet auf Freigabe): Spalte „Kategorie“ mit Ernährung (genau eine: Fleisch, Fisch, Vegetarisch), Gerichtart (1–2: Nudeln, Kartoffeln, Reis, Suppe & Eintopf, Ofen & Auflauf, Pizza & Flammkuchen, Pfanne & Wok, Abendbrot, Süßes, Bestellt) und optional Fleischsorte (Schwein, Rind, Geflügel, Hackfleisch, Wurst). Reiter „Essen-Listen“ bekommt dafür die Gruppen `ernaehrung`, `gericht`, `fleischsorte`. „Merkmale“ mit genau einer Zeitstufe (schnell bis 20 Min., normal 20–45 Min., aufwendig) plus Zusätze „Ruby hilft mit“, „reicht für Reste“. Geschrieben wird erst zusammen mit dem Update.
+- Statistik Essen zusätzlich: Anteil Zeitaufwand und Anteil Fleisch/Fisch/vegetarisch über 4 Wochen.
+
 ## 1. Rahmen
 
 - Kostenlos wie bisher: GitHub Pages, Google-Tabelle, Apps Script, kein eigener Server.
