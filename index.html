@@ -195,7 +195,7 @@ body { font: 17px/1.35 var(--font); -webkit-font-smoothing: antialiased; }
     h += '<section class="card t2 hh"><div class="lbl">' + (mine ? "Deine Aufgaben" : "Haushalt heute") + "<em>" + (offen.length ? offen.length + " offen" : "alles erledigt") + (fertig ? " · " + fertig + " fertig" : "") + '</em></div><div id="hhl">' +
       (offen.length ? offen.map((t) => {
         const meta = (t.zust === "offen" ? "für alle" : N[t.zust]) + " · " + t.punkte + (t.punkte === 1 ? " Punkt" : " Punkte") + (t.spaet ? ' · <span class="late">seit ' + t.spaet + (t.spaet === 1 ? " Tag" : " Tagen") + " fällig</span>" : "") + (t.max > 1 ? " · höchstens " + t.max + "× am Tag" : "");
-        const dots = t.max > 1 ? '<span class="fz-dots" aria-label="' + t.n + " von " + t.max + '">' + Array.from({ length: t.max }, (_, i) => '<i class="' + (i < t.n ? "on" : "") + '"></i>').join("") + "<em>" + t.n + "/" + t.max + "</em></span>" : "";
+        const dots = t.max > 1 ? FZ.punkteHtml(t.von, t.max) : "";
         const act = FZ.wand || !FZ.person
           ? '<span class="who">' + ["chris", "lisa"].filter((p) => t.zust === "offen" || t.zust === p).map((p) => '<button type="button" data-hh="' + esc(t.id) + '" data-p="' + p + '" style="background:' + PC[p] + '" aria-label="' + esc(t.titel) + " erledigt von " + N[p] + '">' + N[p][0] + "</button>").join("") + "</span>"
           : '<button type="button" class="chk" data-hh="' + esc(t.id) + '" data-p="' + FZ.person + '" aria-label="' + esc(t.titel) + ' erledigt"></button>';

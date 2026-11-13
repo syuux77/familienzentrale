@@ -600,7 +600,7 @@ p { margin: 0; }
     if (t.mehrfach) {
       const tl = S.log.filter((e) => e.art === "erledigt" && e.aufgabeId === t.id && e.zeit.slice(0, 10) === today);
       const mx = t.max || 3;
-      meta.push('<span class="fz-dots" aria-label="' + tl.length + " von " + mx + '">' + Array.from({ length: mx }, (_, i) => '<i class="' + (i < tl.length ? "on" : "") + '"></i>').join("") + "<em>" + tl.length + "/" + mx + "</em></span>");
+      meta.push(FZ.punkteHtml(tl.slice().sort((a, b) => (a.zeit < b.zeit ? -1 : 1)).map((e) => e.von), mx));
       if (!tl.length) meta.push("<span>heute noch nicht</span>");
       else {
         const c = tl.filter((e) => e.von === "chris").length, l = tl.length - c;

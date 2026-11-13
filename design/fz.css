@@ -67,7 +67,7 @@ html body { background: var(--bg); color: var(--fg); font-family: var(--font); }
 /* Gemeinsame Bausteine */
 .fz-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--soft); color: var(--fg); border-radius: 99px; padding: 6px 12px; font-weight: 700; font-size: 15px; white-space: nowrap; }
 .fz-dots { display: inline-flex; align-items: center; gap: 5px; flex: none; }
-.fz-dots i { width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--accent); }
+.fz-dots i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(15,19,23,.35); }
 .fz-dots i.on { background: var(--accent); }
 .fz-dots em { font-style: normal; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--muted); margin-left: 3px; font-size: 14px; }
 

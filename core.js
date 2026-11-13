@@ -22,7 +22,7 @@
 
   // Gemeinsames Design und Schrift (Manrope). Nach den Seiten-Styles geladen, damit es gewinnt.
   (function () {
-    const v = "3";
+    const v = "4";
     const f = document.createElement("link"); f.rel = "stylesheet";
     f.href = "https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap";
     const c = document.createElement("link"); c.rel = "stylesheet"; c.href = ROOT + "design/fz.css?v=" + v;
@@ -312,12 +312,13 @@
     const out = [];
     FZ.reiter("Haushalt").forEach((h) => {
       if (!h.ID) return;
-      const max = FZ.maxProTag(h), n = done.filter((e) => e["Aufgaben-ID"] === h.ID).length;
+      const meine = done.filter((e) => e["Aufgaben-ID"] === h.ID).sort((a, b) => String(a.Zeitpunkt).localeCompare(String(b.Zeitpunkt)));
+      const max = FZ.maxProTag(h), n = meine.length;
       const aktiv = jaW(h.Aktiv), faellig = h["Nächste Fälligkeit"] || date;
       const due = aktiv && (max > 1 ? String(h["Rhythmus-Art"] || "") === "taeglich" || faellig <= date : faellig <= date);
       if (!due && !n) return;
       const z = h["Zuständig"] === "chris" || h["Zuständig"] === "lisa" ? h["Zuständig"] : "offen";
-      out.push({ id: h.ID, titel: h.Titel || "(ohne Titel)", zust: z, punkte: Number(String(h.Punkte || "0").replace(",", ".")) || 0, max, n, fertig: n >= max || (!due && n > 0), spaet: due && max === 1 && faellig < date && !n ? Math.round((parse(date) - parse(faellig)) / 864e5) : 0 });
+      out.push({ id: h.ID, titel: h.Titel || "(ohne Titel)", zust: z, punkte: Number(String(h.Punkte || "0").replace(",", ".")) || 0, max, n, von: meine.map((e) => e["Erledigt von"]), fertig: n >= max || (!due && n > 0), spaet: due && max === 1 && faellig < date && !n ? Math.round((parse(date) - parse(faellig)) / 864e5) : 0 });
     });
     return out.sort((a, b) => a.fertig - b.fertig || b.spaet - a.spaet);
   };
@@ -368,6 +369,12 @@
   };
   FZ.MOOD = { 1: "😣", 2: "😕", 3: "😐", 4: "🙂", 5: "😄" };
   FZ.MOOD_TXT = { 1: "mies", 2: "mäh", 3: "okay", 4: "gut", 5: "super" };
+  // Fortschrittspunkte: jede Erledigung in der Farbe der Person, die sie erledigt hat
+  FZ.punkteHtml = function (von, max) {
+    const f = { chris: "var(--chris)", lisa: "var(--lisa)" };
+    return '<span class="fz-dots" aria-label="' + von.length + " von " + max + (von.length ? ", erledigt von " + von.map((v) => FZ.NAMEN[v] || v).join(", ") : "") + '">' +
+      Array.from({ length: max }, (_, i) => i < von.length ? '<i class="on" style="background:' + (f[von[i]] || "var(--p-offen)") + ";border-color:" + (f[von[i]] || "var(--p-offen)") + '" title="' + (FZ.NAMEN[von[i]] || "") + '"></i>' : "<i></i>").join("") + "<em>" + von.length + "/" + max + "</em></span>";
+  };
   FZ.NAMEN = { chris: "Christian", lisa: "Lisa", ruby: "Ruby", elli: "Elli", offen: "offen" };
 
   /* ---------- Leiste unten ---------- */
